@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
+import { createClient } from "@/lib/supabase/server";
+import { checkLimit, incrementUsage } from "@/lib/usage";
 
 const client = new Anthropic();
 
@@ -13,6 +15,29 @@ const requestSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  // Auth check
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
+  }
+
+  // Usage limit check
+  const { allowed, used, limit } = await checkLimit(user.id, "optimisations");
+  if (!allowed) {
+    return NextResponse.json(
+      {
+        error: `You've used all ${limit} optimisations for this month. Upgrade your plan to continue.`,
+        code: "LIMIT_EXCEEDED",
+      },
+      { status: 402 }
+    );
+  }
+
+  // Validate input
   let body: unknown;
   try {
     body = await request.json();
@@ -69,7 +94,6 @@ Return only the JSON object, no markdown, no extra text.`;
     try {
       listing = JSON.parse(text);
     } catch {
-      // Claude sometimes wraps in markdown — strip it
       const match = text.match(/\{[\s\S]*\}/);
       if (!match) {
         return NextResponse.json(
@@ -87,7 +111,10 @@ Return only the JSON object, no markdown, no extra text.`;
       );
     }
 
-    return NextResponse.json(listing);
+    // Increment usage only after a successful response
+    await incrementUsage(user.id, "optimisations");
+
+    return NextResponse.json({ ...listing, used: used + 1, limit });
   } catch (err) {
     console.error("Optimise API error:", err);
     return NextResponse.json(

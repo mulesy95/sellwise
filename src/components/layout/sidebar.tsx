@@ -25,7 +25,17 @@ const navItems = [
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
-export function Sidebar({ userEmail }: { userEmail?: string }) {
+export function Sidebar({
+  userEmail,
+  plan = "free",
+  used = 0,
+  limit = 3,
+}: {
+  userEmail?: string;
+  plan?: string;
+  used?: number;
+  limit?: number | null;
+}) {
   const pathname = usePathname();
 
   return (
@@ -77,18 +87,30 @@ export function Sidebar({ userEmail }: { userEmail?: string }) {
       <div className="border-t border-sidebar-border p-3 space-y-2">
         <div className="rounded-md bg-sidebar-accent/50 p-3 text-xs">
           <div className="mb-1.5 flex items-center justify-between font-medium">
-            <span>Free plan</span>
-            <span className="text-muted-foreground">0 / 3 used</span>
+            <span className="capitalize">{plan} plan</span>
+            <span className="text-muted-foreground">
+              {limit === null ? `${used} used` : `${used} / ${limit} used`}
+            </span>
           </div>
-          <div className="h-1.5 rounded-full bg-sidebar-border">
-            <div className="h-full w-0 rounded-full bg-primary transition-all" />
-          </div>
-          <Link
-            href="/dashboard/settings"
-            className="mt-2 block text-center text-primary hover:underline"
-          >
-            Upgrade →
-          </Link>
+          {limit !== null && (
+            <div className="h-1.5 rounded-full bg-sidebar-border">
+              <div
+                className={cn(
+                  "h-full rounded-full transition-all",
+                  used >= limit ? "bg-destructive" : "bg-primary"
+                )}
+                style={{ width: `${Math.min((used / limit) * 100, 100)}%` }}
+              />
+            </div>
+          )}
+          {plan === "free" && (
+            <Link
+              href="/dashboard/settings"
+              className="mt-2 block text-center text-primary hover:underline"
+            >
+              Upgrade →
+            </Link>
+          )}
         </div>
 
         {/* User + sign out */}

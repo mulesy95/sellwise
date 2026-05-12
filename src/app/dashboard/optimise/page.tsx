@@ -56,6 +56,12 @@ export default function OptimisePage() {
 
       if (!res.ok) {
         const err = await res.json();
+        if (res.status === 402) {
+          toast.error(err.error, {
+            action: { label: "Upgrade", onClick: () => window.location.href = "/dashboard/settings" },
+          });
+          return;
+        }
         throw new Error(err.error ?? "Something went wrong");
       }
 
