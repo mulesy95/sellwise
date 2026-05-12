@@ -1,7 +1,7 @@
 import { BarChart3 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
-export const metadata = { title: "Audit — EtsyAI" };
+export const metadata = { title: "Audit — Sellwise" };
 
 export default function AuditPage() {
   return (

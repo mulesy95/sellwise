@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export const metadata = {
-  title: "Sign in — EtsyAI",
+  title: "Sign in — Sellwise",
 };
 
 export default function LoginPage() {
@@ -13,7 +13,7 @@ export default function LoginPage() {
     <Card className="border-border/50 bg-card">
       <CardHeader className="pb-2 text-center">
         <div className="mb-2 text-2xl font-bold tracking-tight">
-          Etsy<span className="text-primary">AI</span>
+          Sell<span className="text-primary">wise</span>
         </div>
         <p className="text-sm text-muted-foreground">
           Sign in to your account

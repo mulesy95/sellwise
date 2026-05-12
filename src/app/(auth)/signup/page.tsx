@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export const metadata = {
-  title: "Sign up — EtsyAI",
+  title: "Sign up — Sellwise",
 };
 
 export default function SignupPage() {
@@ -13,7 +13,7 @@ export default function SignupPage() {
     <Card className="border-border/50 bg-card">
       <CardHeader className="pb-2 text-center">
         <div className="mb-2 text-2xl font-bold tracking-tight">
-          Etsy<span className="text-primary">AI</span>
+          Sell<span className="text-primary">wise</span>
         </div>
         <p className="text-sm text-muted-foreground">
           Start with 3 free optimisations

@@ -1,7 +1,7 @@
 import { Eye } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
-export const metadata = { title: "Competitor — EtsyAI" };
+export const metadata = { title: "Competitor — Sellwise" };
 
 export default function CompetitorPage() {
   return (
@@ -12,7 +12,7 @@ export default function CompetitorPage() {
           Competitor Peek
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Paste any Etsy listing URL to extract their SEO strategy.
+          Paste any marketplace listing URL to extract their SEO strategy.
         </p>
       </div>
       <Card className="flex min-h-64 items-center justify-center border-border/30 border-dashed">

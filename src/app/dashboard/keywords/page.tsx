@@ -1,7 +1,7 @@
 import { Search } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
-export const metadata = { title: "Keywords — EtsyAI" };
+export const metadata = { title: "Keywords — Sellwise" };
 
 export default function KeywordsPage() {
   return (
@@ -12,7 +12,7 @@ export default function KeywordsPage() {
           Keyword Research
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Discover 15 Etsy-specific keywords with volume and competition scores.
+          Discover 15 marketplace keywords with volume and competition scores.
         </p>
       </div>
       <Card className="flex min-h-64 items-center justify-center border-border/30 border-dashed">

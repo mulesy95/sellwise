@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 export const metadata = {
-  title: "Dashboard — EtsyAI",
+  title: "Dashboard — Sellwise",
 };
 
 const stats = [
@@ -32,14 +32,14 @@ const quickActions = [
   },
   {
     label: "Research keywords",
-    description: "Find 15 Etsy-specific keywords with volume and competition.",
+    description: "Find 15 marketplace keywords with volume and competition.",
     href: "/dashboard/keywords",
     icon: Search,
     cta: "Find keywords",
   },
   {
     label: "Analyse a competitor",
-    description: "Paste any Etsy URL and extract their SEO strategy.",
+    description: "Paste any marketplace listing URL and extract their SEO strategy.",
     href: "/dashboard/competitor",
     icon: Eye,
     cta: "Analyse listing",

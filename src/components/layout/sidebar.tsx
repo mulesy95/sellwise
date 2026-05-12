@@ -59,7 +59,7 @@ export function Sidebar() {
           <Zap className="size-4" />
         </div>
         <span className="font-bold tracking-tight">
-          Etsy<span className="text-primary">AI</span>
+          Sell<span className="text-primary">wise</span>
         </span>
       </div>
 

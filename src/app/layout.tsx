@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "EtsyAI — AI SEO Optimiser for Etsy Sellers",
+  title: "Sellwise — AI SEO Optimiser for Marketplace Sellers",
   description:
     "Generate titles, tags, and descriptions that rank — in seconds.",
 };

@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 
-export const metadata = { title: "Settings — EtsyAI" };
+export const metadata = { title: "Settings — Sellwise" };
 
 const plans = [
   {
@@ -58,7 +58,7 @@ export default function SettingsPage() {
         <CardHeader>
           <CardTitle className="text-base">Subscription</CardTitle>
           <CardDescription className="text-xs">
-            Choose the plan that fits your Etsy shop.
+            Choose the plan that fits your shop.
           </CardDescription>
         </CardHeader>
         <CardContent>
