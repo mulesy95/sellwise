@@ -1,13 +1,19 @@
+import { createClient } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/layout/sidebar";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <div className="flex h-screen overflow-hidden">
-      <Sidebar />
+      <Sidebar userEmail={user?.email} />
       <main className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-4xl px-6 py-8">{children}</div>
       </main>

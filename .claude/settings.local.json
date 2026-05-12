@@ -13,7 +13,12 @@
       "Bash(cp \"\\(dashboard\\)/layout.tsx\" dashboard/layout.tsx)",
       "Bash(cp \"\\(dashboard\\)/page.tsx\" dashboard/page.tsx)",
       "Bash(cp \"\\(dashboard\\)/optimise/page.tsx\" dashboard/optimise/page.tsx)",
-      "Bash(cp \"\\(dashboard\\)/keywords/page.tsx\" dashboard/keywords/page.tsx)"
+      "Bash(cp \"\\(dashboard\\)/keywords/page.tsx\" dashboard/keywords/page.tsx)",
+      "Bash(gh --version)",
+      "Bash(winget install:*)",
+      "Bash(gh auth:*)",
+      "Bash(export PATH=\"/c/Program Files/GitHub CLI:$PATH\")",
+      "Bash(gh repo:*)"
     ]
   }
 }

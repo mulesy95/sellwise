@@ -10,45 +10,22 @@ import {
   Settings,
   LayoutDashboard,
   Zap,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { signOut } from "@/lib/supabase/actions";
 
 const navItems = [
-  {
-    label: "Dashboard",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    label: "Optimiser",
-    href: "/dashboard/optimise",
-    icon: Sparkles,
-    badge: "Core",
-  },
-  {
-    label: "Keywords",
-    href: "/dashboard/keywords",
-    icon: Search,
-  },
-  {
-    label: "Competitor",
-    href: "/dashboard/competitor",
-    icon: Eye,
-  },
-  {
-    label: "Audit",
-    href: "/dashboard/audit",
-    icon: BarChart3,
-  },
-  {
-    label: "Settings",
-    href: "/dashboard/settings",
-    icon: Settings,
-  },
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Optimiser", href: "/dashboard/optimise", icon: Sparkles, badge: "Core" },
+  { label: "Keywords", href: "/dashboard/keywords", icon: Search },
+  { label: "Competitor", href: "/dashboard/competitor", icon: Eye },
+  { label: "Audit", href: "/dashboard/audit", icon: BarChart3 },
+  { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
-export function Sidebar() {
+export function Sidebar({ userEmail }: { userEmail?: string }) {
   const pathname = usePathname();
 
   return (
@@ -97,7 +74,7 @@ export function Sidebar() {
       </nav>
 
       {/* Usage footer */}
-      <div className="border-t border-sidebar-border p-3">
+      <div className="border-t border-sidebar-border p-3 space-y-2">
         <div className="rounded-md bg-sidebar-accent/50 p-3 text-xs">
           <div className="mb-1.5 flex items-center justify-between font-medium">
             <span>Free plan</span>
@@ -112,6 +89,22 @@ export function Sidebar() {
           >
             Upgrade →
           </Link>
+        </div>
+
+        {/* User + sign out */}
+        <div className="flex items-center justify-between gap-2 px-1">
+          <span className="truncate text-xs text-muted-foreground">
+            {userEmail ?? "—"}
+          </span>
+          <form action={signOut}>
+            <button
+              type="submit"
+              title="Sign out"
+              className="flex size-6 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground"
+            >
+              <LogOut className="size-3.5" />
+            </button>
+          </form>
         </div>
       </div>
     </aside>
