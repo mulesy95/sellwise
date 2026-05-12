@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm show:*)",
+      "Bash(node -e \"const v=JSON.parse\\(require\\('fs'\\).readFileSync\\('/dev/stdin','utf8'\\)\\); console.log\\(v.filter\\(x=>x.startsWith\\('16'\\)\\).slice\\(-5\\).join\\('\\\\n'\\)\\)\")",
+      "Bash(rm:*)",
+      "Bash(npm install:*)",
+      "Bash(npx shadcn@latest init --yes --defaults)",
+      "Bash(npx shadcn@latest add input label card tabs badge progress toast separator --yes)",
+      "Bash(npx shadcn@latest add input label card tabs badge progress sonner separator --yes)",
+      "Bash(npm run:*)",
+      "Bash(mkdir -p dashboard/optimise dashboard/keywords dashboard/competitor dashboard/audit dashboard/settings)",
+      "Bash(cp \"\\(dashboard\\)/layout.tsx\" dashboard/layout.tsx)",
+      "Bash(cp \"\\(dashboard\\)/page.tsx\" dashboard/page.tsx)",
+      "Bash(cp \"\\(dashboard\\)/optimise/page.tsx\" dashboard/optimise/page.tsx)",
+      "Bash(cp \"\\(dashboard\\)/keywords/page.tsx\" dashboard/keywords/page.tsx)"
+    ]
+  }
+}

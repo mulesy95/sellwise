@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EtsyAI — MVP Spec</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0b;
+  --surface:#111113;
+  --surface2:#18181b;
+  --border:#2a2a2e;
+  --border2:#3a3a3f;
+  --text:#f0ede8;
+  --muted:#888882;
+  --subtle:#444440;
+  --accent:#f0873b;
+  --accent2:#7b6ef6;
+  --green:#4ade80;
+  --teal:#2dd4bf;
+  --red:#f87171;
+  --r:10px;
+}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.6;min-height:100vh}
+.container{max-width:900px;margin:0 auto;padding:60px 24px 120px}
+
+/* Header */
+.hero{margin-bottom:64px;padding-bottom:48px;border-bottom:1px solid var(--border)}
+.hero-eyebrow{font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);letter-spacing:.12em;text-transform:uppercase;margin-bottom:20px}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(42px,7vw,72px);font-weight:800;line-height:1;letter-spacing:-.03em;margin-bottom:16px}
+.hero h1 span{color:var(--accent)}
+.hero-sub{font-size:17px;color:var(--muted);max-width:540px;line-height:1.7;margin-bottom:32px}
+.hero-tags{display:flex;flex-wrap:wrap;gap:8px}
+.tag{font-family:'DM Mono',monospace;font-size:11px;padding:4px 10px;border-radius:4px;border:1px solid var(--border2);color:var(--muted)}
+.tag.accent{border-color:var(--accent);color:var(--accent)}
+.tag.purple{border-color:var(--accent2);color:var(--accent2)}
+
+/* Section headers */
+.section{margin-bottom:56px}
+.section-label{font-family:'DM Mono',monospace;font-size:11px;color:var(--subtle);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.section h2{font-family:'Syne',sans-serif;font-size:26px;font-weight:700;margin-bottom:20px}
+
+/* Feature cards */
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.feature-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;transition:border-color .2s}
+.feature-card:hover{border-color:var(--border2)}
+.feature-card.primary{border-color:var(--accent);background:#1a1209}
+.feature-num{font-family:'DM Mono',monospace;font-size:11px;color:var(--subtle);margin-bottom:10px}
+.feature-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:8px}
+.feature-desc{font-size:13px;color:var(--muted);line-height:1.6}
+.feature-badge{display:inline-block;font-family:'DM Mono',monospace;font-size:10px;padding:2px 8px;border-radius:3px;background:#1e1209;color:var(--accent);border:1px solid var(--accent);margin-top:10px}
+
+/* Pricing */
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.plan-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px}
+.plan-card.featured{border-color:var(--accent2);background:#13111f}
+.plan-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;color:var(--muted)}
+.plan-price{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;margin-bottom:4px}
+.plan-price span{font-size:14px;font-weight:400;color:var(--muted)}
+.plan-limit{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:12px}
+.plan-features{list-style:none;font-size:13px;color:var(--muted)}
+.plan-features li{padding:3px 0;display:flex;align-items:center;gap:6px}
+.plan-features li::before{content:'—';color:var(--subtle)}
+.plan-features li.on{color:var(--text)}
+.plan-features li.on::before{content:'✓';color:var(--green)}
+
+/* Stack table */
+.stack-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px}
+.stack-row{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.stack-layer{font-family:'DM Mono',monospace;font-size:11px;color:var(--subtle);min-width:80px}
+.stack-choice{font-weight:500;font-size:14px}
+.stack-reason{font-size:12px;color:var(--muted);text-align:right}
+
+/* Timeline */
+.timeline{position:relative;padding-left:28px}
+.timeline::before{content:'';position:absolute;left:8px;top:8px;bottom:8px;width:1px;background:var(--border)}
+.phase{position:relative;margin-bottom:28px}
+.phase::before{content:'';position:absolute;left:-24px;top:8px;width:10px;height:10px;border-radius:50%;background:var(--surface2);border:2px solid var(--border2)}
+.phase.active::before{background:var(--accent);border-color:var(--accent)}
+.phase-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.phase-week{font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);min-width:60px}
+.phase-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700}
+.phase-tasks{display:flex;flex-direction:column;gap:4px}
+.task{font-size:13px;color:var(--muted);display:flex;align-items:flex-start;gap:8px}
+.task::before{content:'□';color:var(--subtle);flex-shrink:0;margin-top:1px}
+
+/* Code block */
+.code-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin:12px 0}
+.code-header{padding:10px 16px;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:8px}
+.code-dot{width:8px;height:8px;border-radius:50%}
+.code-body{padding:16px;font-family:'DM Mono',monospace;font-size:12px;color:#a8a29e;line-height:1.7;overflow-x:auto}
+.code-body .kw{color:var(--accent2)}
+.code-body .str{color:var(--teal)}
+.code-body .cmt{color:var(--subtle)}
+.code-body .key{color:var(--accent)}
+
+/* Metrics */
+.metrics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+.metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px}
+.metric-label{font-family:'DM Mono',monospace;font-size:11px;color:var(--subtle);margin-bottom:6px}
+.metric-value{font-family:'Syne',sans-serif;font-size:26px;font-weight:800}
+.metric-sub{font-size:12px;color:var(--muted);margin-top:2px}
+
+/* MRR calculator */
+.calc-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px}
+.calc-row{display:flex;align-items:center;gap:16px;margin-bottom:16px}
+.calc-row label{font-size:13px;color:var(--muted);min-width:100px}
+.calc-row input[type=range]{flex:1;accent-color:var(--accent)}
+.calc-row span{font-family:'DM Mono',monospace;font-size:13px;min-width:32px;text-align:right}
+.mrr-result{font-family:'Syne',sans-serif;font-size:42px;font-weight:800;color:var(--accent);margin-top:8px}
+.mrr-breakdown{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
+.mrr-tier{background:var(--surface2);border-radius:6px;padding:10px;text-align:center}
+.mrr-tier-name{font-family:'DM Mono',monospace;font-size:10px;color:var(--subtle);margin-bottom:4px}
+.mrr-tier-val{font-size:15px;font-weight:500}
+
+/* Competitor table */
+.comp-table{width:100%;border-collapse:collapse;font-size:13px}
+.comp-table th{text-align:left;padding:8px 12px;font-family:'DM Mono',monospace;font-size:10px;color:var(--subtle);text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--border)}
+.comp-table td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--muted)}
+.comp-table td:first-child{font-weight:500;color:var(--text)}
+.comp-table tr:last-child td{border-bottom:none}
+.comp-table .ours{color:var(--green)}
+
+/* Risk tags */
+.risk-grid{display:flex;flex-wrap:wrap;gap:8px}
+.risk{padding:6px 12px;border-radius:6px;font-size:12px;border:1px solid}
+.risk.med{border-color:#854d0e;color:#fbbf24;background:#1c1200}
+.risk.low{border-color:#166534;color:var(--green);background:#0a1f0d}
+
+footer{margin-top:80px;padding-top:24px;border-top:1px solid var(--border);font-family:'DM Mono',monospace;font-size:11px;color:var(--subtle);display:flex;justify-content:space-between;flex-wrap:gap}
+
+@media(max-width:600px){
+  .hero h1{font-size:42px}
+  .pricing-grid,.features-grid{grid-template-columns:1fr}
+  .mrr-breakdown{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Hero -->
+  <header class="hero">
+    <div class="hero-eyebrow">MVP Spec · v1.0 · May 2026</div>
+    <h1>Etsy<span>AI</span></h1>
+    <p class="hero-sub">AI-powered SEO optimiser for Etsy sellers. Generate titles, tags, and descriptions that rank — in seconds.</p>
+    <div class="hero-tags">
+      <span class="tag accent">Next.js 14</span>
+      <span class="tag accent">Claude API</span>
+      <span class="tag accent">Supabase</span>
+      <span class="tag accent">Stripe</span>
+      <span class="tag purple">6-week build</span>
+      <span class="tag purple">$0 → $5k MRR target</span>
+    </div>
+  </header>
+
+  <!-- Key Metrics -->
+  <section class="section">
+    <div class="section-label">At a glance</div>
+    <div class="metrics-grid">
+      <div class="metric">
+        <div class="metric-label">Target market</div>
+        <div class="metric-value" style="font-size:20px;margin-top:4px">7M+</div>
+        <div class="metric-sub">Active Etsy sellers</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Avg ARPU</div>
+        <div class="metric-value">$35</div>
+        <div class="metric-sub">Blended across tiers</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">CAC estimate</div>
+        <div class="metric-value">$18</div>
+        <div class="metric-sub">Via Reddit + FB groups</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Payback period</div>
+        <div class="metric-value">0.5mo</div>
+        <div class="metric-sub">ARPU ÷ CAC</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Build time</div>
+        <div class="metric-value">6wks</div>
+        <div class="metric-sub">Solo dev with Claude Code</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Time to MRR</div>
+        <div class="metric-value">4–6wks</div>
+        <div class="metric-sub">From launch to first paying users</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MRR Calculator -->
+  <section class="section">
+    <div class="section-label">MRR model</div>
+    <h2>Revenue projector</h2>
+    <div class="calc-wrap">
+      <div class="calc-row">
+        <label>Customers</label>
+        <input type="range" id="cust" min="10" max="500" value="100" step="5" oninput="calc()">
+        <span id="cust-out">100</span>
+      </div>
+      <div class="calc-row">
+        <label>Avg ARPU</label>
+        <input type="range" id="arpu" min="19" max="79" value="35" step="1" oninput="calc()">
+        <span>$<span id="arpu-out">35</span></span>
+      </div>
+      <div class="calc-row">
+        <label>Churn / mo</label>
+        <input type="range" id="churn" min="1" max="15" value="5" step="1" oninput="calc()">
+        <span id="churn-out">5</span>%
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:16px;margin-top:4px">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">Projected monthly recurring revenue</div>
+        <div class="mrr-result" id="mrr-out">$3,500</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px">Annual run rate: <span id="arr-out" style="color:var(--text)">$42,000</span></div>
+      </div>
+      <div class="mrr-breakdown">
+        <div class="mrr-tier">
+          <div class="mrr-tier-name">Starter ($19)</div>
+          <div class="mrr-tier-val" id="t1-out">$760</div>
+        </div>
+        <div class="mrr-tier">
+          <div class="mrr-tier-name">Growth ($39)</div>
+          <div class="mrr-tier-val" id="t2-out">$1,560</div>
+        </div>
+        <div class="mrr-tier">
+          <div class="mrr-tier-name">Studio ($79)</div>
+          <div class="mrr-tier-val" id="t3-out">$790</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="section">
+    <div class="section-label">Product</div>
+    <h2>MVP feature set</h2>
+    <div class="features-grid">
+      <div class="feature-card primary">
+        <div class="feature-num">01</div>
+        <div class="feature-title">Listing optimiser</div>
+        <div class="feature-desc">Paste product details → get an optimised title (140 chars), 13 tags, and SEO-first description instantly.</div>
+        <span class="feature-badge">Core feature</span>
+      </div>
+      <div class="feature-card">
+        <div class="feature-num">02</div>
+        <div class="feature-title">Keyword research</div>
+        <div class="feature-desc">Seed keyword → 15 related Etsy search terms with volume tiers, competition scores, and trend direction.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-num">03</div>
+        <div class="feature-title">Competitor peek</div>
+        <div class="feature-desc">Paste any Etsy listing URL → extract their SEO strategy + generate a better version automatically.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-num">04</div>
+        <div class="feature-title">Listing audit</div>
+        <div class="feature-desc">Score your existing listing 0–100 with a breakdown by title, tags, and description — plus specific fixes.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-num">05</div>
+        <div class="feature-title">Dashboard</div>
+        <div class="feature-desc">Usage tracking, saved listing history, subscription management, and a quick stats overview.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section class="section">
+    <div class="section-label">Monetisation</div>
+    <h2>Pricing tiers</h2>
+    <div class="pricing-grid">
+      <div class="plan-card">
+        <div class="plan-name">Free</div>
+        <div class="plan-price">$0<span>/mo</span></div>
+        <div class="plan-limit">3 optimisations / mo</div>
+        <ul class="plan-features">
+          <li class="on">Listing optimiser</li>
+          <li>Keyword research</li>
+          <li>Competitor analysis</li>
+          <li>Multi-shop</li>
+        </ul>
+      </div>
+      <div class="plan-card">
+        <div class="plan-name">Starter</div>
+        <div class="plan-price">$19<span>/mo</span></div>
+        <div class="plan-limit">50 optimisations / mo</div>
+        <ul class="plan-features">
+          <li class="on">Listing optimiser</li>
+          <li class="on">Keyword research</li>
+          <li class="on">Competitor analysis</li>
+          <li>Multi-shop</li>
+        </ul>
+      </div>
+      <div class="plan-card featured">
+        <div class="plan-name" style="color:var(--accent2)">Growth ★</div>
+        <div class="plan-price">$39<span>/mo</span></div>
+        <div class="plan-limit">Unlimited optimisations</div>
+        <ul class="plan-features">
+          <li class="on">Listing optimiser</li>
+          <li class="on">Keyword research</li>
+          <li class="on">Competitor analysis</li>
+          <li class="on">Analytics dashboard</li>
+        </ul>
+      </div>
+      <div class="plan-card">
+        <div class="plan-name">Studio</div>
+        <div class="plan-price">$79<span>/mo</span></div>
+        <div class="plan-limit">Unlimited + multi-shop</div>
+        <ul class="plan-features">
+          <li class="on">Everything in Growth</li>
+          <li class="on">Multi-shop management</li>
+          <li class="on">API access</li>
+          <li class="on">White-label (future)</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tech Stack -->
+  <section class="section">
+    <div class="section-label">Engineering</div>
+    <h2>Tech stack</h2>
+    <div class="stack-grid">
+      <div class="stack-row"><span class="stack-layer">Framework</span><span class="stack-choice">Next.js 14</span><span class="stack-reason">App Router, full-stack</span></div>
+      <div class="stack-row"><span class="stack-layer">Language</span><span class="stack-choice">TypeScript</span><span class="stack-reason">Type safety</span></div>
+      <div class="stack-row"><span class="stack-layer">Styling</span><span class="stack-choice">Tailwind + shadcn</span><span class="stack-reason">Speed + accessibility</span></div>
+      <div class="stack-row"><span class="stack-layer">Database</span><span class="stack-choice">Supabase</span><span class="stack-reason">Auth + DB + free tier</span></div>
+      <div class="stack-row"><span class="stack-layer">Payments</span><span class="stack-choice">Stripe</span><span class="stack-reason">Subscriptions + portal</span></div>
+      <div class="stack-row"><span class="stack-layer">AI</span><span class="stack-choice">Claude claude-sonnet-4-20250514</span><span class="stack-reason">Best copy quality</span></div>
+      <div class="stack-row"><span class="stack-layer">Deploy</span><span class="stack-choice">Vercel</span><span class="stack-reason">Zero-config Next.js</span></div>
+      <div class="stack-row"><span class="stack-layer">Email</span><span class="stack-choice">Resend</span><span class="stack-reason">Simple + reliable</span></div>
+      <div class="stack-row"><span class="stack-layer">Analytics</span><span class="stack-choice">PostHog</span><span class="stack-reason">Product analytics</span></div>
+    </div>
+  </section>
+
+  <!-- App structure -->
+  <section class="section">
+    <div class="section-label">Architecture</div>
+    <h2>Project structure</h2>
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-dot" style="background:#f87171"></div>
+        <div class="code-dot" style="background:#fbbf24"></div>
+        <div class="code-dot" style="background:#4ade80"></div>
+        C:\Dev\Projects\etsyai
+      </div>
+      <div class="code-body"><span class="cmt">etsyai/
+├── src/
+│   ├── app/
+│   │   ├── (auth)/
+│   │   │   ├── login/
+│   │   │   └── signup/
+│   │   ├── (dashboard)/
+│   │   │   ├── page.tsx         </span><span class="cmt">← dashboard home</span>
+<span class="cmt">│   │   │   ├── optimise/
+│   │   │   ├── keywords/
+│   │   │   ├── competitor/
+│   │   │   ├── audit/
+│   │   │   └── settings/
+│   │   └── api/
+│   │       ├── optimise/        </span><span class="cmt">← Claude API calls (server-side)</span>
+<span class="cmt">│   │       ├── keywords/
+│   │       ├── competitor/
+│   │       ├── audit/
+│   │       └── stripe/webhook/
+│   ├── components/
+│   │   ├── ui/                  </span><span class="cmt">← shadcn components</span>
+<span class="cmt">│   │   ├── optimiser/
+│   │   ├── keywords/
+│   │   └── layout/
+│   ├── lib/
+│   │   ├── claude.ts            </span><span class="cmt">← AI service</span>
+<span class="cmt">│   │   ├── supabase/
+│   │   └── stripe.ts
+│   └── types/
+├── docs/
+│   ├── claude.md                </span><span class="cmt">← this knowledge base</span>
+<span class="cmt">│   └── schema.sql
+└── shared/
+    └── types.ts</span></div>
+    </div>
+  </section>
+
+  <!-- Build Timeline -->
+  <section class="section">
+    <div class="section-label">Roadmap</div>
+    <h2>6-week build plan</h2>
+    <div class="timeline">
+      <div class="phase active">
+        <div class="phase-header">
+          <span class="phase-week">Week 1</span>
+          <span class="phase-title">Foundation</span>
+        </div>
+        <div class="phase-tasks">
+          <div class="task">Next.js scaffold + TypeScript + Tailwind + shadcn</div>
+          <div class="task">Supabase project — auth, schema migration, RLS</div>
+          <div class="task">Basic layout: sidebar nav, dashboard shell</div>
+          <div class="task">Stripe integration + webhook handler</div>
+          <div class="task">Deploy to Vercel (staging env)</div>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-header">
+          <span class="phase-week">Week 2–3</span>
+          <span class="phase-title">Core AI features</span>
+        </div>
+        <div class="phase-tasks">
+          <div class="task">Listing Optimiser — UI + API route + Claude prompt tuning</div>
+          <div class="task">Keyword Research — UI + API route</div>
+          <div class="task">Competitor Peek — URL scraper + analysis</div>
+          <div class="task">Listing Audit — scoring logic + display</div>
+          <div class="task">Usage tracking middleware</div>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-header">
+          <span class="phase-week">Week 3–4</span>
+          <span class="phase-title">Monetisation</span>
+        </div>
+        <div class="phase-tasks">
+          <div class="task">Pricing page + plan comparison</div>
+          <div class="task">Stripe checkout + customer portal integration</div>
+          <div class="task">Plan enforcement — usage limits + upgrade prompts</div>
+          <div class="task">7-day free trial flow (no card required)</div>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-header">
+          <span class="phase-week">Week 5–6</span>
+          <span class="phase-title">Polish + launch</span>
+        </div>
+        <div class="phase-tasks">
+          <div class="task">Marketing landing page</div>
+          <div class="task">Email sequences — welcome, trial ending, upgrade nudge</div>
+          <div class="task">Onboarding flow (first listing walkthrough)</div>
+          <div class="task">Error / loading / empty states</div>
+          <div class="task">Production deploy + launch r/Etsy, r/EtsySellers</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Competitor landscape -->
+  <section class="section">
+    <div class="section-label">Competitive landscape</div>
+    <h2>Why we win</h2>
+    <table class="comp-table">
+      <thead>
+        <tr>
+          <th>Tool</th>
+          <th>Weakness</th>
+          <th>Our edge</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Erank</td>
+          <td>Outdated UI, no AI generation</td>
+          <td class="ours">AI-native, generative not just analytical</td>
+        </tr>
+        <tr>
+          <td>Marmalead</td>
+          <td>$19+/mo, no AI, data feels old</td>
+          <td class="ours">Better value, faster, AI-first</td>
+        </tr>
+        <tr>
+          <td>Sale Samurai</td>
+          <td>Chrome extension only, limited</td>
+          <td class="ours">Full web app, better UX, mobile-friendly</td>
+        </tr>
+        <tr>
+          <td>ChatGPT direct</td>
+          <td>No Etsy-specific prompts, no structure</td>
+          <td class="ours">Purpose-built prompts, structured JSON output, Etsy-tuned</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Risks -->
+  <section class="section">
+    <div class="section-label">Risk register</div>
+    <h2>Known risks</h2>
+    <div class="risk-grid">
+      <span class="risk med">Etsy API policy changes</span>
+      <span class="risk med">Seasonal churn Q1</span>
+      <span class="risk low">Low build complexity</span>
+      <span class="risk low">Validated market demand</span>
+      <span class="risk med">Etsy native AI improvements</span>
+      <span class="risk low">Low CAC via communities</span>
+    </div>
+  </section>
+
+  <footer>
+    <span>EtsyAI · MVP Spec v1.0</span>
+    <span>C:\Dev\Projects\etsyai</span>
+    <span>Generated 12 May 2026</span>
+  </footer>
+
+</div>
+
+<script>
+function fmt(n){
+  if(n>=1000) return '$'+(n/1000).toFixed(1).replace(/\.0$/,'')+'k';
+  return '$'+n;
+}
+function calc(){
+  const c=parseInt(document.getElementById('cust').value);
+  const a=parseInt(document.getElementById('arpu').value);
+  const ch=parseInt(document.getElementById('churn').value);
+  document.getElementById('cust-out').textContent=c;
+  document.getElementById('arpu-out').textContent=a;
+  document.getElementById('churn-out').textContent=ch;
+  const mrr=Math.round(c*a*(1-ch/100));
+  document.getElementById('mrr-out').textContent=fmt(mrr);
+  document.getElementById('arr-out').textContent=fmt(mrr*12);
+  const t1=Math.round(c*0.4*19);
+  const t2=Math.round(c*0.45*39);
+  const t3=Math.round(c*0.15*79);
+  document.getElementById('t1-out').textContent=fmt(t1);
+  document.getElementById('t2-out').textContent=fmt(t2);
+  document.getElementById('t3-out').textContent=fmt(t3);
+}
+calc();
+</script>
+</body>
+</html>
