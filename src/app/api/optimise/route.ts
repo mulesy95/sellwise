@@ -46,15 +46,18 @@ Return ONLY a valid JSON object with exactly these fields:
 }
 
 Rules:
-- Title: 100–140 chars, natural-sounding, primary keyword first
+- Title: 100–140 chars, must read as a natural phrase a human would write, primary keyword first. Do NOT string keywords together with commas. Use connective words (for, with, and, in) to make it flow. Example of bad title: "Handmade Mug, Ceramic Cup, Coffee Mug, Pottery Gift, Stoneware". Example of good title: "Handmade Ceramic Coffee Mug for Coffee Lovers, Hand Thrown Stoneware Cup with Minimalist Design"
 - Tags: exactly 13, no repeated words across tags, mix short and long-tail
 - Description: conversational, SEO-rich, no hype words like "amazing" or "stunning"
+- NEVER use em dashes (—), en dashes (–), ellipses (…), or excessive commas — these read as AI-generated
+- Write like a real shop owner wrote it: short sentences, plain punctuation (commas, full stops, exclamation marks only)
+- No buzzwords: unique, stunning, beautiful, perfect, simply, seamlessly, elevate, enhance, delve
 
 Return only the JSON object, no markdown, no extra text.`;
 
   try {
     const message = await client.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-sonnet-4-6",
       max_tokens: 1024,
       messages: [{ role: "user", content: prompt }],
     });

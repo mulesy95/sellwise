@@ -181,7 +181,7 @@ export default function OptimisePage() {
               <CardContent className="text-center">
                 <div className="mx-auto mb-3 size-8 animate-spin rounded-full border-2 border-primary/20 border-t-primary" />
                 <p className="text-sm text-muted-foreground">
-                  Claude is crafting your listing…
+                  Generating your listing…
                 </p>
               </CardContent>
             </Card>

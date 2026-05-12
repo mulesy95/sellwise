@@ -24,7 +24,12 @@
       "Bash(scoop install:*)",
       "Bash(powershell -Command \"winget search supabase\")",
       "Bash(powershell:*)",
-      "Bash(supabase migration:*)"
+      "Bash(supabase migration:*)",
+      "Bash(supabase db:*)",
+      "Bash(mkdir -p src/types)",
+      "Bash(supabase gen:*)",
+      "Bash(supabase status:*)",
+      "Bash(supabase projects:*)"
     ]
   }
 }
