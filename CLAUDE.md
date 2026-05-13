@@ -111,12 +111,12 @@ interface ShopifyOutput {
 
 ## Monetisation
 
-| Plan | Price | Limit | Target user |
-|------|-------|-------|-------------|
-| Free | $0 | 3 optimisations/mo | Trial |
-| Starter | $19/mo | 50 optimisations/mo | Part-time sellers |
-| Growth | $39/mo | Unlimited + analytics | Full-time sellers |
-| Studio | $79/mo | Unlimited + multi-shop + all platforms | Power users / agencies |
+| Plan | Price | Features | Target user |
+|------|-------|----------|-------------|
+| Free | $0 | 1 optimisation/mo (optimiser only) | Try before buying |
+| Starter | $19/mo | 50 optimisations/mo + all features (keywords, competitor, audit) | Part-time sellers |
+| Growth | $39/mo | Unlimited + all features + connect 1 shop (read/audit) | Full-time sellers |
+| Studio | $79/mo | Unlimited + unlimited shops + push-back to platforms + multi-platform | Power users / agencies |
 
 - Stripe Billing, monthly/annual toggle (annual = 2 months free)
 - 7-day free trial of Growth tier, no card required
@@ -306,9 +306,11 @@ Claude Code should update this file at the end of every session.
 - [x] Listing Audit page + /api/audit route — 0-100 score with title/tags/description breakdown
 - [x] Usage tracking (checkLimit + incrementUsage, separate counters per type)
 - [x] Upgrade modal component (reusable, triggered on 402 across all features)
+- [x] Feature gating — keywords/competitor/audit locked behind Starter+; free tier gets optimiser only (1 use/mo)
+- [x] FeatureGate server component — free users see locked gate with upgrade CTA, no API call wasted
 
 ### Phase 3 — Monetisation
-- [ ] Stripe products + prices created in dashboard (manual — add keys to .env.local)
+- [x] Stripe products + prices created in Stripe sandbox + price IDs in .env.local
 - [x] /api/stripe/webhook (checkout.session.completed, subscription.updated, subscription.deleted)
 - [x] /api/stripe/create-checkout (accepts plan + billing period, resolves price ID server-side)
 - [x] /api/stripe/portal
@@ -332,6 +334,56 @@ Claude Code should update this file at the end of every session.
 - [ ] ASIN URL competitor scraper
 - [ ] FBA fee / profitability calculator
 - [ ] Pricing page updated
+
+### Phase 6 — Store API Integration (Studio flagship)
+The goal: sellers connect their shop once and SellWise reads all their live listings, runs bulk audits, and can push optimised content back directly. No more copy-paste.
+
+**Etsy OAuth API**
+- [ ] OAuth 2.0 flow — connect Etsy shop (`/api/etsy/connect`, callback, token storage in `shops` table)
+- [ ] Read all active listings via Etsy API (`GET /v3/application/shops/{shopId}/listings/active`)
+- [ ] Bulk audit dashboard — paginated table of every listing with live SEO score badge
+- [ ] "Fix this" action — open optimiser pre-filled with the listing's current content
+- [ ] Push optimised content back via Etsy API (`PATCH /v3/application/listings/{listingId}`) — Studio only
+
+**Amazon SP-API** (Phase 5 prerequisite)
+- [ ] SP-API OAuth via Login with Amazon (LWA) — connect seller account
+- [ ] Read ASIN catalogue + listing content
+- [ ] Bulk audit across all ASINs
+- [ ] Push updated listing content back — Studio only
+
+**Shopify App** (Phase 3 prerequisite)
+- [ ] Shopify OAuth + custom app install flow
+- [ ] Read all products via Admin API
+- [ ] Push updated meta title / meta description / product copy — Studio only
+
+**Tiering**
+- Growth: connect 1 shop, read listings, bulk audit (view only)
+- Studio: connect unlimited shops, push updates back to the platform
+
+**Kickoff prompt for this phase:**
+```
+Read CLAUDE.md for full project context.
+
+Build Phase 6 — Etsy store integration:
+
+1. OAuth connect flow
+   - GET /api/etsy/connect — redirect to Etsy OAuth with scope listings_r listings_w
+   - GET /api/etsy/callback — exchange code for tokens, store in shops table
+   - "Connect your Etsy shop" button in /settings
+
+2. Listings dashboard (/dashboard/shop)
+   - Fetch all active listings for connected shop (paginated)
+   - Table: listing title, thumbnail, price, SEO score badge (audit each listing lazily)
+   - "Optimise" button per row — opens optimiser pre-filled
+   - Bulk audit: "Audit all" queues background jobs, updates scores
+
+3. Push-back (Studio only)
+   - "Apply" button on optimised result → PATCH listing on Etsy
+   - Feature gate: Studio plan only, show lock for Growth users
+
+Etsy API docs: https://developers.etsy.com/documentation/
+Store tokens in shops table: { user_id, platform, shop_id, shop_name, access_token, refresh_token, expires_at }
+```
 
 ---
 
@@ -610,3 +662,5 @@ Update Build Progress in docs/claude.md throughout. Commit to GitHub.
 | 2026-05-13 | claude.md rebuilt as live spec with all week kickoff prompts |
 | 2026-05-13 | Phase 2 complete — Keyword Research, Competitor Peek, Listing Audit + reusable upgrade modal |
 | 2026-05-13 | Phase 3 complete — Stripe checkout/portal/webhook, pricing page, 7-day trial, settings billing section |
+| 2026-05-13 | Freemium strategy locked in — feature gating on keywords/competitor/audit (Starter+), free limit lowered to 1, FeatureGate server component added |
+| 2026-05-13 | Phase 6 planned — Etsy/Amazon/Shopify store API integration (Growth: read+audit, Studio: push back) |

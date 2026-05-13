@@ -3,7 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import * as cheerio from "cheerio";
 import { createClient } from "@/lib/supabase/server";
-import { checkLimit, incrementUsage } from "@/lib/usage";
+import { getUsageData, incrementUsage } from "@/lib/usage";
 
 const client = new Anthropic();
 
@@ -82,13 +82,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
   }
 
-  const { allowed, used, limit } = await checkLimit(user.id, "competitor");
-  if (!allowed) {
+  const usageData = await getUsageData(user.id);
+  if (usageData.effectivePlan === "free") {
     return NextResponse.json(
-      {
-        error: `You've used all ${limit} competitor analyses for this month. Upgrade your plan to continue.`,
-        code: "LIMIT_EXCEEDED",
-      },
+      { error: "Competitor analysis is available on paid plans.", code: "FEATURE_GATED" },
+      { status: 402 }
+    );
+  }
+  const used = usageData.competitor;
+  const limit = usageData.limit;
+  if (limit !== null && used >= limit) {
+    return NextResponse.json(
+      { error: `You've used all ${limit} competitor analyses for this month. Upgrade your plan to continue.`, code: "LIMIT_EXCEEDED" },
       { status: 402 }
     );
   }

@@ -25,7 +25,7 @@ export default async function DashboardLayout({
           userEmail={user?.email}
           plan={usage?.plan ?? "free"}
           used={usage?.optimisations ?? 0}
-          limit={usage?.limit ?? 3}
+          limit={usage ? usage.limit : 3}
           inTrial={usage?.inTrial ?? false}
         />
         <main className="flex-1 overflow-y-auto">
