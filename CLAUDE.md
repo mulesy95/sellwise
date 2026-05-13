@@ -297,7 +297,7 @@ Claude Code should update this file at the end of every session.
 - [x] Supabase project created + schema migrated
 - [x] Auth working (email/password sign-in/sign-up/sign-out, route protection)
 - [x] Dashboard shell + sidebar nav with usage bar
-- [ ] Deployed to Vercel (staging)
+- [x] Deployed to Vercel (staging)
 
 ### Phase 2 — Core AI Features
 - [x] Listing Optimiser page + /api/optimise route
@@ -320,7 +320,7 @@ Claude Code should update this file at the end of every session.
 - [x] "Manage billing" in /settings — real plan/usage data + Stripe portal button
 
 ### Phase 4 — Polish + Launch
-- [ ] Marketing landing page
+- [x] Marketing landing page
 - [ ] Onboarding flow (3-step post-signup)
 - [ ] Email sequences via Resend (welcome, trial expiry, first optimisation)
 - [ ] Empty / error / loading states throughout
