@@ -29,7 +29,16 @@
       "Bash(mkdir -p src/types)",
       "Bash(supabase gen:*)",
       "Bash(supabase status:*)",
-      "Bash(supabase projects:*)"
+      "Bash(supabase projects:*)",
+      "Bash(npx supabase *)",
+      "Bash(node *)",
+      "Bash(npx tsc *)",
+      "Bash(taskkill /PID 21012 /F)",
+      "Bash(taskkill /F /IM node.exe)",
+      "PowerShell(Stop-Process *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/dashboard/keywords)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(git add *)"
     ]
   }
 }

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Sparkles, Copy, Check, RotateCcw } from "lucide-react";
+import { UpgradeModal } from "@/components/upgrade-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,6 +28,7 @@ export default function OptimisePage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<OptimisedListing | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -57,9 +59,7 @@ export default function OptimisePage() {
       if (!res.ok) {
         const err = await res.json();
         if (res.status === 402) {
-          toast.error(err.error, {
-            action: { label: "Upgrade", onClick: () => window.location.href = "/dashboard/settings" },
-          });
+          setUpgradeOpen(true);
           return;
         }
         throw new Error(err.error ?? "Something went wrong");
@@ -67,6 +67,7 @@ export default function OptimisePage() {
 
       const json = await res.json();
       setResult(json);
+      window.dispatchEvent(new Event("sellwise:optimised"));
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to optimise");
     } finally {
@@ -83,6 +84,7 @@ export default function OptimisePage() {
 
   return (
     <div className="space-y-6">
+      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} />
       {/* Header */}
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">

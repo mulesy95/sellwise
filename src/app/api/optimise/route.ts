@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { checkLimit, incrementUsage } from "@/lib/usage";
 
@@ -112,7 +113,12 @@ Return only the JSON object, no markdown, no extra text.`;
     }
 
     // Increment usage only after a successful response
-    await incrementUsage(user.id, "optimisations");
+    try {
+      await incrementUsage(user.id, "optimisations");
+      revalidatePath("/dashboard", "layout");
+    } catch (incErr) {
+      console.error("Failed to increment usage:", incErr);
+    }
 
     return NextResponse.json({ ...listing, used: used + 1, limit });
   } catch (err) {

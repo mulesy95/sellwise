@@ -15,6 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { signOut } from "@/lib/supabase/actions";
+import { UsageBar } from "@/components/layout/usage-bar";
 
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -30,11 +31,13 @@ export function Sidebar({
   plan = "free",
   used = 0,
   limit = 3,
+  inTrial = false,
 }: {
   userEmail?: string;
   plan?: string;
   used?: number;
   limit?: number | null;
+  inTrial?: boolean;
 }) {
   const pathname = usePathname();
 
@@ -85,33 +88,7 @@ export function Sidebar({
 
       {/* Usage footer */}
       <div className="border-t border-sidebar-border p-3 space-y-2">
-        <div className="rounded-md bg-sidebar-accent/50 p-3 text-xs">
-          <div className="mb-1.5 flex items-center justify-between font-medium">
-            <span className="capitalize">{plan} plan</span>
-            <span className="text-muted-foreground">
-              {limit === null ? `${used} used` : `${used} / ${limit} used`}
-            </span>
-          </div>
-          {limit !== null && (
-            <div className="h-1.5 rounded-full bg-sidebar-border">
-              <div
-                className={cn(
-                  "h-full rounded-full transition-all",
-                  used >= limit ? "bg-destructive" : "bg-primary"
-                )}
-                style={{ width: `${Math.min((used / limit) * 100, 100)}%` }}
-              />
-            </div>
-          )}
-          {plan === "free" && (
-            <Link
-              href="/dashboard/settings"
-              className="mt-2 block text-center text-primary hover:underline"
-            >
-              Upgrade →
-            </Link>
-          )}
-        </div>
+        <UsageBar initialUsed={used} initialLimit={limit} plan={plan} inTrial={inTrial} />
 
         {/* User + sign out */}
         <div className="flex items-center justify-between gap-2 px-1">

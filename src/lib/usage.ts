@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export type UsageType = "optimisations" | "keywords" | "competitor" | "audits";
 
@@ -14,13 +14,22 @@ function currentMonth(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
 }
 
+function isInTrial(trialEndsAt: string | null): boolean {
+  if (!trialEndsAt) return false;
+  return new Date(trialEndsAt) > new Date();
+}
+
 /** Returns the user's plan, current month usage, and limit. */
 export async function getUsageData(userId: string) {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const month = currentMonth();
 
   const [{ data: profile }, { data: usage }] = await Promise.all([
-    supabase.from("profiles").select("plan").eq("id", userId).single(),
+    supabase
+      .from("profiles")
+      .select("plan, trial_ends_at")
+      .eq("id", userId)
+      .single(),
     supabase
       .from("usage")
       .select("optimisations, keywords, competitor, audits")
@@ -29,11 +38,18 @@ export async function getUsageData(userId: string) {
       .single(),
   ]);
 
-  const plan = profile?.plan ?? "free";
-  const limit = PLAN_LIMITS[plan];
+  const storedPlan = profile?.plan ?? "free";
+  const trialEndsAt = profile?.trial_ends_at ?? null;
+  const inTrial = storedPlan === "free" && isInTrial(trialEndsAt);
+  // While in trial, grant Growth-tier limits
+  const effectivePlan = inTrial ? "growth" : storedPlan;
+  const limit = PLAN_LIMITS[effectivePlan];
 
   return {
-    plan,
+    plan: storedPlan,
+    effectivePlan,
+    inTrial,
+    trialEndsAt,
     limit: limit === Infinity ? null : limit,
     optimisations: usage?.optimisations ?? 0,
     keywords: usage?.keywords ?? 0,
@@ -58,10 +74,18 @@ export async function incrementUsage(
   userId: string,
   type: UsageType
 ): Promise<void> {
-  const supabase = await createClient();
-  await supabase.rpc("increment_usage", {
+  const supabase = createAdminClient();
+
+  // Ensure profile exists — user may have signed up before the profiles table
+  // and trigger were created, leaving them in auth.users but not profiles.
+  await supabase
+    .from("profiles")
+    .upsert({ id: userId }, { onConflict: "id", ignoreDuplicates: true });
+
+  const { error } = await supabase.rpc("increment_usage", {
     p_user_id: userId,
     p_month: currentMonth(),
     p_type: type,
   });
+  if (error) throw new Error(`increment_usage failed: ${error.message}`);
 }
