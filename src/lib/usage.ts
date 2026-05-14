@@ -3,7 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 export type UsageType = "optimisations" | "keywords" | "competitor" | "audits";
 
 export const PLAN_LIMITS: Record<string, number> = {
-  free: 1,
+  free: 3,
   starter: 50,
   growth: Infinity,
   studio: Infinity,

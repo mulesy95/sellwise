@@ -1,5 +1,18 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
+
+export const metadata: Metadata = {
+  title: "SellWise — AI Listing Optimiser for Etsy, Amazon & More",
+  description:
+    "Generate SEO-optimised titles, tags, and descriptions in seconds. Built for Etsy, Amazon, Shopify, and eBay sellers. Start free.",
+  openGraph: {
+    title: "SellWise — AI Listing Optimiser for Etsy, Amazon & More",
+    description:
+      "Generate SEO-optimised titles, tags, and descriptions in seconds. Built for Etsy, Amazon, Shopify, and eBay sellers. Start free.",
+    url: "/",
+  },
+};
 
 export default function HomePage() {
   const tags = [
@@ -21,123 +34,146 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
       {/* NAV */}
-      <nav className="sticky top-0 z-50 flex items-center justify-between px-7 py-3.5 border-b border-border bg-background">
-        <span className="font-bold text-foreground text-[15px]">SellWise</span>
-        <div className="flex items-center gap-5 text-xs text-muted-foreground">
-          <a href="#features" className="hover:text-foreground transition-colors">
-            Features
-          </a>
-          <a href="#pricing" className="hover:text-foreground transition-colors">
-            Pricing
-          </a>
-          <Link
-            href="/login"
-            className="text-foreground hover:text-foreground/80 transition-colors"
-          >
-            Sign in
-          </Link>
-          <Link href="/signup" className={buttonVariants({ size: "sm" })}>
-            Try free
-          </Link>
+      <nav className="sticky top-0 z-50 border-b border-border bg-background">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-3.5">
+          <span className="text-[15px] font-bold text-foreground">
+            SellWise
+          </span>
+          <div className="flex items-center gap-5 text-xs text-muted-foreground">
+            <a
+              href="#features"
+              className="transition-colors hover:text-foreground"
+            >
+              Features
+            </a>
+            <a
+              href="#pricing"
+              className="transition-colors hover:text-foreground"
+            >
+              Pricing
+            </a>
+            <Link
+              href="/login"
+              className="text-foreground transition-colors hover:text-foreground/80"
+            >
+              Sign in
+            </Link>
+            <Link href="/signup" className={buttonVariants({ size: "sm" })}>
+              Try free
+            </Link>
+          </div>
         </div>
       </nav>
 
       {/* HERO */}
-      <section className="text-center px-7 pt-[52px] pb-8">
-        <h1 className="text-[30px] font-extrabold text-foreground leading-[1.2] mb-3.5">
-          Post listings that buyers
-          <br />
-          actually find.
-        </h1>
-        <p className="text-sm text-muted-foreground mb-6 max-w-[340px] mx-auto leading-relaxed">
-          Tell us what you sell. We&apos;ll write the listing.
-        </p>
-        <div className="flex gap-2.5 items-center justify-center mb-8">
-          <Link href="/signup" className={buttonVariants({ size: "lg" })}>
-            Try free for 7 days
-          </Link>
-          <span className="text-xs text-muted-foreground">No card needed</span>
-        </div>
+      <section className="border-b border-border px-6 py-14 md:py-20">
+        <div className="mx-auto max-w-5xl">
+          <div className="flex flex-col items-center gap-10 md:flex-row md:items-center md:gap-14">
+            {/* Left — text + CTA */}
+            <div className="flex-1 text-center md:text-left">
+              <h1 className="mb-4 text-[32px] font-extrabold leading-[1.2] text-foreground md:text-5xl lg:text-6xl">
+                Post listings that buyers
+                <br />
+                actually find.
+              </h1>
+              <p className="mb-8 text-sm leading-relaxed text-muted-foreground md:text-base">
+                Tell us what you sell. We&apos;ll write the title, tags, and
+                description — optimised for the algorithm.
+              </p>
+              <div className="flex items-center justify-center gap-3 md:justify-start">
+                <Link href="/signup" className={buttonVariants({ size: "lg" })}>
+                  Try free for 7 days
+                </Link>
+                <span className="text-xs text-muted-foreground">
+                  No card needed
+                </span>
+              </div>
+            </div>
 
-        {/* Sample output card */}
-        <div className="bg-card rounded-xl p-5 border border-border max-w-[520px] mx-auto text-left">
-          <div className="flex items-center justify-between mb-3.5">
-            <span className="text-[11px] font-semibold text-muted-foreground">
-              Sample output
-            </span>
-            <span className="text-[13px] font-bold text-green-500">
-              87 / 100
-            </span>
+            {/* Right — sample output card */}
+            <div className="w-full max-w-sm shrink-0 rounded-xl border border-border bg-card p-5 md:max-w-md lg:max-w-lg">
+              <div className="mb-4 flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-muted-foreground">
+                  Sample output
+                </span>
+                <span className="text-sm font-bold text-green-500">
+                  87 / 100
+                </span>
+              </div>
+
+              <p className="mb-1 text-[9px] uppercase tracking-widest text-muted-foreground">
+                Title
+              </p>
+              <p className="mb-4 text-xs leading-relaxed text-foreground md:text-sm">
+                Handmade Ceramic Coffee Mug, Pottery Gift for Coffee Lover,
+                Wheel Thrown Mug, Minimalist Cup, Unique Housewarming Gift for
+                Her
+              </p>
+
+              <p className="mb-2 text-[9px] uppercase tracking-widest text-muted-foreground">
+                Tags (13)
+              </p>
+              <div className="mb-4 flex flex-wrap gap-1.5">
+                {tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded border border-border bg-background px-2 py-0.5 text-[10px] text-muted-foreground"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+
+              <p className="mb-1 text-[9px] uppercase tracking-widest text-muted-foreground">
+                Description
+              </p>
+              <p className="text-[11px] leading-relaxed text-muted-foreground md:text-xs">
+                This wheel thrown ceramic mug is made for the coffee lover who
+                appreciates something a bit different. Each one is shaped and
+                glazed by hand...
+              </p>
+            </div>
           </div>
-
-          <p className="text-[9px] text-muted-foreground tracking-widest uppercase mb-1">
-            Title
-          </p>
-          <p className="text-xs text-foreground mb-3.5 leading-relaxed">
-            Handmade Ceramic Coffee Mug, Pottery Gift for Coffee Lover, Wheel
-            Thrown Mug, Minimalist Cup, Unique Housewarming Gift for Her
-          </p>
-
-          <p className="text-[9px] text-muted-foreground tracking-widest uppercase mb-2">
-            Tags (13)
-          </p>
-          <div className="flex flex-wrap gap-1.5 mb-3.5">
-            {tags.map((tag) => (
-              <span
-                key={tag}
-                className="bg-background text-muted-foreground px-2 py-0.5 rounded text-[10px] border border-border"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-
-          <p className="text-[9px] text-muted-foreground tracking-widest uppercase mb-1">
-            Description
-          </p>
-          <p className="text-[11px] text-muted-foreground leading-relaxed">
-            This wheel thrown ceramic mug is made for the coffee lover who
-            appreciates something a bit different. Each one is shaped and glazed
-            by hand...
-          </p>
         </div>
       </section>
 
       {/* FEATURES */}
-      <section id="features" className="border-t border-border px-7 py-9">
-        <h2 className="text-base font-bold text-foreground text-center mb-6">
-          Everything you need to rank
-        </h2>
-        <div className="grid grid-cols-3 gap-5 max-w-2xl mx-auto">
-          <div>
-            <div className="text-xl mb-2">🔍</div>
-            <h3 className="text-xs font-semibold text-foreground mb-1">
-              Keyword Research
-            </h3>
-            <p className="text-[11px] text-muted-foreground leading-relaxed">
-              Find 15 keywords buyers actually search for, with volume,
-              competition and trend signals.
-            </p>
-          </div>
-          <div>
-            <div className="text-xl mb-2">👁️</div>
-            <h3 className="text-xs font-semibold text-foreground mb-1">
-              Competitor Peek
-            </h3>
-            <p className="text-[11px] text-muted-foreground leading-relaxed">
-              Paste any marketplace listing URL. See their SEO and get a version
-              that outranks it.
-            </p>
-          </div>
-          <div>
-            <div className="text-xl mb-2">📊</div>
-            <h3 className="text-xs font-semibold text-foreground mb-1">
-              Listing Audit
-            </h3>
-            <p className="text-[11px] text-muted-foreground leading-relaxed">
-              Score your listings 0 to 100 with a breakdown and specific fixes
-              to make.
-            </p>
+      <section id="features" className="border-t border-border py-14 md:py-20">
+        <div className="mx-auto max-w-5xl px-6">
+          <h2 className="mb-8 text-center text-lg font-bold text-foreground md:text-2xl">
+            Everything you need to rank
+          </h2>
+          <div className="grid grid-cols-3 gap-6 md:gap-10">
+            <div>
+              <div className="mb-3 text-2xl">🔍</div>
+              <h3 className="mb-1.5 text-sm font-semibold text-foreground">
+                Keyword Research
+              </h3>
+              <p className="text-xs leading-relaxed text-muted-foreground md:text-sm">
+                Find 15 keywords buyers actually search for, with volume,
+                competition and trend signals.
+              </p>
+            </div>
+            <div>
+              <div className="mb-3 text-2xl">👁️</div>
+              <h3 className="mb-1.5 text-sm font-semibold text-foreground">
+                Competitor Peek
+              </h3>
+              <p className="text-xs leading-relaxed text-muted-foreground md:text-sm">
+                Paste any marketplace listing URL. See their SEO and get a
+                version that outranks it.
+              </p>
+            </div>
+            <div>
+              <div className="mb-3 text-2xl">📊</div>
+              <h3 className="mb-1.5 text-sm font-semibold text-foreground">
+                Listing Audit
+              </h3>
+              <p className="text-xs leading-relaxed text-muted-foreground md:text-sm">
+                Score your listings 0 to 100 with a breakdown and specific
+                fixes to make.
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -145,110 +181,114 @@ export default function HomePage() {
       {/* PRICING */}
       <section
         id="pricing"
-        className="border-t border-border px-7 py-9 text-center"
+        className="border-t border-border py-14 text-center md:py-20"
       >
-        <h2 className="text-base font-bold text-foreground mb-1">
-          Simple pricing, no surprises
-        </h2>
-        <p className="text-xs text-muted-foreground mb-5">
-          Start free. Upgrade when you are ready.
-        </p>
+        <div className="mx-auto max-w-5xl px-6">
+          <h2 className="mb-1 text-lg font-bold text-foreground md:text-2xl">
+            Simple pricing, no surprises
+          </h2>
+          <p className="mb-8 text-sm text-muted-foreground">
+            Start free. Upgrade when you are ready.
+          </p>
 
-        <div className="grid grid-cols-4 gap-2.5 max-w-2xl mx-auto mb-2.5">
-          <div className="bg-card rounded-lg p-3.5 border border-border">
-            <p className="text-[11px] font-semibold text-foreground">Free</p>
-            <p className="text-xl font-bold text-foreground my-1">$0</p>
-            <p className="text-[10px] text-muted-foreground">
-              1 optimisation per month
-            </p>
-          </div>
-          <div className="bg-card rounded-lg p-3.5 border border-border">
-            <p className="text-[11px] font-semibold text-foreground">Starter</p>
-            <p className="text-xl font-bold text-foreground my-1">
-              $19
-              <span className="text-[10px] font-normal text-muted-foreground">
-                /mo
+          <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+            <div className="rounded-lg border border-border bg-card p-4">
+              <p className="text-sm font-semibold text-foreground">Free</p>
+              <p className="my-2 text-2xl font-bold text-foreground">$0</p>
+              <p className="text-xs text-muted-foreground">
+                3 optimisations per month
+              </p>
+            </div>
+            <div className="rounded-lg border border-border bg-card p-4">
+              <p className="text-sm font-semibold text-foreground">Starter</p>
+              <p className="my-2 text-2xl font-bold text-foreground">
+                $19
+                <span className="text-xs font-normal text-muted-foreground">
+                  /mo
+                </span>
+              </p>
+              <p className="text-xs text-muted-foreground">
+                50 optimisations + keywords, audits, competitor
+              </p>
+            </div>
+            <div className="relative rounded-lg border border-primary bg-card p-4">
+              <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-primary px-2.5 py-0.5 text-[9px] font-semibold text-primary-foreground">
+                POPULAR
               </span>
-            </p>
-            <p className="text-[10px] text-muted-foreground">
-              50 optimisations + keywords, audits, competitor
-            </p>
+              <p className="text-sm font-semibold text-foreground">Growth</p>
+              <p className="my-2 text-2xl font-bold text-foreground">
+                $29
+                <span className="text-xs font-normal text-muted-foreground">
+                  /mo
+                </span>
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Unlimited optimisations + all features
+              </p>
+            </div>
+            <div className="rounded-lg border border-border bg-card p-4">
+              <p className="text-sm font-semibold text-foreground">Studio</p>
+              <p className="my-2 text-2xl font-bold text-foreground">
+                $79
+                <span className="text-xs font-normal text-muted-foreground">
+                  /mo
+                </span>
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Multi-shop + platform API (coming soon)
+              </p>
+            </div>
           </div>
-          <div className="bg-card rounded-lg p-3.5 border border-primary relative">
-            <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[8px] px-2 py-0.5 rounded-full font-semibold whitespace-nowrap">
-              POPULAR
-            </span>
-            <p className="text-[11px] font-semibold text-foreground">Growth</p>
-            <p className="text-xl font-bold text-foreground my-1">
-              $39
-              <span className="text-[10px] font-normal text-muted-foreground">
-                /mo
-              </span>
-            </p>
-            <p className="text-[10px] text-muted-foreground">
-              Unlimited optimisations + all features
-            </p>
-          </div>
-          <div className="bg-card rounded-lg p-3.5 border border-border">
-            <p className="text-[11px] font-semibold text-foreground">Studio</p>
-            <p className="text-xl font-bold text-foreground my-1">
-              $79
-              <span className="text-[10px] font-normal text-muted-foreground">
-                /mo
-              </span>
-            </p>
-            <p className="text-[10px] text-muted-foreground">
-              Unlimited + multi-shop
-            </p>
-          </div>
+
+          <p className="mb-1.5 text-xs text-muted-foreground">
+            7-day free trial on all paid plans. No card required to start.
+          </p>
+          <Link
+            href="/pricing"
+            className="text-xs text-primary transition-opacity hover:opacity-80"
+          >
+            See full pricing details
+          </Link>
         </div>
-
-        <p className="text-[10px] text-muted-foreground mb-2">
-          7-day free trial on all paid plans. No card required to start.
-        </p>
-        <Link
-          href="/pricing"
-          className="text-[10px] text-primary hover:opacity-80 transition-opacity"
-        >
-          See full pricing details
-        </Link>
       </section>
 
       {/* FINAL CTA */}
-      <section className="border-t border-border px-7 py-10 text-center">
-        <h2 className="text-xl font-bold text-foreground mb-2">
-          Get your first listing in 30 seconds.
-        </h2>
-        <p className="text-xs text-muted-foreground mb-5">
-          No setup, no card needed. Just describe your product and go.
-        </p>
-        <Link href="/signup" className={buttonVariants({ size: "lg" })}>
-          Start for free
-        </Link>
+      <section className="border-t border-border py-16 text-center md:py-24">
+        <div className="mx-auto max-w-5xl px-6">
+          <h2 className="mb-3 text-2xl font-bold text-foreground md:text-3xl">
+            Get your first listing in 30 seconds.
+          </h2>
+          <p className="mb-8 text-sm text-muted-foreground md:text-base">
+            No setup, no card needed. Just describe your product and go.
+          </p>
+          <Link href="/signup" className={buttonVariants({ size: "lg" })}>
+            Start for free
+          </Link>
+        </div>
       </section>
 
       {/* FOOTER */}
       <footer className="border-t border-border">
-        <div className="px-7 py-4 flex justify-between items-center">
-          <span className="text-[11px] font-semibold text-muted-foreground">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+          <span className="text-xs font-semibold text-muted-foreground">
             SellWise
           </span>
-          <div className="flex gap-4 text-[10px] text-muted-foreground">
+          <div className="flex gap-5 text-xs text-muted-foreground">
             <Link
               href="/pricing"
-              className="hover:text-foreground transition-colors"
+              className="transition-colors hover:text-foreground"
             >
               Pricing
             </Link>
             <Link
               href="/login"
-              className="hover:text-foreground transition-colors"
+              className="transition-colors hover:text-foreground"
             >
               Sign in
             </Link>
           </div>
         </div>
-        <div className="border-t border-border px-7 py-2 text-center">
+        <div className="border-t border-border px-6 py-2 text-center">
           <p className="text-[10px] text-muted-foreground/50">
             © 2026 SellWise
           </p>

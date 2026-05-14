@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Sparkles, Copy, Check, RotateCcw } from "lucide-react";
 import { UpgradeModal } from "@/components/upgrade-modal";
+import { PlatformSelector } from "@/components/platform-selector";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,18 +18,81 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import type { Platform } from "@/lib/platforms";
 
 interface OptimisedListing {
-  title: string;
-  tags: string[];
-  description: string;
+  platform: Platform;
+  // Etsy
+  title?: string;
+  tags?: string[];
+  // Amazon
+  bullets?: string[];
+  backendKeywords?: string;
+  // Shopify
+  metaTitle?: string;
+  metaDescription?: string;
+  productTitle?: string;
+  // Shared
+  description?: string;
 }
 
+interface TabConfig {
+  id: string;
+  label: string;
+  content: string | string[];
+  maxChars?: number;
+  isTags?: boolean;
+  isBullets?: boolean;
+}
+
+function getResultTabs(result: OptimisedListing): TabConfig[] {
+  switch (result.platform) {
+    case "etsy":
+      return [
+        { id: "title", label: "Title", content: result.title ?? "", maxChars: 140 },
+        { id: "tags", label: "Tags", content: result.tags ?? [], isTags: true },
+        { id: "description", label: "Description", content: result.description ?? "" },
+      ];
+    case "amazon":
+      return [
+        { id: "title", label: "Title", content: result.title ?? "", maxChars: 200 },
+        { id: "bullets", label: "Bullets", content: result.bullets ?? [], isBullets: true },
+        { id: "backend", label: "Backend Keys", content: result.backendKeywords ?? "" },
+        { id: "description", label: "Description", content: result.description ?? "" },
+      ];
+    case "shopify":
+      return [
+        { id: "metaTitle", label: "Meta Title", content: result.metaTitle ?? "", maxChars: 60 },
+        { id: "metaDesc", label: "Meta Desc", content: result.metaDescription ?? "", maxChars: 160 },
+        { id: "productTitle", label: "Product Title", content: result.productTitle ?? "" },
+        { id: "description", label: "Description", content: result.description ?? "" },
+      ];
+    case "ebay":
+      return [
+        { id: "title", label: "Title", content: result.title ?? "", maxChars: 80 },
+        { id: "description", label: "Description", content: result.description ?? "" },
+      ];
+  }
+}
+
+const PLATFORM_DESCRIPTIONS: Record<Platform, string> = {
+  etsy: "Get an SEO-optimised title, 13 tags, and description.",
+  amazon: "Get a keyword-rich title, 5 bullet points, backend keywords, and description.",
+  shopify: "Get a meta title, meta description, product title, and page copy.",
+  ebay: "Get an optimised listing title and item description.",
+};
+
 export default function OptimisePage() {
+  const [platform, setPlatform] = useState<Platform>("etsy");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<OptimisedListing | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
+
+  function handlePlatformChange(p: Platform) {
+    setPlatform(p);
+    setResult(null);
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -37,16 +101,12 @@ export default function OptimisePage() {
 
     const form = e.currentTarget;
     const data = {
-      productName: (form.elements.namedItem("productName") as HTMLInputElement)
-        .value,
-      materials: (form.elements.namedItem("materials") as HTMLInputElement)
-        .value,
+      platform,
+      productName: (form.elements.namedItem("productName") as HTMLInputElement).value,
+      materials: (form.elements.namedItem("materials") as HTMLInputElement).value,
       style: (form.elements.namedItem("style") as HTMLInputElement).value,
-      targetBuyer: (
-        form.elements.namedItem("targetBuyer") as HTMLInputElement
-      ).value,
-      keywords: (form.elements.namedItem("keywords") as HTMLInputElement)
-        .value,
+      targetBuyer: (form.elements.namedItem("targetBuyer") as HTMLInputElement).value,
+      keywords: (form.elements.namedItem("keywords") as HTMLInputElement).value,
     };
 
     try {
@@ -82,20 +142,23 @@ export default function OptimisePage() {
     setTimeout(() => setCopiedField(null), 2000);
   }
 
+  const tabs = result ? getResultTabs(result) : [];
+
   return (
     <div className="space-y-6">
       <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} />
-      {/* Header */}
+
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
           <Sparkles className="size-5 text-primary" />
           Listing Optimiser
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Describe your product and get an SEO-optimised title, 13 tags, and
-          description instantly.
+          {PLATFORM_DESCRIPTIONS[platform]}
         </p>
       </div>
+
+      <PlatformSelector value={platform} onChange={handlePlatformChange} />
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Input form */}
@@ -121,9 +184,7 @@ export default function OptimisePage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="materials">
-                  Materials &amp; techniques
-                </Label>
+                <Label htmlFor="materials">Materials &amp; techniques</Label>
                 <Input
                   id="materials"
                   name="materials"
@@ -195,7 +256,7 @@ export default function OptimisePage() {
             </Card>
           )}
 
-          {result && (
+          {result && tabs.length > 0 && (
             <Card className="border-border/50">
               <CardHeader className="flex flex-row items-center justify-between pb-3">
                 <CardTitle className="text-base">Optimised listing</CardTitle>
@@ -209,111 +270,129 @@ export default function OptimisePage() {
                 </Button>
               </CardHeader>
               <CardContent>
-                <Tabs defaultValue="title">
+                <Tabs defaultValue={tabs[0].id}>
                   <TabsList className="w-full">
-                    <TabsTrigger value="title" className="flex-1 text-xs">
-                      Title
-                    </TabsTrigger>
-                    <TabsTrigger value="tags" className="flex-1 text-xs">
-                      Tags
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="description"
-                      className="flex-1 text-xs"
-                    >
-                      Description
-                    </TabsTrigger>
+                    {tabs.map((tab) => (
+                      <TabsTrigger
+                        key={tab.id}
+                        value={tab.id}
+                        className="flex-1 text-xs"
+                      >
+                        {tab.label}
+                      </TabsTrigger>
+                    ))}
                   </TabsList>
 
-                  <TabsContent value="title" className="mt-4 space-y-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="flex-1 text-sm leading-relaxed">
-                        {result.title}
-                      </p>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => copyToClipboard(result.title, "title")}
-                      >
-                        {copiedField === "title" ? (
-                          <Check className="size-3.5 text-green-500" />
-                        ) : (
-                          <Copy className="size-3.5" />
-                        )}
-                      </Button>
-                    </div>
-                    <Separator />
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>{result.title.length} / 140 characters</span>
-                      <span
-                        className={
-                          result.title.length <= 140
-                            ? "text-green-500"
-                            : "text-destructive"
-                        }
-                      >
-                        {result.title.length <= 140 ? "✓ Good" : "Too long"}
-                      </span>
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="tags" className="mt-4 space-y-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex flex-wrap gap-1.5">
-                        {result.tags.map((tag) => (
-                          <Badge
-                            key={tag}
-                            variant="secondary"
-                            className="text-xs"
-                          >
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() =>
-                          copyToClipboard(result.tags.join(", "), "tags")
-                        }
-                      >
-                        {copiedField === "tags" ? (
-                          <Check className="size-3.5 text-green-500" />
-                        ) : (
-                          <Copy className="size-3.5" />
-                        )}
-                      </Button>
-                    </div>
-                    <Separator />
-                    <p className="text-xs text-muted-foreground">
-                      {result.tags.length} / 13 tags
-                    </p>
-                  </TabsContent>
-
-                  <TabsContent value="description" className="mt-4 space-y-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="flex-1 whitespace-pre-wrap text-sm leading-relaxed">
-                        {result.description}
-                      </p>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() =>
-                          copyToClipboard(result.description, "description")
-                        }
-                      >
-                        {copiedField === "description" ? (
-                          <Check className="size-3.5 text-green-500" />
-                        ) : (
-                          <Copy className="size-3.5" />
-                        )}
-                      </Button>
-                    </div>
-                    <Separator />
-                    <p className="text-xs text-muted-foreground">
-                      {result.description.length} characters
-                    </p>
-                  </TabsContent>
+                  {tabs.map((tab) => (
+                    <TabsContent key={tab.id} value={tab.id} className="mt-4 space-y-3">
+                      {tab.isTags && Array.isArray(tab.content) ? (
+                        <>
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex flex-wrap gap-1.5">
+                              {(tab.content as string[]).map((tag) => (
+                                <Badge key={tag} variant="secondary" className="text-xs">
+                                  {tag}
+                                </Badge>
+                              ))}
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              onClick={() =>
+                                copyToClipboard(
+                                  (tab.content as string[]).join(", "),
+                                  tab.id
+                                )
+                              }
+                            >
+                              {copiedField === tab.id ? (
+                                <Check className="size-3.5 text-green-500" />
+                              ) : (
+                                <Copy className="size-3.5" />
+                              )}
+                            </Button>
+                          </div>
+                          <Separator />
+                          <p className="text-xs text-muted-foreground">
+                            {(tab.content as string[]).length} / 13 tags
+                          </p>
+                        </>
+                      ) : tab.isBullets && Array.isArray(tab.content) ? (
+                        <>
+                          <div className="flex items-start justify-between gap-2">
+                            <ol className="flex-1 space-y-2 list-decimal list-inside">
+                              {(tab.content as string[]).map((bullet, i) => (
+                                <li key={i} className="text-xs leading-relaxed">
+                                  {bullet}
+                                </li>
+                              ))}
+                            </ol>
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              onClick={() =>
+                                copyToClipboard(
+                                  (tab.content as string[]).join("\n"),
+                                  tab.id
+                                )
+                              }
+                            >
+                              {copiedField === tab.id ? (
+                                <Check className="size-3.5 text-green-500" />
+                              ) : (
+                                <Copy className="size-3.5" />
+                              )}
+                            </Button>
+                          </div>
+                          <Separator />
+                          <p className="text-xs text-muted-foreground">
+                            {(tab.content as string[]).length} / 5 bullets
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="flex-1 whitespace-pre-wrap text-sm leading-relaxed">
+                              {tab.content as string}
+                            </p>
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              onClick={() =>
+                                copyToClipboard(tab.content as string, tab.id)
+                              }
+                            >
+                              {copiedField === tab.id ? (
+                                <Check className="size-3.5 text-green-500" />
+                              ) : (
+                                <Copy className="size-3.5" />
+                              )}
+                            </Button>
+                          </div>
+                          <Separator />
+                          <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            <span>
+                              {(tab.content as string).length}
+                              {tab.maxChars ? ` / ${tab.maxChars} characters` : " characters"}
+                            </span>
+                            {tab.maxChars && (
+                              <span
+                                className={
+                                  (tab.content as string).length <= tab.maxChars
+                                    ? "text-green-500"
+                                    : "text-destructive"
+                                }
+                              >
+                                {(tab.content as string).length <= tab.maxChars
+                                  ? "✓ Good"
+                                  : "Too long"}
+                              </span>
+                            )}
+                          </div>
+                        </>
+                      )}
+                    </TabsContent>
+                  ))}
                 </Tabs>
               </CardContent>
             </Card>

@@ -113,10 +113,10 @@ interface ShopifyOutput {
 
 | Plan | Price | Features | Target user |
 |------|-------|----------|-------------|
-| Free | $0 | 1 optimisation/mo (optimiser only) | Try before buying |
+| Free | $0 | 3 optimisations/mo (optimiser only) | Try before buying |
 | Starter | $19/mo | 50 optimisations/mo + all features (keywords, competitor, audit) | Part-time sellers |
-| Growth | $39/mo | Unlimited + all features + connect 1 shop (read/audit) | Full-time sellers |
-| Studio | $79/mo | Unlimited + unlimited shops + push-back to platforms + multi-platform | Power users / agencies |
+| Growth | $29/mo | Unlimited + all features | Full-time sellers |
+| Studio | $79/mo | Unlimited + unlimited shops + push-back to platforms (coming soon — Phase 6) | Power users / agencies |
 
 - Stripe Billing, monthly/annual toggle (annual = 2 months free)
 - 7-day free trial of Growth tier, no card required
@@ -278,7 +278,7 @@ export type Plan = 'free' | 'starter' | 'growth' | 'studio'
 export const PLAN_LIMITS: Record<Plan, { optimisations: number | null; price: number }> = {
   free:    { optimisations: 3,    price: 0  },
   starter: { optimisations: 50,   price: 19 },
-  growth:  { optimisations: null, price: 39 },
+  growth:  { optimisations: null, price: 29 },
   studio:  { optimisations: null, price: 79 },
 }
 ```

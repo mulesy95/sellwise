@@ -12,10 +12,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { UpgradeModal } from "@/components/upgrade-modal";
+import { PlatformSelector } from "@/components/platform-selector";
+import type { Platform } from "@/lib/platforms";
 
 interface Keyword {
   keyword: string;
@@ -25,28 +33,73 @@ interface Keyword {
 }
 
 const volumeConfig = {
-  high:   { label: "High",   className: "bg-green-500/15 text-green-700 dark:text-green-400 border-green-500/20" },
-  medium: { label: "Med",    className: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/20" },
-  low:    { label: "Low",    className: "bg-muted text-muted-foreground border-border" },
+  high: {
+    label: "High",
+    className:
+      "bg-green-500/15 text-green-700 dark:text-green-400 border-green-500/20",
+  },
+  medium: {
+    label: "Med",
+    className:
+      "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/20",
+  },
+  low: {
+    label: "Low",
+    className: "bg-muted text-muted-foreground border-border",
+  },
 };
 
 const competitionConfig = {
-  high:   { label: "High comp",   className: "bg-red-500/15 text-red-700 dark:text-red-400 border-red-500/20" },
-  medium: { label: "Med comp",    className: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/20" },
-  low:    { label: "Low comp",    className: "bg-green-500/15 text-green-700 dark:text-green-400 border-green-500/20" },
+  high: {
+    label: "High comp",
+    className:
+      "bg-red-500/15 text-red-700 dark:text-red-400 border-red-500/20",
+  },
+  medium: {
+    label: "Med comp",
+    className:
+      "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/20",
+  },
+  low: {
+    label: "Low comp",
+    className:
+      "bg-green-500/15 text-green-700 dark:text-green-400 border-green-500/20",
+  },
 };
 
 const TrendIcon = ({ trend }: { trend: "up" | "stable" | "down" }) => {
-  if (trend === "up") return <TrendingUp className="size-3.5 text-green-500" />;
-  if (trend === "down") return <TrendingDown className="size-3.5 text-red-400" />;
+  if (trend === "up")
+    return <TrendingUp className="size-3.5 text-green-500" />;
+  if (trend === "down")
+    return <TrendingDown className="size-3.5 text-red-400" />;
   return <Minus className="size-3.5 text-muted-foreground" />;
 };
 
+const PLATFORM_PLACEHOLDERS: Record<Platform, string> = {
+  etsy: "e.g. ceramic mug, macrame wall art, silver ring",
+  amazon: "e.g. wireless earbuds, protein powder, yoga mat",
+  shopify: "e.g. leather wallet, skincare serum, coffee beans",
+  ebay: "e.g. vintage camera, car parts, gaming console",
+};
+
+const PLATFORM_DESCRIPTIONS: Record<Platform, string> = {
+  etsy: "Discover Etsy keywords with occasion, recipient, and style variations.",
+  amazon: "Find Amazon keywords with purchase intent and feature-based terms.",
+  shopify: "Find Google SEO keywords for organic traffic to your store.",
+  ebay: "Discover eBay search terms including condition and compatibility keywords.",
+};
+
 export function KeywordsClient() {
+  const [platform, setPlatform] = useState<Platform>("etsy");
   const [loading, setLoading] = useState(false);
   const [keywords, setKeywords] = useState<Keyword[]>([]);
   const [copied, setCopied] = useState<string | null>(null);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
+
+  function handlePlatformChange(p: Platform) {
+    setPlatform(p);
+    setKeywords([]);
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -62,7 +115,7 @@ export function KeywordsClient() {
       const res = await fetch("/api/keywords", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ keyword }),
+        body: JSON.stringify({ platform, keyword }),
       });
 
       if (!res.ok) {
@@ -77,7 +130,9 @@ export function KeywordsClient() {
       const data = await res.json();
       setKeywords(data.keywords ?? []);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to fetch keywords");
+      toast.error(
+        err instanceof Error ? err.message : "Failed to fetch keywords"
+      );
     } finally {
       setLoading(false);
     }
@@ -91,7 +146,9 @@ export function KeywordsClient() {
   }
 
   async function copyAll() {
-    await navigator.clipboard.writeText(keywords.map((k) => k.keyword).join("\n"));
+    await navigator.clipboard.writeText(
+      keywords.map((k) => k.keyword).join("\n")
+    );
     toast.success("All keywords copied");
   }
 
@@ -105,15 +162,18 @@ export function KeywordsClient() {
           Keyword Research
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Discover 15 Etsy keywords with volume, competition, and trend signals.
+          {PLATFORM_DESCRIPTIONS[platform]}
         </p>
       </div>
+
+      <PlatformSelector value={platform} onChange={handlePlatformChange} />
 
       <Card className="border-border/50">
         <CardHeader className="pb-4">
           <CardTitle className="text-base">Seed keyword</CardTitle>
           <CardDescription className="text-xs">
-            Enter a product type, material, or style to explore related keywords.
+            Enter a product type, material, or style to explore related
+            keywords.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -125,7 +185,7 @@ export function KeywordsClient() {
               <Input
                 id="keyword"
                 name="keyword"
-                placeholder="e.g. ceramic mug, macrame wall art, silver ring"
+                placeholder={PLATFORM_PLACEHOLDERS[platform]}
                 required
               />
             </div>
@@ -175,7 +235,9 @@ export function KeywordsClient() {
                   key={kw.keyword}
                   className="flex items-center gap-3 px-6 py-2.5 hover:bg-muted/30 transition-colors"
                 >
-                  <span className="flex-1 text-sm font-medium">{kw.keyword}</span>
+                  <span className="flex-1 text-sm font-medium">
+                    {kw.keyword}
+                  </span>
                   <div className="flex items-center gap-1.5">
                     <Badge
                       variant="outline"

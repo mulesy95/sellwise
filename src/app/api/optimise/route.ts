@@ -4,10 +4,12 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { checkLimit, incrementUsage } from "@/lib/usage";
+import type { Platform } from "@/lib/platforms";
 
 const client = new Anthropic();
 
 const requestSchema = z.object({
+  platform: z.enum(["etsy", "amazon", "shopify", "ebay"]).default("etsy"),
   productName: z.string().min(1).max(200),
   materials: z.string().max(300).optional().default(""),
   style: z.string().max(200).optional().default(""),
@@ -15,8 +17,98 @@ const requestSchema = z.object({
   keywords: z.string().max(300).optional().default(""),
 });
 
+const WRITING_RULES = `Writing rules:
+- NEVER use em dashes (—), en dashes (–), or ellipses (…)
+- Write like a real person: short sentences, plain punctuation (commas, full stops, exclamation marks only)
+- No buzzwords: unique, stunning, beautiful, perfect, seamlessly, elevate, enhance`;
+
+function buildPrompt(
+  platform: Platform,
+  inputs: {
+    productName: string;
+    materials: string;
+    style: string;
+    targetBuyer: string;
+    keywords: string;
+  }
+): string {
+  const { productName, materials, style, targetBuyer, keywords } = inputs;
+  const context = [
+    `Product: ${productName}`,
+    materials && `Materials/techniques: ${materials}`,
+    style && `Style/aesthetic: ${style}`,
+    targetBuyer && `Target buyer/occasion: ${targetBuyer}`,
+    keywords && `Keywords to include: ${keywords}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  switch (platform) {
+    case "etsy":
+      return `You are an expert Etsy SEO specialist. Generate an optimised Etsy listing.
+
+${context}
+
+Return ONLY a valid JSON object:
+{
+  "title": "max 140 chars, keyword-front-loaded, reads as a natural phrase — use connective words (for, with, and), never comma-separate keywords. Example: \\"Handmade Ceramic Coffee Mug for Coffee Lovers, Hand Thrown Stoneware Cup with Minimalist Design\\"",
+  "tags": ["exactly 13 tags", "each max 20 chars", "mix of short and long-tail buyer search phrases", "no repeated words across tags"],
+  "description": "150–250 words, opens with primary keyword, highlights materials and uniqueness, includes use cases and gift potential, ends with a call to action"
+}
+
+${WRITING_RULES}
+Return only the JSON object, no markdown.`;
+
+    case "amazon":
+      return `You are an expert Amazon FBA listing specialist. Generate an optimised Amazon product listing.
+
+${context}
+
+Return ONLY a valid JSON object:
+{
+  "title": "max 200 chars — lead with brand or product type, include primary keyword, colour/size if relevant",
+  "bullets": ["exactly 5 bullet points", "each max 255 chars", "start each with a 2–3 word benefit in CAPS then a colon, e.g. STAYS HOT LONGER: ...", "keyword-rich but reads naturally"],
+  "backendKeywords": "space-separated keywords, max 250 bytes total, no words already in title or bullets, purchase-intent terms only",
+  "description": "150–250 words, expands on bullet points, HTML line breaks allowed, focus on use cases and who this is for"
+}
+
+${WRITING_RULES}
+Return only the JSON object, no markdown.`;
+
+    case "shopify":
+      return `You are an expert Shopify SEO and conversion copywriter. Generate optimised Shopify product content.
+
+${context}
+
+Return ONLY a valid JSON object:
+{
+  "metaTitle": "max 60 chars strictly — primary keyword near the start, brand name at end if space allows",
+  "metaDescription": "max 160 chars strictly — contains primary keyword, includes a clear value proposition, ends with a soft call to action",
+  "productTitle": "clean storefront product title, 5–10 words, conversion-focused, no keyword stuffing",
+  "description": "200–350 words, opens with primary keyword, benefit-led paragraphs, includes materials/dimensions, use cases, ends with reason to buy"
+}
+
+${WRITING_RULES}
+Return only the JSON object, no markdown.`;
+
+    case "ebay":
+      return `You are an expert eBay listing specialist. Generate an optimised eBay product listing.
+
+${context}
+
+Return ONLY a valid JSON object:
+{
+  "title": "max 80 chars — keyword-rich from the start, include brand/model/size/condition if known, no ALL CAPS, be specific",
+  "description": "150–300 words, opens with product name and key spec, states condition (New/Used), lists key features in short lines, ends with a note on shipping or returns"
+}
+
+${WRITING_RULES}
+- eBay title: buyers search for exact model/spec terms — be specific, not generic
+Return only the JSON object, no markdown.`;
+  }
+}
+
 export async function POST(request: NextRequest) {
-  // Auth check
   const supabase = await createClient();
   const {
     data: { user },
@@ -26,7 +118,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
   }
 
-  // Usage limit check
   const { allowed, used, limit } = await checkLimit(user.id, "optimisations");
   if (!allowed) {
     return NextResponse.json(
@@ -38,7 +129,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Validate input
   let body: unknown;
   try {
     body = await request.json();
@@ -54,32 +144,15 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { productName, materials, style, targetBuyer, keywords } = parsed.data;
-
-  const prompt = `You are an expert Etsy SEO specialist. Generate an optimised Etsy listing for the product below.
-
-Product: ${productName}
-${materials ? `Materials/techniques: ${materials}` : ""}
-${style ? `Style/aesthetic: ${style}` : ""}
-${targetBuyer ? `Target buyer/occasion: ${targetBuyer}` : ""}
-${keywords ? `Keywords to include: ${keywords}` : ""}
-
-Return ONLY a valid JSON object with exactly these fields:
-{
-  "title": "string — max 140 characters, keyword-rich, no ALL CAPS, starts with most important keyword",
-  "tags": ["array of exactly 13 strings", "each tag max 20 characters", "single or multi-word phrases buyers search for"],
-  "description": "string — 150-250 words, opens with primary keyword, highlights materials and uniqueness, includes use cases and gift potential, ends with a call to action"
-}
-
-Rules:
-- Title: 100–140 chars, must read as a natural phrase a human would write, primary keyword first. Do NOT string keywords together with commas. Use connective words (for, with, and, in) to make it flow. Example of bad title: "Handmade Mug, Ceramic Cup, Coffee Mug, Pottery Gift, Stoneware". Example of good title: "Handmade Ceramic Coffee Mug for Coffee Lovers, Hand Thrown Stoneware Cup with Minimalist Design"
-- Tags: exactly 13, no repeated words across tags, mix short and long-tail
-- Description: conversational, SEO-rich, no hype words like "amazing" or "stunning"
-- NEVER use em dashes (—), en dashes (–), ellipses (…), or excessive commas — these read as AI-generated
-- Write like a real shop owner wrote it: short sentences, plain punctuation (commas, full stops, exclamation marks only)
-- No buzzwords: unique, stunning, beautiful, perfect, simply, seamlessly, elevate, enhance, delve
-
-Return only the JSON object, no markdown, no extra text.`;
+  const { platform, productName, materials, style, targetBuyer, keywords } =
+    parsed.data;
+  const prompt = buildPrompt(platform, {
+    productName,
+    materials,
+    style,
+    targetBuyer,
+    keywords,
+  });
 
   try {
     const message = await client.messages.create({
@@ -91,7 +164,7 @@ Return only the JSON object, no markdown, no extra text.`;
     const text =
       message.content[0].type === "text" ? message.content[0].text : "";
 
-    let listing: { title: string; tags: string[]; description: string };
+    let listing: Record<string, unknown>;
     try {
       listing = JSON.parse(text);
     } catch {
@@ -105,14 +178,6 @@ Return only the JSON object, no markdown, no extra text.`;
       listing = JSON.parse(match[0]);
     }
 
-    if (!listing.title || !Array.isArray(listing.tags) || !listing.description) {
-      return NextResponse.json(
-        { error: "Unexpected AI response shape" },
-        { status: 500 }
-      );
-    }
-
-    // Increment usage only after a successful response
     try {
       await incrementUsage(user.id, "optimisations");
       revalidatePath("/dashboard", "layout");
@@ -120,7 +185,7 @@ Return only the JSON object, no markdown, no extra text.`;
       console.error("Failed to increment usage:", incErr);
     }
 
-    return NextResponse.json({ ...listing, used: used + 1, limit });
+    return NextResponse.json({ ...listing, platform, used: used + 1, limit });
   } catch (err) {
     console.error("Optimise API error:", err);
     return NextResponse.json(

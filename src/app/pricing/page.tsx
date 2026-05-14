@@ -8,10 +8,10 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 const features = {
-  free:    ["3 optimisations / month", "Keyword Research (3/mo)", "Listing Audit (3/mo)", "Competitor Peek (3/mo)"],
-  starter: ["50 optimisations / month", "50 keyword searches", "50 audits", "50 competitor analyses", "Email support"],
+  free:    ["3 optimisations / month", "Etsy platform", "Basic listing optimiser"],
+  starter: ["50 optimisations / month", "Keyword Research", "Listing Audit", "Competitor Peek", "Email support"],
   growth:  ["Unlimited optimisations", "Unlimited keywords", "Unlimited audits", "Unlimited competitor analyses", "Priority support", "Optimisation history"],
-  studio:  ["Everything in Growth", "Multi-shop management", "Amazon FBA (coming soon)", "Shopify (coming soon)", "Agency seat access", "Dedicated support"],
+  studio:  ["Everything in Growth", "Multi-shop management", "Connect Etsy + Amazon + Shopify", "Bulk audit dashboard", "Push edits back to your shop", "Dedicated support"],
 };
 
 const plans = [
@@ -21,6 +21,7 @@ const plans = [
     monthly: 0,
     annual: 0,
     description: "Try before you buy",
+    comingSoon: false,
   },
   {
     id: "starter" as const,
@@ -28,21 +29,24 @@ const plans = [
     monthly: 19,
     annual: 190,
     description: "For part-time sellers",
+    comingSoon: false,
   },
   {
     id: "growth" as const,
     name: "Growth",
-    monthly: 39,
-    annual: 390,
+    monthly: 29,
+    annual: 290,
     description: "For serious sellers",
     popular: true,
+    comingSoon: false,
   },
   {
     id: "studio" as const,
     name: "Studio",
     monthly: 79,
     annual: 790,
-    description: "For power users & agencies",
+    description: "Multi-platform + shop API",
+    comingSoon: true,
   },
 ];
 
@@ -188,6 +192,16 @@ export default function PricingPage() {
                   >
                     Get started free
                   </a>
+                ) : plan.comingSoon ? (
+                  <button
+                    disabled
+                    className={cn(
+                      buttonVariants({ variant: "outline", size: "sm", className: "w-full text-xs" }),
+                      "opacity-50 cursor-not-allowed"
+                    )}
+                  >
+                    Coming soon
+                  </button>
                 ) : (
                   <button
                     onClick={() => handleUpgrade(plan)}

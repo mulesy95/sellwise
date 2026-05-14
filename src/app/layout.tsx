@@ -13,10 +13,30 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+
 export const metadata: Metadata = {
-  title: "Sellwise — AI SEO Optimiser for Marketplace Sellers",
+  metadataBase: new URL(appUrl),
+  title: {
+    default: "SellWise — AI Listing Optimiser for Marketplace Sellers",
+    template: "%s | SellWise",
+  },
   description:
-    "Generate titles, tags, and descriptions that rank — in seconds.",
+    "Generate SEO-optimised titles, tags, and descriptions in seconds. Built for Etsy, Amazon, Shopify, and eBay sellers.",
+  openGraph: {
+    type: "website",
+    siteName: "SellWise",
+    title: "SellWise — AI Listing Optimiser for Marketplace Sellers",
+    description:
+      "Generate SEO-optimised titles, tags, and descriptions in seconds. Built for Etsy, Amazon, Shopify, and eBay sellers.",
+    url: appUrl,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SellWise — AI Listing Optimiser for Marketplace Sellers",
+    description:
+      "Generate SEO-optimised titles, tags, and descriptions in seconds. Built for Etsy, Amazon, Shopify, and eBay sellers.",
+  },
 };
 
 export default function RootLayout({

@@ -2,6 +2,7 @@
 
 import { use, useActionState } from "react";
 import Link from "next/link";
+import { Turnstile } from "@marsidev/react-turnstile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -62,6 +63,9 @@ export function LoginForm({
               autoComplete="current-password"
             />
           </div>
+          {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
+            <Turnstile siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY} />
+          )}
           <Button type="submit" className="w-full" disabled={pending}>
             {pending ? (
               <>

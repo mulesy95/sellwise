@@ -16,16 +16,25 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { UpgradeModal } from "@/components/upgrade-modal";
+import {
+  detectPlatformFromUrl,
+  PLATFORM_LABELS,
+  PLATFORM_URL_EXAMPLES,
+  type Platform,
+} from "@/lib/platforms";
 
-interface Listing {
+interface ListingData {
+  platform: Platform;
   title: string;
-  tags: string[];
   description: string;
+  tags?: string[];
+  bullets?: string[];
 }
 
 interface Result {
-  original: Listing;
-  optimised: Listing;
+  platform: Platform;
+  original: ListingData;
+  optimised: ListingData;
   improvements: string[];
 }
 
@@ -35,12 +44,25 @@ export function CompetitorClient() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [detectedPlatform, setDetectedPlatform] = useState<Platform | null>(null);
+
+  function handleUrlChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const detected = detectPlatformFromUrl(e.target.value);
+    setDetectedPlatform(detected);
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const url = (
       e.currentTarget.elements.namedItem("url") as HTMLInputElement
     ).value.trim();
+
+    if (!detectedPlatform) {
+      setError(
+        "URL not recognised. Paste a listing URL from Etsy (etsy.com/listing/...), Amazon (amazon.com/dp/...), eBay (ebay.com/itm/...), or a Shopify store (/products/...)."
+      );
+      return;
+    }
 
     setLoading(true);
     setResult(null);
@@ -79,6 +101,8 @@ export function CompetitorClient() {
     setTimeout(() => setCopied(null), 2000);
   }
 
+  const allExamples = Object.values(PLATFORM_URL_EXAMPLES).join(" · ");
+
   return (
     <div className="space-y-6">
       <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} />
@@ -89,41 +113,56 @@ export function CompetitorClient() {
           Competitor Peek
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Paste an Etsy listing URL to extract their SEO and generate a better version.
+          Paste any listing URL from Etsy, Amazon, Shopify, or eBay to get a
+          better version.
         </p>
       </div>
 
       <Card className="border-border/50">
         <CardHeader className="pb-4">
-          <CardTitle className="text-base">Etsy listing URL</CardTitle>
+          <CardTitle className="text-base">Listing URL</CardTitle>
           <CardDescription className="text-xs">
-            Paste any Etsy listing URL — e.g. etsy.com/listing/1234567/product-name
+            Supports Etsy, Amazon, Shopify stores, and eBay.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="flex gap-2">
-            <div className="flex-1 space-y-1.5">
-              <Label htmlFor="url" className="sr-only">
-                Etsy listing URL
-              </Label>
-              <Input
-                id="url"
-                name="url"
-                type="url"
-                placeholder="https://www.etsy.com/listing/..."
-                required
-              />
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <div className="flex gap-2">
+              <div className="flex-1 space-y-1.5">
+                <Label htmlFor="url" className="sr-only">
+                  Listing URL
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="url"
+                    name="url"
+                    type="url"
+                    placeholder="Paste a listing URL…"
+                    required
+                    onChange={handleUrlChange}
+                    className={detectedPlatform ? "pr-24" : ""}
+                  />
+                  {detectedPlatform && (
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+                      {PLATFORM_LABELS[detectedPlatform]}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <Button type="submit" disabled={loading || !detectedPlatform} className="shrink-0">
+                {loading ? (
+                  <span className="size-4 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
+                ) : (
+                  <>
+                    <Eye className="size-3.5" />
+                    Analyse
+                  </>
+                )}
+              </Button>
             </div>
-            <Button type="submit" disabled={loading} className="shrink-0">
-              {loading ? (
-                <span className="size-4 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
-              ) : (
-                <>
-                  <Eye className="size-3.5" />
-                  Analyse
-                </>
-              )}
-            </Button>
+            <p className="text-[11px] text-muted-foreground truncate">
+              e.g. {allExamples}
+            </p>
           </form>
         </CardContent>
       </Card>
@@ -132,7 +171,9 @@ export function CompetitorClient() {
         <Card className="flex min-h-48 items-center justify-center border-border/30">
           <CardContent className="text-center">
             <div className="mx-auto mb-3 size-8 animate-spin rounded-full border-2 border-primary/20 border-t-primary" />
-            <p className="text-sm text-muted-foreground">Fetching and analysing listing…</p>
+            <p className="text-sm text-muted-foreground">
+              Fetching and analysing listing…
+            </p>
           </CardContent>
         </Card>
       )}
@@ -169,22 +210,30 @@ export function CompetitorClient() {
           )}
 
           <div className="grid gap-4 lg:grid-cols-2">
+            {/* Original */}
             <Card className="border-border/50">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm text-muted-foreground">
                   Their listing
+                  <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium">
+                    {PLATFORM_LABELS[result.platform]}
+                  </span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <p className="mb-1 text-xs font-medium text-muted-foreground">Title</p>
-                  <p className="text-sm leading-relaxed">{result.original.title}</p>
+                  <p className="mb-1 text-xs font-medium text-muted-foreground">
+                    Title
+                  </p>
+                  <p className="text-sm leading-relaxed">
+                    {result.original.title}
+                  </p>
                   <p className="mt-1 text-xs text-muted-foreground">
                     {result.original.title.length} chars
                   </p>
                 </div>
 
-                {result.original.tags.length > 0 && (
+                {result.original.tags && result.original.tags.length > 0 && (
                   <>
                     <Separator />
                     <div>
@@ -193,7 +242,11 @@ export function CompetitorClient() {
                       </p>
                       <div className="flex flex-wrap gap-1">
                         {result.original.tags.map((tag) => (
-                          <Badge key={tag} variant="secondary" className="text-xs">
+                          <Badge
+                            key={tag}
+                            variant="secondary"
+                            className="text-xs"
+                          >
                             {tag}
                           </Badge>
                         ))}
@@ -202,11 +255,31 @@ export function CompetitorClient() {
                   </>
                 )}
 
+                {result.original.bullets && result.original.bullets.length > 0 && (
+                  <>
+                    <Separator />
+                    <div>
+                      <p className="mb-1.5 text-xs font-medium text-muted-foreground">
+                        Bullets ({result.original.bullets.length})
+                      </p>
+                      <ol className="list-decimal list-inside space-y-1">
+                        {result.original.bullets.map((b, i) => (
+                          <li key={i} className="text-xs leading-relaxed">
+                            {b}
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  </>
+                )}
+
                 {result.original.description && (
                   <>
                     <Separator />
                     <div>
-                      <p className="mb-1 text-xs font-medium text-muted-foreground">Description</p>
+                      <p className="mb-1 text-xs font-medium text-muted-foreground">
+                        Description
+                      </p>
                       <p className="text-xs leading-relaxed text-muted-foreground line-clamp-4">
                         {result.original.description}
                       </p>
@@ -216,6 +289,7 @@ export function CompetitorClient() {
               </CardContent>
             </Card>
 
+            {/* Optimised */}
             <Card className="border-primary/30 bg-primary/5">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm text-primary">
@@ -225,9 +299,13 @@ export function CompetitorClient() {
               <CardContent className="space-y-4">
                 <div>
                   <div className="flex items-start justify-between gap-2 mb-1">
-                    <p className="text-xs font-medium text-muted-foreground">Title</p>
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Title
+                    </p>
                     <button
-                      onClick={() => copy(result.optimised.title, "opt-title")}
+                      onClick={() =>
+                        copy(result.optimised.title, "opt-title")
+                      }
                       className="rounded p-0.5 text-muted-foreground hover:text-foreground transition-colors"
                     >
                       {copied === "opt-title" ? (
@@ -237,44 +315,96 @@ export function CompetitorClient() {
                       )}
                     </button>
                   </div>
-                  <p className="text-sm leading-relaxed">{result.optimised.title}</p>
-                  <p className={`mt-1 text-xs ${result.optimised.title.length <= 140 ? "text-green-500" : "text-destructive"}`}>
-                    {result.optimised.title.length} / 140 chars
+                  <p className="text-sm leading-relaxed">
+                    {result.optimised.title}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {result.optimised.title.length} chars
                   </p>
                 </div>
 
-                <Separator />
-                <div>
-                  <div className="flex items-start justify-between gap-2 mb-1.5">
-                    <p className="text-xs font-medium text-muted-foreground">
-                      Tags ({result.optimised.tags.length})
-                    </p>
-                    <button
-                      onClick={() => copy(result.optimised.tags.join(", "), "opt-tags")}
-                      className="rounded p-0.5 text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {copied === "opt-tags" ? (
-                        <Check className="size-3 text-green-500" />
-                      ) : (
-                        <Copy className="size-3" />
-                      )}
-                    </button>
-                  </div>
-                  <div className="flex flex-wrap gap-1">
-                    {result.optimised.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
+                {result.optimised.tags && result.optimised.tags.length > 0 && (
+                  <>
+                    <Separator />
+                    <div>
+                      <div className="flex items-start justify-between gap-2 mb-1.5">
+                        <p className="text-xs font-medium text-muted-foreground">
+                          Tags ({result.optimised.tags.length})
+                        </p>
+                        <button
+                          onClick={() =>
+                            copy(result.optimised.tags!.join(", "), "opt-tags")
+                          }
+                          className="rounded p-0.5 text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          {copied === "opt-tags" ? (
+                            <Check className="size-3 text-green-500" />
+                          ) : (
+                            <Copy className="size-3" />
+                          )}
+                        </button>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {result.optimised.tags.map((tag) => (
+                          <Badge
+                            key={tag}
+                            variant="secondary"
+                            className="text-xs"
+                          >
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {result.optimised.bullets &&
+                  result.optimised.bullets.length > 0 && (
+                    <>
+                      <Separator />
+                      <div>
+                        <div className="flex items-start justify-between gap-2 mb-1.5">
+                          <p className="text-xs font-medium text-muted-foreground">
+                            Bullets ({result.optimised.bullets.length})
+                          </p>
+                          <button
+                            onClick={() =>
+                              copy(
+                                result.optimised.bullets!.join("\n"),
+                                "opt-bullets"
+                              )
+                            }
+                            className="rounded p-0.5 text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            {copied === "opt-bullets" ? (
+                              <Check className="size-3 text-green-500" />
+                            ) : (
+                              <Copy className="size-3" />
+                            )}
+                          </button>
+                        </div>
+                        <ol className="list-decimal list-inside space-y-1.5">
+                          {result.optimised.bullets.map((b, i) => (
+                            <li key={i} className="text-xs leading-relaxed">
+                              {b}
+                            </li>
+                          ))}
+                        </ol>
+                      </div>
+                    </>
+                  )}
 
                 <Separator />
                 <div>
                   <div className="flex items-start justify-between gap-2 mb-1">
-                    <p className="text-xs font-medium text-muted-foreground">Description</p>
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Description
+                    </p>
                     <button
-                      onClick={() => copy(result.optimised.description, "opt-desc")}
+                      onClick={() =>
+                        copy(result.optimised.description, "opt-desc")
+                      }
                       className="rounded p-0.5 text-muted-foreground hover:text-foreground transition-colors"
                     >
                       {copied === "opt-desc" ? (
@@ -284,7 +414,9 @@ export function CompetitorClient() {
                       )}
                     </button>
                   </div>
-                  <p className="text-xs leading-relaxed">{result.optimised.description}</p>
+                  <p className="text-xs leading-relaxed">
+                    {result.optimised.description}
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -297,7 +429,7 @@ export function CompetitorClient() {
           <CardContent className="text-center">
             <Eye className="mx-auto mb-3 size-8 text-muted-foreground/40" />
             <p className="text-sm text-muted-foreground">
-              Paste an Etsy listing URL above to get started.
+              Paste a listing URL above to get started.
             </p>
           </CardContent>
         </Card>

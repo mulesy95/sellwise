@@ -2,7 +2,7 @@ import Link from "next/link";
 import { LoginForm } from "./login-form";
 
 export const metadata = {
-  title: "Sign in — Sellwise",
+  title: "Sign in",
 };
 
 export default function LoginPage({

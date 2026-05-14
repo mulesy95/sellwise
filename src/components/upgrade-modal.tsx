@@ -7,8 +7,22 @@ import { Badge } from "@/components/ui/badge";
 
 const plans = [
   {
+    name: "Starter",
+    price: "$19",
+    period: "/mo",
+    badge: null,
+    features: [
+      "50 optimisations / month",
+      "Keyword Research",
+      "Competitor Peek",
+      "Listing Audit",
+    ],
+    href: "/pricing",
+    primary: false,
+  },
+  {
     name: "Growth",
-    price: "$39",
+    price: "$29",
     period: "/mo",
     badge: "Most popular",
     features: [
@@ -18,23 +32,8 @@ const plans = [
       "Listing Audit",
       "Priority support",
     ],
-    href: "/dashboard/settings",
+    href: "/pricing",
     primary: true,
-  },
-  {
-    name: "Studio",
-    price: "$79",
-    period: "/mo",
-    badge: null,
-    features: [
-      "Everything in Growth",
-      "Multi-shop management",
-      "Amazon FBA (coming soon)",
-      "Shopify (coming soon)",
-      "Agency seat access",
-    ],
-    href: "/dashboard/settings",
-    primary: false,
   },
 ];
 

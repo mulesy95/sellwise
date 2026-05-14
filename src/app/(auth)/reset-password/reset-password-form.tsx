@@ -1,16 +1,14 @@
 "use client";
 
 import { useState, useActionState } from "react";
-import Link from "next/link";
-import { Turnstile } from "@marsidev/react-turnstile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { signUp } from "@/lib/supabase/actions";
+import { resetPassword } from "@/lib/supabase/actions";
 
-export function SignupForm() {
-  const [state, action, pending] = useActionState(signUp, null);
+export function ResetPasswordForm() {
+  const [state, action, pending] = useActionState(resetPassword, null);
   const [confirmError, setConfirmError] = useState<string | null>(null);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -35,9 +33,7 @@ export function SignupForm() {
         <div className="mb-2 text-2xl font-bold tracking-tight">
           Sell<span className="text-primary">wise</span>
         </div>
-        <p className="text-sm text-muted-foreground">
-          Start with 3 free optimisations
-        </p>
+        <p className="text-sm text-muted-foreground">Choose a new password</p>
       </CardHeader>
       <CardContent className="space-y-4">
         <form action={action} onSubmit={handleSubmit} className="space-y-4">
@@ -47,29 +43,7 @@ export function SignupForm() {
             </div>
           )}
           <div className="space-y-1.5">
-            <Label htmlFor="name">Full name</Label>
-            <Input
-              id="name"
-              type="text"
-              name="name"
-              placeholder="Jane Smith"
-              required
-              autoComplete="name"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              name="email"
-              placeholder="you@example.com"
-              required
-              autoComplete="email"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">New password</Label>
             <Input
               id="password"
               type="password"
@@ -81,7 +55,7 @@ export function SignupForm() {
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="confirmPassword">Confirm password</Label>
+            <Label htmlFor="confirmPassword">Confirm new password</Label>
             <Input
               id="confirmPassword"
               type="password"
@@ -91,29 +65,17 @@ export function SignupForm() {
               autoComplete="new-password"
             />
           </div>
-          {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
-            <Turnstile siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY} />
-          )}
           <Button type="submit" className="w-full" disabled={pending}>
             {pending ? (
               <>
                 <span className="mr-2 inline-block size-3.5 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
-                Creating account…
+                Updating password…
               </>
             ) : (
-              "Create free account"
+              "Set new password"
             )}
           </Button>
-          <p className="text-center text-xs text-muted-foreground">
-            By signing up you agree to our Terms of Service and Privacy Policy.
-          </p>
         </form>
-        <p className="text-center text-sm text-muted-foreground">
-          Already have an account?{" "}
-          <Link href="/login" className="text-primary hover:underline">
-            Sign in
-          </Link>
-        </p>
       </CardContent>
     </Card>
   );
