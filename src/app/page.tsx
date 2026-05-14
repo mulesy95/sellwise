@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Search, Eye, BarChart2 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 
 export const metadata: Metadata = {
@@ -35,20 +36,20 @@ export default function HomePage() {
     <div className="min-h-screen bg-background text-foreground font-sans">
       {/* NAV */}
       <nav className="sticky top-0 z-50 border-b border-border bg-background">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-3.5">
-          <span className="text-[15px] font-bold text-foreground">
-            SellWise
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4 md:py-5">
+          <span className="text-lg font-bold text-foreground">
+            Sell<span className="text-primary">Wise</span>
           </span>
-          <div className="flex items-center gap-5 text-xs text-muted-foreground">
+          <div className="flex items-center gap-6 text-sm text-muted-foreground">
             <a
               href="#features"
-              className="transition-colors hover:text-foreground"
+              className="hidden transition-colors hover:text-foreground sm:block"
             >
               Features
             </a>
             <a
               href="#pricing"
-              className="transition-colors hover:text-foreground"
+              className="hidden transition-colors hover:text-foreground sm:block"
             >
               Pricing
             </a>
@@ -76,7 +77,7 @@ export default function HomePage() {
                 <br />
                 actually find.
               </h1>
-              <p className="mb-8 text-sm leading-relaxed text-muted-foreground md:text-base">
+              <p className="mb-8 text-sm leading-relaxed text-muted-foreground md:text-lg">
                 Tell us what you sell. We&apos;ll write the title, tags, and
                 description — optimised for the algorithm.
               </p>
@@ -84,7 +85,7 @@ export default function HomePage() {
                 <Link href="/signup" className={buttonVariants({ size: "lg" })}>
                   Try free for 7 days
                 </Link>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-sm text-muted-foreground">
                   No card needed
                 </span>
               </div>
@@ -140,36 +141,42 @@ export default function HomePage() {
       {/* FEATURES */}
       <section id="features" className="border-t border-border py-14 md:py-20">
         <div className="mx-auto max-w-5xl px-6">
-          <h2 className="mb-8 text-center text-lg font-bold text-foreground md:text-2xl">
+          <h2 className="mb-10 text-center text-2xl font-bold text-foreground md:text-3xl">
             Everything you need to rank
           </h2>
-          <div className="grid grid-cols-3 gap-6 md:gap-10">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-3 md:gap-12">
             <div>
-              <div className="mb-3 text-2xl">🔍</div>
-              <h3 className="mb-1.5 text-sm font-semibold text-foreground">
+              <div className="mb-4 flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Search className="size-5" />
+              </div>
+              <h3 className="mb-2 text-base font-semibold text-foreground">
                 Keyword Research
               </h3>
-              <p className="text-xs leading-relaxed text-muted-foreground md:text-sm">
+              <p className="text-sm leading-relaxed text-muted-foreground">
                 Find 15 keywords buyers actually search for, with volume,
                 competition and trend signals.
               </p>
             </div>
             <div>
-              <div className="mb-3 text-2xl">👁️</div>
-              <h3 className="mb-1.5 text-sm font-semibold text-foreground">
+              <div className="mb-4 flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Eye className="size-5" />
+              </div>
+              <h3 className="mb-2 text-base font-semibold text-foreground">
                 Competitor Peek
               </h3>
-              <p className="text-xs leading-relaxed text-muted-foreground md:text-sm">
+              <p className="text-sm leading-relaxed text-muted-foreground">
                 Paste any marketplace listing URL. See their SEO and get a
                 version that outranks it.
               </p>
             </div>
             <div>
-              <div className="mb-3 text-2xl">📊</div>
-              <h3 className="mb-1.5 text-sm font-semibold text-foreground">
+              <div className="mb-4 flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <BarChart2 className="size-5" />
+              </div>
+              <h3 className="mb-2 text-base font-semibold text-foreground">
                 Listing Audit
               </h3>
-              <p className="text-xs leading-relaxed text-muted-foreground md:text-sm">
+              <p className="text-sm leading-relaxed text-muted-foreground">
                 Score your listings 0 to 100 with a breakdown and specific
                 fixes to make.
               </p>
@@ -184,7 +191,7 @@ export default function HomePage() {
         className="border-t border-border py-14 text-center md:py-20"
       >
         <div className="mx-auto max-w-5xl px-6">
-          <h2 className="mb-1 text-lg font-bold text-foreground md:text-2xl">
+          <h2 className="mb-1 text-2xl font-bold text-foreground md:text-3xl">
             Simple pricing, no surprises
           </h2>
           <p className="mb-8 text-sm text-muted-foreground">
@@ -196,7 +203,7 @@ export default function HomePage() {
               <p className="text-sm font-semibold text-foreground">Free</p>
               <p className="my-2 text-2xl font-bold text-foreground">$0</p>
               <p className="text-xs text-muted-foreground">
-                3 optimisations per month
+                1 optimisation per month
               </p>
             </div>
             <div className="rounded-lg border border-border bg-card p-4">
@@ -269,11 +276,16 @@ export default function HomePage() {
 
       {/* FOOTER */}
       <footer className="border-t border-border">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-          <span className="text-xs font-semibold text-muted-foreground">
-            SellWise
-          </span>
-          <div className="flex gap-5 text-xs text-muted-foreground">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-6 md:py-8">
+          <div>
+            <span className="text-base font-bold text-foreground">
+              Sell<span className="text-primary">Wise</span>
+            </span>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Sell smarter on every platform.
+            </p>
+          </div>
+          <div className="flex gap-6 text-sm text-muted-foreground">
             <Link
               href="/pricing"
               className="transition-colors hover:text-foreground"
@@ -286,10 +298,16 @@ export default function HomePage() {
             >
               Sign in
             </Link>
+            <Link
+              href="/signup"
+              className="transition-colors hover:text-foreground"
+            >
+              Sign up
+            </Link>
           </div>
         </div>
-        <div className="border-t border-border px-6 py-2 text-center">
-          <p className="text-[10px] text-muted-foreground/50">
+        <div className="border-t border-border px-6 py-3 text-center">
+          <p className="text-xs text-muted-foreground/50">
             © 2026 SellWise
           </p>
         </div>
