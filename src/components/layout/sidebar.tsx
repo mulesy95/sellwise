@@ -49,7 +49,7 @@ export function Sidebar({
           <Zap className="size-4" />
         </div>
         <span className="font-bold tracking-tight">
-          Sell<span className="text-primary">wise</span>
+          Sell<span className="text-primary">Wise</span>
         </span>
       </div>
 

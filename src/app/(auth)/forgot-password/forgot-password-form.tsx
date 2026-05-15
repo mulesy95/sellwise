@@ -16,7 +16,7 @@ export function ForgotPasswordForm() {
     <Card className="border-border/50 bg-card">
       <CardHeader className="pb-2 text-center">
         <div className="mb-2 text-2xl font-bold tracking-tight">
-          Sell<span className="text-primary">wise</span>
+          Sell<span className="text-primary">Wise</span>
         </div>
         <p className="text-sm text-muted-foreground">Reset your password</p>
       </CardHeader>
@@ -66,7 +66,7 @@ export function ForgotPasswordForm() {
             <Button type="submit" className="w-full" disabled={pending}>
               {pending ? (
                 <>
-                  <span className="mr-2 inline-block size-3.5 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
+                  <span className="mr-2 inline-block size-3.5 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />
                   Sending…
                 </>
               ) : (

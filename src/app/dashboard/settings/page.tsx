@@ -14,10 +14,10 @@ import { getUsageData } from "@/lib/usage";
 import { ManageBillingButton } from "@/components/manage-billing-button";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-export const metadata = { title: "Settings — Sellwise" };
+export const metadata = { title: "Settings" };
 
 const planDisplay: Record<string, { label: string; price: string; limit: string }> = {
-  free:    { label: "Free",    price: "$0/mo",  limit: "3 optimisations / month" },
+  free:    { label: "Free",    price: "$0/mo",  limit: "1 optimisation / month" },
   starter: { label: "Starter", price: "$19/mo", limit: "50 optimisations / month" },
   growth:  { label: "Growth",  price: "$29/mo", limit: "Unlimited" },
   studio:  { label: "Studio",  price: "$79/mo", limit: "Unlimited + multi-shop" },

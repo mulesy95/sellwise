@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 const features = {
-  free:    ["3 optimisations / month", "Etsy platform", "Basic listing optimiser"],
+  free:    ["1 optimisation / month", "Etsy platform", "Basic listing optimiser"],
   starter: ["50 optimisations / month", "Keyword Research", "Listing Audit", "Competitor Peek", "Email support"],
   growth:  ["Unlimited optimisations", "Unlimited keywords", "Unlimited audits", "Unlimited competitor analyses", "Priority support", "Optimisation history"],
   studio:  ["Everything in Growth", "Multi-shop management", "Connect Etsy + Amazon + Shopify", "Bulk audit dashboard", "Push edits back to your shop", "Dedicated support"],
@@ -91,8 +91,8 @@ export default function PricingPage() {
           <div className="flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
             <Zap className="size-4" />
           </div>
-          <a href="/dashboard" className="font-bold tracking-tight text-xl">
-            Sell<span className="text-primary">wise</span>
+          <a href="/" className="font-bold tracking-tight text-xl">
+            Sell<span className="text-primary">Wise</span>
           </a>
         </div>
         <h1 className="text-4xl font-bold tracking-tight">Simple, transparent pricing</h1>
@@ -216,7 +216,7 @@ export default function PricingPage() {
                     )}
                   >
                     {loading === plan.id ? (
-                      <span className="size-3.5 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
+                      <span className="size-3.5 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />
                     ) : (
                       `Get ${plan.name}`
                     )}

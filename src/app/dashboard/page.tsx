@@ -11,11 +11,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 export const metadata = {
-  title: "Dashboard — Sellwise",
+  title: "Dashboard",
 };
 
 const stats = [
-  { label: "Optimisations used", value: "0", sub: "of 3 this month" },
+  { label: "Optimisations used", value: "0", sub: "this month" },
   { label: "Listings saved", value: "0", sub: "in history" },
   { label: "Keywords explored", value: "0", sub: "this month" },
   { label: "Audits run", value: "0", sub: "this month" },

@@ -191,7 +191,7 @@ export function KeywordsClient() {
             </div>
             <Button type="submit" disabled={loading} className="shrink-0">
               {loading ? (
-                <span className="size-4 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
+                <span className="size-4 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />
               ) : (
                 <>
                   <Search className="size-3.5" />

@@ -151,7 +151,7 @@ export function CompetitorClient() {
               </div>
               <Button type="submit" disabled={loading || !detectedPlatform} className="shrink-0">
                 {loading ? (
-                  <span className="size-4 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
+                  <span className="size-4 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />
                 ) : (
                   <>
                     <Eye className="size-3.5" />
