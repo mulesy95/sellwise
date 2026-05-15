@@ -4,7 +4,6 @@ import { useActionState } from "react";
 import { joinWaitlist, type WaitlistState } from "@/app/actions/waitlist";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Sparkles } from "lucide-react";
 
 export function ComingSoon() {
   const [state, action, pending] = useActionState<WaitlistState, FormData>(
@@ -14,18 +13,14 @@ export function ComingSoon() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6 text-center">
-      {/* Logo */}
-      <div className="mb-6 flex size-14 items-center justify-center rounded-2xl bg-primary/10">
-        <Sparkles className="size-7 text-primary" />
-      </div>
+      {/* Wordmark */}
+      <h1 className="mb-3 text-5xl font-extrabold tracking-tight text-foreground md:text-6xl">
+        Sell<span className="text-primary">Wise</span>
+      </h1>
 
       <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-primary">
         Coming Soon
       </p>
-
-      <h1 className="mb-4 text-4xl font-extrabold tracking-tight text-foreground md:text-5xl">
-        Sell<span className="text-primary">Wise</span>
-      </h1>
 
       <p className="mb-2 max-w-md text-lg font-medium text-foreground">
         Sell smarter on every platform.
