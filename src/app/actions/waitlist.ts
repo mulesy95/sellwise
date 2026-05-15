@@ -15,14 +15,11 @@ export async function joinWaitlist(
   }
 
   const admin = createAdminClient();
-  const { error } = await admin
-    .from("waitlist")
-    .insert({ email })
-    .select()
-    .single();
+  const { error } = await admin.from("waitlist").insert({ email });
 
   if (error) {
     if (error.code === "23505") return { success: true }; // already on list
+    console.error("[waitlist]", error.code, error.message);
     return { error: "Something went wrong. Please try again." };
   }
 
