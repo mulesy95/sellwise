@@ -36,7 +36,7 @@ export function SignupForm() {
           Sell<span className="text-primary">Wise</span>
         </div>
         <p className="text-sm text-muted-foreground">
-          Start with 1 free optimisation
+          7-day free trial. No card required.
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
