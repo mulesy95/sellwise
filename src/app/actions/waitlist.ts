@@ -1,6 +1,8 @@
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendEmail } from "@/lib/email";
+import { waitlistConfirmationEmail } from "@/lib/emails/waitlist-confirmation";
 
 export type WaitlistState = { success?: boolean; error?: string } | null;
 
@@ -22,6 +24,9 @@ export async function joinWaitlist(
     console.error("[waitlist]", error.code, error.message);
     return { error: "Something went wrong. Please try again." };
   }
+
+  const { subject, html } = waitlistConfirmationEmail();
+  void sendEmail({ to: email, subject, html });
 
   return { success: true };
 }
