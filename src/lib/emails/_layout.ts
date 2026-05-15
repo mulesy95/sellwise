@@ -1,5 +1,14 @@
 const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://sellwise.au";
 
+export function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;");
+}
+
 export function accountUnsubscribeUrl(email: string): string {
   const token = Buffer.from(email.toLowerCase()).toString("base64");
   return `${appUrl}/api/email/unsubscribe?token=${encodeURIComponent(token)}`;

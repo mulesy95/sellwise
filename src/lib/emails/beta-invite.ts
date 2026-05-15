@@ -1,11 +1,11 @@
-import { emailLayout, appUrl } from "./_layout";
+import { emailLayout, appUrl, escapeHtml } from "./_layout";
 
 export function betaInviteEmail(
   firstName: string | null,
   code: string,
   token: string
 ): { subject: string; html: string } {
-  const name = firstName ?? "there";
+  const name = escapeHtml(firstName ?? "there");
   const inviteUrl = `${appUrl}/invite/${token}`;
 
   const html = emailLayout(`

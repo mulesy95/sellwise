@@ -76,9 +76,9 @@ function InviteForm() {
         {error && <p className="text-sm text-destructive">{error}</p>}
       </form>
 
-      <div className="mt-8 flex gap-5 text-xs text-muted-foreground/50">
-        <a href="/login" className="hover:text-muted-foreground transition-colors">Log in</a>
-        <a href="/signup" className="hover:text-muted-foreground transition-colors">Sign up</a>
+      <div className="mt-6 flex items-center gap-3 text-sm text-muted-foreground">
+        <span>Already have an account?</span>
+        <a href="/login" className="font-medium text-primary hover:underline">Log in</a>
       </div>
     </div>
   );

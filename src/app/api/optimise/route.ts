@@ -18,7 +18,7 @@ const requestSchema = z.object({
   keywords: z.string().max(300).optional().default(""),
   imageBase64: z.string().optional(),
   imageMediaType: z.enum(["image/jpeg", "image/png", "image/gif", "image/webp"]).optional(),
-  imageUrl: z.string().url().optional(),
+  imageUrl: z.string().url().refine((u) => u.startsWith("https://"), "imageUrl must use HTTPS").optional(),
 });
 
 const WRITING_RULES = `Writing rules:
