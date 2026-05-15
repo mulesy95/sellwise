@@ -30,7 +30,7 @@ export default async function DashboardLayout({
     if (profile && !profile.welcome_sent) {
       await admin.from("profiles").update({ welcome_sent: true }).eq("id", user.id);
       const firstName = profile.full_name?.split(" ")[0] ?? null;
-      const { subject, html } = welcomeEmail(firstName);
+      const { subject, html } = welcomeEmail(firstName, user.email!);
       void sendEmail({ to: user.email!, subject, html });
     }
   }

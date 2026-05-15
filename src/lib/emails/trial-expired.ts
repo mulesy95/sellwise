@@ -1,6 +1,6 @@
-import { emailLayout, appUrl } from "./_layout";
+import { emailLayout, accountUnsubscribeUrl, appUrl } from "./_layout";
 
-export function trialExpiredEmail(firstName: string | null): { subject: string; html: string } {
+export function trialExpiredEmail(firstName: string | null, email: string): { subject: string; html: string } {
   const name = firstName ?? "there";
 
   const html = emailLayout(`
@@ -9,7 +9,7 @@ export function trialExpiredEmail(firstName: string | null): { subject: string; 
         Your trial has ended, ${name}
       </h1>
       <p style="margin:0 0 16px;font-size:15px;color:#444444;line-height:1.6">
-        Your free trial of SellWise Growth has ended. You're now on the Free plan — 1 optimisation per month.
+        Your free trial of SellWise Growth has ended. You're now on the Free plan: 1 optimisation per month.
       </p>
       <p style="margin:0 0 28px;font-size:15px;color:#444444;line-height:1.6">
         Upgrade any time to get back to unlimited optimisations, keyword research, competitor analysis, and listing audits.
@@ -40,7 +40,7 @@ export function trialExpiredEmail(firstName: string | null): { subject: string; 
         </td></tr>
       </table>
     </td></tr>
-  `);
+  `, accountUnsubscribeUrl(email));
 
   return {
     subject: "Your SellWise trial has ended",

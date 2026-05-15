@@ -27,6 +27,7 @@ export async function GET(req: NextRequest) {
     .from("profiles")
     .select("id, full_name")
     .eq("trial_nudge_sent", false)
+    .eq("marketing_opted_out", false)
     .gte("trial_ends_at", nudgeWindowStart)
     .lte("trial_ends_at", nudgeWindowEnd);
 
@@ -36,7 +37,7 @@ export async function GET(req: NextRequest) {
       if (!user?.email) continue;
 
       const firstName = (profile.full_name as string | null)?.split(" ")[0] ?? null;
-      const { subject, html } = trialNudgeEmail(firstName);
+      const { subject, html } = trialNudgeEmail(firstName, user.email);
       await sendEmail({ to: user.email, subject, html });
       await admin.from("profiles").update({ trial_nudge_sent: true }).eq("id", profile.id);
       results.nudgeSent++;
@@ -52,6 +53,7 @@ export async function GET(req: NextRequest) {
     .from("profiles")
     .select("id, full_name")
     .eq("trial_expired_sent", false)
+    .eq("marketing_opted_out", false)
     .eq("plan", "free")
     .lte("trial_ends_at", now.toISOString())
     .gte("trial_ends_at", expiredWindowStart);
@@ -62,7 +64,7 @@ export async function GET(req: NextRequest) {
       if (!user?.email) continue;
 
       const firstName = (profile.full_name as string | null)?.split(" ")[0] ?? null;
-      const { subject, html } = trialExpiredEmail(firstName);
+      const { subject, html } = trialExpiredEmail(firstName, user.email);
       await sendEmail({ to: user.email, subject, html });
       await admin.from("profiles").update({ trial_expired_sent: true }).eq("id", profile.id);
       results.expiredSent++;

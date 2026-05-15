@@ -1,6 +1,6 @@
-import { emailLayout, appUrl } from "./_layout";
+import { emailLayout, accountUnsubscribeUrl, appUrl } from "./_layout";
 
-export function trialNudgeEmail(firstName: string | null): { subject: string; html: string } {
+export function trialNudgeEmail(firstName: string | null, email: string): { subject: string; html: string } {
   const name = firstName ?? "there";
 
   const html = emailLayout(`
@@ -12,7 +12,7 @@ export function trialNudgeEmail(firstName: string | null): { subject: string; ht
         Your free trial ends soon, ${name}
       </h1>
       <p style="margin:0 0 16px;font-size:15px;color:#444444;line-height:1.6">
-        Your 7-day Growth trial ends in 2 days. After that you'll drop to the Free plan — 1 optimisation per month, no keyword research, no competitor analysis, no audits.
+        Your 7-day Growth trial ends in 2 days. After that you'll drop to the Free plan: 1 optimisation per month, no keyword research, no competitor analysis, no audits.
       </p>
       <p style="margin:0 0 28px;font-size:15px;color:#444444;line-height:1.6">
         Upgrade now to keep everything running without interruption.
@@ -40,7 +40,7 @@ export function trialNudgeEmail(firstName: string | null): { subject: string; ht
         Or try <a href="${appUrl}/pricing" style="color:#f0873b;text-decoration:none">Starter at $19/mo</a>. 50 optimisations plus all features.
       </p>
     </td></tr>
-  `);
+  `, accountUnsubscribeUrl(email));
 
   return {
     subject: "2 days left on your SellWise trial",

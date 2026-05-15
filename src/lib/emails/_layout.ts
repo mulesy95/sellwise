@@ -1,5 +1,10 @@
 const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://sellwise.au";
 
+export function accountUnsubscribeUrl(email: string): string {
+  const token = Buffer.from(email.toLowerCase()).toString("base64");
+  return `${appUrl}/api/email/unsubscribe?token=${encodeURIComponent(token)}`;
+}
+
 export function emailLayout(body: string, unsubscribeUrl?: string): string {
   return `<!DOCTYPE html>
 <html lang="en">

@@ -201,7 +201,7 @@ export async function POST(request: NextRequest) {
               const email = authUser?.user?.email;
               if (email) {
                 const firstName = (profile.full_name as string | null)?.split(" ")[0] ?? null;
-                const { subject, html } = firstOptimisationEmail(firstName);
+                const { subject, html } = firstOptimisationEmail(firstName, email);
                 await sendEmail({ to: email, subject, html });
                 await admin
                   .from("profiles")

@@ -1,6 +1,6 @@
-import { emailLayout, appUrl } from "./_layout";
+import { emailLayout, accountUnsubscribeUrl, appUrl } from "./_layout";
 
-export function firstOptimisationEmail(firstName: string | null): { subject: string; html: string } {
+export function firstOptimisationEmail(firstName: string | null, email: string): { subject: string; html: string } {
   const name = firstName ?? "there";
 
   const html = emailLayout(`
@@ -33,7 +33,7 @@ export function firstOptimisationEmail(firstName: string | null): { subject: str
         </td></tr>
       </table>`).join("")}
     </td></tr>
-  `);
+  `, accountUnsubscribeUrl(email));
 
   return {
     subject: "Your first SellWise optimisation is done",

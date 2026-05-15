@@ -1,6 +1,6 @@
-import { emailLayout, appUrl } from "./_layout";
+import { emailLayout, accountUnsubscribeUrl, appUrl } from "./_layout";
 
-export function welcomeEmail(firstName: string | null): { subject: string; html: string } {
+export function welcomeEmail(firstName: string | null, email: string): { subject: string; html: string } {
   const name = firstName ?? "there";
 
   const html = emailLayout(`
@@ -9,10 +9,10 @@ export function welcomeEmail(firstName: string | null): { subject: string; html:
         Welcome, ${name}!
       </h1>
       <p style="margin:0 0 16px;font-size:15px;color:#444444;line-height:1.6">
-        Your account is ready. You're on a <strong>7-day free trial of Growth</strong> — that's unlimited optimisations, keyword research, competitor analysis, and listing audits.
+        Your account is ready. You're on a <strong>7-day free trial of Growth</strong>. That's unlimited optimisations, keyword research, competitor analysis, and listing audits.
       </p>
       <p style="margin:0 0 28px;font-size:15px;color:#444444;line-height:1.6">
-        Start by typing a product name. We'll write a platform-optimised title, tags, and description for it — in under 10 seconds.
+        Start by typing a product name. We'll write a platform-optimised title, tags, and description. Done in under 10 seconds.
       </p>
       <a href="${appUrl}/dashboard/optimise"
          style="display:inline-block;background:#f0873b;color:#1a1a1a;text-decoration:none;font-size:14px;font-weight:700;padding:13px 24px;border-radius:8px">
@@ -34,10 +34,10 @@ export function welcomeEmail(firstName: string | null): { subject: string; html:
         </tr>
       </table>`).join("")}
     </td></tr>
-  `);
+  `, accountUnsubscribeUrl(email));
 
   return {
-    subject: "Welcome to SellWise — your 7-day trial has started",
+    subject: "Welcome to SellWise. Your 7-day trial has started.",
     html,
   };
 }
