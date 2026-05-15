@@ -11,14 +11,14 @@ export const metadata: Metadata = {
     description:
       "Write better Etsy titles, tags, and descriptions in seconds. AI-powered SEO built for sellers on Etsy, Amazon, Shopify, and eBay.",
     url: "/",
-    images: [{ url: "/og.png", width: 1200, height: 630, alt: "SellWise — AI Listing Optimiser" }],
+    images: [{ url: "/api/og", width: 1200, height: 630, alt: "SellWise — AI Listing Optimiser" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "SellWise — AI Listing Optimiser for Marketplace Sellers",
     description:
       "Write better Etsy titles, tags, and descriptions in seconds. AI-powered SEO built for sellers on Etsy, Amazon, Shopify, and eBay.",
-    images: ["/og.png"],
+    images: ["/api/og"],
   },
 };
 

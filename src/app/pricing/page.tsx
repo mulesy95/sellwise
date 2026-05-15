@@ -10,11 +10,11 @@ export const metadata: Metadata = {
     description:
       "Start free, upgrade when you're ready. Plans from $0 to $79/month for Etsy, Amazon, and Shopify sellers.",
     url: "/pricing",
-    images: [{ url: "/og.png", width: 1200, height: 630, alt: "SellWise Pricing" }],
+    images: [{ url: "/api/og?title=Simple%2C+transparent+pricing", width: 1200, height: 630, alt: "SellWise Pricing" }],
   },
   twitter: {
     card: "summary_large_image",
-    images: ["/og.png"],
+    images: ["/api/og?title=Simple%2C+transparent+pricing"],
   },
 };
 
