@@ -16,12 +16,7 @@ export async function POST(req: Request) {
     .single();
 
   if (error || !data) {
-    console.error("[beta/validate] query error:", JSON.stringify(error), "code queried:", code.toUpperCase().trim());
     return NextResponse.json({ error: "Invalid invite code" }, { status: 404 });
-  }
-
-  if (data.used_count >= data.max_uses) {
-    return NextResponse.json({ error: "This invite code has reached its limit" }, { status: 403 });
   }
 
   const res = NextResponse.json({ success: true });

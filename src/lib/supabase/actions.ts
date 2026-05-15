@@ -77,6 +77,21 @@ export async function signUp(
     return { error: "Passwords do not match." };
   }
 
+  const cookieStore = await cookies();
+  const betaCode = cookieStore.get("beta_access")?.value;
+
+  if (betaCode) {
+    const admin = createAdminClient();
+    const { data: codeData } = await admin
+      .from("beta_codes")
+      .select("used_count, max_uses")
+      .eq("code", betaCode)
+      .single();
+    if (codeData && codeData.used_count >= codeData.max_uses) {
+      return { error: "This invite code has already been used. If you already have an account, log in instead." };
+    }
+  }
+
   const supabase = await createClient();
 
   const email = formData.get("email") as string;
@@ -91,8 +106,6 @@ export async function signUp(
   if (error) return { error: friendlyAuthError(error.message) };
 
   // Record which beta code was used, then increment its used_count
-  const cookieStore = await cookies();
-  const betaCode = cookieStore.get("beta_access")?.value;
   if (betaCode && signUpData.user) {
     const admin = createAdminClient();
     await admin.from("profiles").update({ beta_code: betaCode }).eq("id", signUpData.user.id);
