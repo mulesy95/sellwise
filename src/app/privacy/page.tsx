@@ -208,7 +208,6 @@ export default function PrivacyPage() {
 
         <div className="mt-12 flex gap-4 border-t border-border pt-8 text-xs text-muted-foreground">
           <Link href="/terms" className="hover:text-foreground">Terms of Service</Link>
-          <Link href="/pricing" className="hover:text-foreground">Pricing</Link>
           <Link href="/" className="hover:text-foreground">Home</Link>
         </div>
       </div>
