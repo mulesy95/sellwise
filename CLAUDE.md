@@ -321,8 +321,8 @@ Claude Code should update this file at the end of every session.
 
 ### Phase 4 — Polish + Launch
 - [x] Marketing landing page
-- [ ] Onboarding flow (3-step post-signup)
-- [ ] Email sequences via Resend (welcome, trial expiry, first optimisation)
+- [x] Onboarding flow (3-step post-signup) — category + platform picker → mini optimiser → dashboard; gated in dashboard layout
+- [x] Email sequences via Resend (welcome, trial nudge, trial expired, first optimisation, upgrade success, subscription cancelled, win-back)
 - [ ] Empty / error / loading states throughout
 - [ ] SEO meta + og tags + sitemap
 - [ ] Production deploy + domain
