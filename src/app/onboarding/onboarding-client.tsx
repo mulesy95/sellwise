@@ -20,6 +20,7 @@ import {
   Search,
   ImageIcon,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { PLATFORMS, PLATFORM_LABELS, type Platform } from "@/lib/platforms";
@@ -179,19 +180,25 @@ export function OnboardingClient({ firstName }: { firstName: string | null }) {
             <div className="space-y-2">
               <Button
                 className="w-full"
-                onClick={() => setStep(2)}
+                onClick={() => {
+                  if (platforms.length === 0) {
+                    toast("No platform selected — you can add this later in Settings.");
+                  }
+                  setStep(2);
+                }}
                 disabled={categories.length === 0}
               >
                 Continue
                 <ArrowRight className="size-3.5" />
               </Button>
-              <button
+              <Button
                 type="button"
+                variant="outline"
+                className="w-full text-muted-foreground"
                 onClick={skip}
-                className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
                 Skip setup
-              </button>
+              </Button>
             </div>
           </div>
         )}

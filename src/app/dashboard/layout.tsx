@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getUsageData } from "@/lib/usage";
 import { Sidebar } from "@/components/layout/sidebar";
+import { MobileNav } from "@/components/layout/mobile-nav";
 import { TrialBanner } from "@/components/layout/trial-banner";
 
 export default async function DashboardLayout({
@@ -33,21 +34,36 @@ export default async function DashboardLayout({
     void admin.from("profiles").update({ welcome_queued_at: new Date().toISOString() }).eq("id", user.id);
   }
 
+  const navProps = {
+    userEmail: user.email,
+    plan: usage.plan,
+    used: usage.optimisations,
+    limit: usage.limit,
+    inTrial: usage.inTrial,
+  };
+
   return (
     <div className="flex h-screen flex-col overflow-hidden">
       {usage.inTrial && usage.trialEndsAt && (
         <TrialBanner trialEndsAt={usage.trialEndsAt} />
       )}
+
+      {/* Mobile header */}
+      <header className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-sidebar px-4 lg:hidden">
+        <span className="text-lg font-bold tracking-tight">
+          Sell<span className="text-primary">Wise</span>
+        </span>
+        <MobileNav {...navProps} />
+      </header>
+
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar
-          userEmail={user.email}
-          plan={usage.plan}
-          used={usage.optimisations}
-          limit={usage.limit}
-          inTrial={usage.inTrial}
-        />
+        {/* Desktop sidebar */}
+        <div className="hidden lg:flex">
+          <Sidebar {...navProps} />
+        </div>
+
         <main className="flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-4xl px-6 py-8">{children}</div>
+          <div className="mx-auto max-w-4xl px-4 py-6 lg:px-6 lg:py-8">{children}</div>
         </main>
       </div>
     </div>
