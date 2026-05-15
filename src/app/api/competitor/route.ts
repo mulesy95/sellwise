@@ -1,6 +1,6 @@
 import { checkRateLimit } from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
+import Anthropic, { APIConnectionError, APITimeoutError, APIError } from "@anthropic-ai/sdk";
 import { z } from "zod";
 import * as cheerio from "cheerio";
 import { createClient } from "@/lib/supabase/server";
@@ -385,9 +385,9 @@ export async function POST(request: NextRequest) {
     });
   } catch (err) {
     if (
-      err instanceof Anthropic.APIConnectionError ||
-      err instanceof Anthropic.APITimeoutError ||
-      (err instanceof Anthropic.APIError && err.status >= 500)
+      err instanceof APIConnectionError ||
+      err instanceof APITimeoutError ||
+      (err instanceof APIError && err.status >= 500)
     ) {
       return NextResponse.json(
         { error: "AI is temporarily unavailable. Please try again in a moment.", code: "AI_UNAVAILABLE" },
