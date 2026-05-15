@@ -267,6 +267,16 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ ...result, platform, used: used + 1, limit });
   } catch (err) {
+    if (
+      err instanceof Anthropic.APIConnectionError ||
+      err instanceof Anthropic.APITimeoutError ||
+      (err instanceof Anthropic.APIError && err.status >= 500)
+    ) {
+      return NextResponse.json(
+        { error: "AI is temporarily unavailable. Please try again in a moment.", code: "AI_UNAVAILABLE" },
+        { status: 503 }
+      );
+    }
     console.error("Audit API error:", err);
     return NextResponse.json({ error: "Failed to run audit" }, { status: 500 });
   }

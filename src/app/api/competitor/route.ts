@@ -384,6 +384,16 @@ export async function POST(request: NextRequest) {
       limit,
     });
   } catch (err) {
+    if (
+      err instanceof Anthropic.APIConnectionError ||
+      err instanceof Anthropic.APITimeoutError ||
+      (err instanceof Anthropic.APIError && err.status >= 500)
+    ) {
+      return NextResponse.json(
+        { error: "AI is temporarily unavailable. Please try again in a moment.", code: "AI_UNAVAILABLE" },
+        { status: 503 }
+      );
+    }
     console.error("Competitor API error:", err);
     return NextResponse.json(
       { error: "Failed to analyse listing" },

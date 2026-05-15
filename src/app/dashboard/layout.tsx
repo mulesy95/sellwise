@@ -5,6 +5,7 @@ import { getUsageData } from "@/lib/usage";
 import { Sidebar } from "@/components/layout/sidebar";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { TrialBanner } from "@/components/layout/trial-banner";
+import { ServiceStatusBanner } from "@/components/layout/service-status-banner";
 
 export default async function DashboardLayout({
   children,
@@ -48,6 +49,7 @@ export default async function DashboardLayout({
       {usage.inTrial && usage.trialEndsAt && (
         <TrialBanner trialEndsAt={usage.trialEndsAt} />
       )}
+      <ServiceStatusBanner />
 
       {/* Mobile header */}
       <header className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-sidebar px-4 lg:hidden">
