@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Plus, Send, Copy, Check } from "lucide-react";
+import { Plus, Send, Copy, Check, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -23,9 +23,10 @@ export function AdminClient({ initialCodes }: { initialCodes: BetaCode[] }) {
   const [newMaxUses, setNewMaxUses] = useState("10");
   const [creating, setCreating] = useState(false);
 
+  const firstAvailable = initialCodes.find((c) => c.used_count < c.max_uses);
   const [inviteFirstName, setInviteFirstName] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteCode, setInviteCode] = useState("");
+  const [inviteCode, setInviteCode] = useState(firstAvailable?.code ?? "");
   const [sending, setSending] = useState(false);
 
   const [copied, setCopied] = useState<string | null>(null);
@@ -121,40 +122,63 @@ export function AdminClient({ initialCodes }: { initialCodes: BetaCode[] }) {
 
       {/* Send invite */}
       <div className="rounded-xl border border-border p-6">
-        <h2 className="mb-4 text-sm font-semibold">Send invite email</h2>
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <Input
-            placeholder="First name (optional)"
-            value={inviteFirstName}
-            onChange={(e) => setInviteFirstName(e.target.value)}
-            className="w-40"
-          />
-          <Input
-            type="email"
-            placeholder="their@email.com"
-            value={inviteEmail}
-            onChange={(e) => setInviteEmail(e.target.value)}
-            className="flex-1"
-          />
-          <select
-            value={inviteCode}
-            onChange={(e) => setInviteCode(e.target.value)}
-            className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-          >
-            <option value="">Select code</option>
-            {codes.map((c) => (
-              <option key={c.id} value={c.code} disabled={c.used_count >= c.max_uses}>
-                {c.code} — {c.label} ({c.used_count}/{c.max_uses})
-              </option>
-            ))}
-          </select>
-          <Button onClick={sendInvite} disabled={sending || !inviteEmail || !inviteCode} className="shrink-0">
-            {sending ? (
-              <span className="size-4 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />
-            ) : (
-              <><Send className="size-4 mr-1.5" />Send</>
+        <h2 className="mb-1 text-sm font-semibold">Send invite email</h2>
+        <p className="mb-4 text-xs text-muted-foreground">
+          Recipient gets a one-click magic link in their inbox. Attach any code with remaining capacity.
+        </p>
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Input
+              placeholder="First name (optional)"
+              value={inviteFirstName}
+              onChange={(e) => setInviteFirstName(e.target.value)}
+              className="w-40 shrink-0"
+            />
+            <Input
+              type="email"
+              placeholder="their@email.com"
+              value={inviteEmail}
+              onChange={(e) => setInviteEmail(e.target.value)}
+              className="flex-1"
+            />
+            <select
+              value={inviteCode}
+              onChange={(e) => setInviteCode(e.target.value)}
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring shrink-0"
+            >
+              <option value="">Select code</option>
+              {codes.map((c) => (
+                <option key={c.id} value={c.code} disabled={c.used_count >= c.max_uses}>
+                  {c.code} — {c.label} ({c.used_count}/{c.max_uses})
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button onClick={sendInvite} disabled={sending || !inviteEmail || !inviteCode} className="shrink-0">
+              {sending ? (
+                <span className="size-4 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />
+              ) : (
+                <><Send className="size-4 mr-1.5" />Send magic link</>
+              )}
+            </Button>
+            {inviteCode && (
+              <button
+                type="button"
+                onClick={() => {
+                  const found = codes.find((c) => c.code === inviteCode);
+                  if (found) copyLink(found.token);
+                }}
+                className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {copied === codes.find((c) => c.code === inviteCode)?.token ? (
+                  <><Check className="size-3.5 text-primary" />Link copied</>
+                ) : (
+                  <><Link2 className="size-3.5" />Copy link only</>
+                )}
+              </button>
             )}
-          </Button>
+          </div>
         </div>
       </div>
 
