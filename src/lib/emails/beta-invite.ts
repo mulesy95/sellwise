@@ -30,9 +30,30 @@ export function betaInviteEmail(
         </td></tr>
       </table>
 
+      <!-- How to use -->
+      <p style="margin:0 0 12px;font-size:11px;font-weight:600;color:#999999;text-transform:uppercase;letter-spacing:0.06em">
+        How to get in
+      </p>
+      ${[
+        `Go to <a href="${appUrl}" style="color:#f0873b;text-decoration:none">${appUrl.replace("https://", "")}</a>`,
+        `Click <strong>Have an invite?</strong> in the footer`,
+        `Enter your code above and hit Go`,
+        `Create your account — you're in`,
+      ].map((step, i) => `
+      <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:8px" role="presentation">
+        <tr>
+          <td width="24" valign="top" style="padding-top:1px">
+            <span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:#f0873b;text-align:center;font-size:10px;font-weight:700;color:#1a1a1a;line-height:18px">${i + 1}</span>
+          </td>
+          <td style="font-size:14px;color:#333333;line-height:1.5">${step}</td>
+        </tr>
+      </table>`).join("")}
+
+      <div style="height:24px"></div>
+
       <a href="${appUrl}"
          style="display:inline-block;background:#f0873b;color:#1a1a1a;text-decoration:none;font-size:14px;font-weight:700;padding:13px 24px;border-radius:8px">
-        Claim your access →
+        Go to SellWise →
       </a>
     </td></tr>
 
