@@ -8,6 +8,7 @@ import {
   Minus,
   Copy,
   Check,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -93,6 +94,7 @@ export function KeywordsClient() {
   const [platform, setPlatform] = useState<Platform>("etsy");
   const [loading, setLoading] = useState(false);
   const [keywords, setKeywords] = useState<Keyword[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
 
@@ -110,6 +112,7 @@ export function KeywordsClient() {
 
     setLoading(true);
     setKeywords([]);
+    setError(null);
 
     try {
       const res = await fetch("/api/keywords", {
@@ -130,9 +133,7 @@ export function KeywordsClient() {
       const data = await res.json();
       setKeywords(data.keywords ?? []);
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Failed to fetch keywords"
-      );
+      setError(err instanceof Error ? err.message : "Failed to fetch keywords");
     } finally {
       setLoading(false);
     }
@@ -271,7 +272,20 @@ export function KeywordsClient() {
         </Card>
       )}
 
-      {!loading && keywords.length === 0 && (
+      {!loading && error && (
+        <Card className="border-destructive/50 bg-destructive/5">
+          <CardContent className="flex items-start gap-3 py-4">
+            <AlertCircle className="mt-0.5 size-4 shrink-0 text-destructive" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-destructive">Keyword search failed</p>
+              <p className="text-xs text-muted-foreground">{error}</p>
+            </div>
+            <button onClick={() => setError(null)} className="text-xs text-muted-foreground hover:text-foreground">Dismiss</button>
+          </CardContent>
+        </Card>
+      )}
+
+      {!loading && keywords.length === 0 && !error && (
         <Card className="flex min-h-48 items-center justify-center border-border/30 border-dashed">
           <CardContent className="text-center">
             <Search className="mx-auto mb-3 size-8 text-muted-foreground/40" />

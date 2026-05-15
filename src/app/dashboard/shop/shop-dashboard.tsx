@@ -8,6 +8,7 @@ import {
   RefreshCw,
   ArrowRight,
   Lock,
+  AlertCircle,
 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -563,20 +564,23 @@ export function ShopDashboard({
   const [etsyOffset, setEtsyOffset] = useState(0);
   const [etsyTotal, setEtsyTotal] = useState(0);
   const [loadingEtsy, setLoadingEtsy] = useState(false);
+  const [etsyError, setEtsyError] = useState<string | null>(null);
   const [selectedEtsyListing, setSelectedEtsyListing] = useState<EtsyListing | null>(null);
 
   // Shopify state
   const [shopifyProducts, setShopifyProducts] = useState<ShopifyProduct[]>([]);
   const [nextPageInfo, setNextPageInfo] = useState<string | undefined>();
   const [loadingShopify, setLoadingShopify] = useState(false);
+  const [shopifyError, setShopifyError] = useState<string | null>(null);
   const [selectedShopifyProduct, setSelectedShopifyProduct] = useState<ShopifyProduct | null>(null);
 
   const fetchEtsyListings = useCallback(async (offset = 0) => {
     setLoadingEtsy(true);
+    setEtsyError(null);
     try {
       const res = await fetch(`/api/etsy/listings?offset=${offset}`);
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) throw new Error(data.error ?? "Failed to load listings");
       if (offset > 0) {
         setEtsyListings((prev) => [...prev, ...(data.listings ?? [])]);
       } else {
@@ -584,8 +588,8 @@ export function ShopDashboard({
       }
       setEtsyTotal(data.count ?? 0);
       setEtsyOffset(offset + (data.listings?.length ?? 0));
-    } catch {
-      toast.error("Failed to load Etsy listings");
+    } catch (err) {
+      setEtsyError(err instanceof Error ? err.message : "Failed to load Etsy listings");
     } finally {
       setLoadingEtsy(false);
     }
@@ -593,19 +597,20 @@ export function ShopDashboard({
 
   const fetchShopifyProducts = useCallback(async (pageInfo?: string) => {
     setLoadingShopify(true);
+    setShopifyError(null);
     try {
       const params = pageInfo ? `?page_info=${pageInfo}` : "";
       const res = await fetch(`/api/shopify/listings${params}`);
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) throw new Error(data.error ?? "Failed to load products");
       if (pageInfo) {
         setShopifyProducts((p) => [...p, ...data.products]);
       } else {
         setShopifyProducts(data.products ?? []);
       }
       setNextPageInfo(data.nextPageInfo);
-    } catch {
-      toast.error("Failed to load products");
+    } catch (err) {
+      setShopifyError(err instanceof Error ? err.message : "Failed to load products");
     } finally {
       setLoadingShopify(false);
     }
@@ -746,6 +751,15 @@ export function ShopDashboard({
                       <div className="mx-auto mb-3 size-5 animate-spin rounded-full border-2 border-primary/20 border-t-primary" />
                       Loading listings...
                     </div>
+                  ) : etsyError ? (
+                    <div className="flex items-start gap-3 py-4">
+                      <AlertCircle className="mt-0.5 size-4 shrink-0 text-destructive" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-destructive">Failed to load listings</p>
+                        <p className="text-xs text-muted-foreground">{etsyError}</p>
+                      </div>
+                      <button onClick={() => fetchEtsyListings(0)} className="text-xs text-primary hover:underline">Retry</button>
+                    </div>
                   ) : etsyListings.length === 0 ? (
                     <p className="py-6 text-center text-sm text-muted-foreground">
                       No active listings found.
@@ -853,6 +867,15 @@ export function ShopDashboard({
                     <div className="py-8 text-center text-sm text-muted-foreground">
                       <div className="mx-auto mb-3 size-5 animate-spin rounded-full border-2 border-primary/20 border-t-primary" />
                       Loading products...
+                    </div>
+                  ) : shopifyError ? (
+                    <div className="flex items-start gap-3 py-4">
+                      <AlertCircle className="mt-0.5 size-4 shrink-0 text-destructive" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-destructive">Failed to load products</p>
+                        <p className="text-xs text-muted-foreground">{shopifyError}</p>
+                      </div>
+                      <button onClick={() => fetchShopifyProducts()} className="text-xs text-primary hover:underline">Retry</button>
                     </div>
                   ) : shopifyProducts.length === 0 ? (
                     <p className="py-6 text-center text-sm text-muted-foreground">

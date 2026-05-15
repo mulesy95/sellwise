@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BarChart3, Sparkles } from "lucide-react";
+import { BarChart3, Sparkles, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -147,6 +147,7 @@ export function AuditClient() {
   const [platform, setPlatform] = useState<Platform>("etsy");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AuditResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   function handlePlatformChange(p: Platform) {
@@ -175,6 +176,7 @@ export function AuditClient() {
 
     setLoading(true);
     setResult(null);
+    setError(null);
 
     try {
       const res = await fetch("/api/audit", {
@@ -195,7 +197,7 @@ export function AuditClient() {
       const data = await res.json();
       setResult(data);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to run audit");
+      setError(err instanceof Error ? err.message : "Failed to run audit");
     } finally {
       setLoading(false);
     }
@@ -276,7 +278,20 @@ export function AuditClient() {
         </Card>
 
         <div className="space-y-4">
-          {!result && !loading && (
+          {!result && !loading && error && (
+            <Card className="border-destructive/50 bg-destructive/5">
+              <CardContent className="flex items-start gap-3 py-4">
+                <AlertCircle className="mt-0.5 size-4 shrink-0 text-destructive" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-destructive">Audit failed</p>
+                  <p className="text-xs text-muted-foreground">{error}</p>
+                </div>
+                <button onClick={() => setError(null)} className="text-xs text-muted-foreground hover:text-foreground">Dismiss</button>
+              </CardContent>
+            </Card>
+          )}
+
+          {!result && !loading && !error && (
             <Card className="flex min-h-64 items-center justify-center border-border/30 border-dashed">
               <CardContent className="text-center">
                 <BarChart3 className="mx-auto mb-3 size-8 text-muted-foreground/40" />

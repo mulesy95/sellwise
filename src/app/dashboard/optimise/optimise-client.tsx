@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Sparkles, Copy, Check, RotateCcw, ImagePlus, X, Lock } from "lucide-react";
+import { Sparkles, Copy, Check, RotateCcw, ImagePlus, X, Lock, AlertCircle } from "lucide-react";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import { PlatformSelector } from "@/components/platform-selector";
 import { Button } from "@/components/ui/button";
@@ -141,6 +141,7 @@ export function OptimiseClient({ plan }: { plan: string }) {
   const [result, setResult] = useState<OptimisedListing | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [imageMediaType, setImageMediaType] = useState<ImageMediaType>("image/jpeg");
@@ -183,6 +184,7 @@ export function OptimiseClient({ plan }: { plan: string }) {
     e.preventDefault();
     setLoading(true);
     setResult(null);
+    setError(null);
 
     const form = e.currentTarget;
     const data: Record<string, unknown> = {
@@ -219,7 +221,7 @@ export function OptimiseClient({ plan }: { plan: string }) {
       setResult(json);
       window.dispatchEvent(new Event("sellwise:optimised"));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to optimise");
+      setError(err instanceof Error ? err.message : "Failed to optimise");
     } finally {
       setLoading(false);
     }
@@ -393,7 +395,20 @@ export function OptimiseClient({ plan }: { plan: string }) {
 
         {/* Results */}
         <div className="space-y-4">
-          {!result && !loading && (
+          {!result && !loading && error && (
+            <Card className="border-destructive/50 bg-destructive/5">
+              <CardContent className="flex items-start gap-3 py-4">
+                <AlertCircle className="mt-0.5 size-4 shrink-0 text-destructive" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-destructive">Optimisation failed</p>
+                  <p className="text-xs text-muted-foreground">{error}</p>
+                </div>
+                <button onClick={() => setError(null)} className="text-xs text-muted-foreground hover:text-foreground">Dismiss</button>
+              </CardContent>
+            </Card>
+          )}
+
+          {!result && !loading && !error && (
             <Card className="flex min-h-64 items-center justify-center border-border/30 border-dashed">
               <CardContent className="text-center">
                 <Sparkles className="mx-auto mb-3 size-8 text-muted-foreground/40" />
