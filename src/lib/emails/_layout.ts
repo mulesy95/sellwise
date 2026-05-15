@@ -1,6 +1,6 @@
 const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://sellwise.au";
 
-export function emailLayout(body: string): string {
+export function emailLayout(body: string, unsubscribeUrl?: string): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
@@ -23,6 +23,9 @@ export function emailLayout(body: string): string {
             You're receiving this because you signed up at <a href="${appUrl}" style="color:#f0873b;text-decoration:none">sellwise.au</a>.<br>
             Questions? Reply to this email and we'll help.
           </p>
+          ${unsubscribeUrl ? `<p style="margin:8px 0 0;font-size:12px;color:#999999">
+            <a href="${unsubscribeUrl}" style="color:#999999;text-decoration:underline">Unsubscribe</a>
+          </p>` : ""}
         </td></tr>
 
       </table>

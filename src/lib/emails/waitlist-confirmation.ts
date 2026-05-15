@@ -31,11 +31,7 @@ export function waitlistConfirmationEmail(email: string): { subject: string; htm
         </tr>
       </table>`).join("")}
     </td></tr>
-
-    <tr><td style="padding:16px 32px 24px;border-top:1px solid #f4f4f5;text-align:center">
-      <a href="${unsubscribeUrl}" style="font-size:12px;color:#999999;text-decoration:underline">Unsubscribe</a>
-    </td></tr>
-  `);
+  `, unsubscribeUrl);
 
   return {
     subject: "You're on the SellWise waitlist",
