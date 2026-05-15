@@ -25,7 +25,7 @@ export async function joinWaitlist(
     return { error: "Something went wrong. Please try again." };
   }
 
-  const { subject, html } = waitlistConfirmationEmail();
+  const { subject, html } = waitlistConfirmationEmail(email);
   void sendEmail({ to: email, subject, html });
 
   return { success: true };

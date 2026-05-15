@@ -1,6 +1,9 @@
-import { emailLayout } from "./_layout";
+import { emailLayout, appUrl } from "./_layout";
 
-export function waitlistConfirmationEmail(): { subject: string; html: string } {
+export function waitlistConfirmationEmail(email: string): { subject: string; html: string } {
+  const token = Buffer.from(email).toString("base64");
+  const unsubscribeUrl = `${appUrl}/api/waitlist/unsubscribe?email=${encodeURIComponent(token)}`;
+
   const html = emailLayout(`
     <tr><td style="padding:32px 32px 20px">
       <h1 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#111111;line-height:1.3">
@@ -27,6 +30,10 @@ export function waitlistConfirmationEmail(): { subject: string; html: string } {
           <td style="font-size:14px;color:#333333;line-height:1.5">${f}</td>
         </tr>
       </table>`).join("")}
+    </td></tr>
+
+    <tr><td style="padding:16px 32px 24px;border-top:1px solid #f4f4f5;text-align:center">
+      <a href="${unsubscribeUrl}" style="font-size:12px;color:#999999;text-decoration:underline">Unsubscribe</a>
     </td></tr>
   `);
 
