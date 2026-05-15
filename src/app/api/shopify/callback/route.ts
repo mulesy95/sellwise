@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
       await admin.from("shops").delete().eq("user_id", user.id).eq("platform", "shopify");
     }
 
-    await admin.from("shops").upsert({
+    const { error: upsertError } = await admin.from("shops").upsert({
       user_id: user.id,
       platform: "shopify",
       shop_name: shopInfo.name,
@@ -50,6 +50,8 @@ export async function GET(req: NextRequest) {
       access_token,
       is_primary: true,
     }, { onConflict: "user_id,platform,shop_id" });
+
+    if (upsertError) throw upsertError;
 
   } catch (err) {
     console.error("[shopify callback]", err);
