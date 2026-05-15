@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .update({ plan: "free", stripe_subscription_id: null })
+        .update({ plan: "free", stripe_subscription_id: null, cancelled_at: new Date().toISOString() })
         .eq("stripe_customer_id", sub.customer as string)
         .select("id, full_name, marketing_opted_out")
         .single();

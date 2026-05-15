@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/email";
 import { trialNudgeEmail } from "@/lib/emails/trial-nudge";
 import { trialExpiredEmail } from "@/lib/emails/trial-expired";
+import { winbackEmail } from "@/lib/emails/winback";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -68,6 +69,34 @@ export async function GET(req: NextRequest) {
       await sendEmail({ to: user.email, subject, html });
       await admin.from("profiles").update({ trial_expired_sent: true }).eq("id", profile.id);
       results.expiredSent++;
+    } catch {
+      results.errors++;
+    }
+  }
+
+  // --- Win-back: cancelled 7 days ago, winback not yet sent ---
+  const winbackWindowStart = new Date(now.getTime() - 8 * 24 * 60 * 60 * 1000).toISOString();
+  const winbackWindowEnd = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+  const { data: winbackProfiles } = await admin
+    .from("profiles")
+    .select("id, full_name")
+    .eq("winback_sent", false)
+    .eq("marketing_opted_out", false)
+    .eq("plan", "free")
+    .gte("cancelled_at", winbackWindowStart)
+    .lte("cancelled_at", winbackWindowEnd);
+
+  for (const profile of winbackProfiles ?? []) {
+    try {
+      const { data: { user } } = await admin.auth.admin.getUserById(profile.id);
+      if (!user?.email) continue;
+
+      const firstName = (profile.full_name as string | null)?.split(" ")[0] ?? null;
+      const { subject, html } = winbackEmail(firstName, user.email);
+      await sendEmail({ to: user.email, subject, html });
+      await admin.from("profiles").update({ winback_sent: true }).eq("id", profile.id);
+      (results as Record<string, number>).winbackSent = ((results as Record<string, number>).winbackSent ?? 0) + 1;
     } catch {
       results.errors++;
     }
