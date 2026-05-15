@@ -1,0 +1,30 @@
+"use server";
+
+import { createAdminClient } from "@/lib/supabase/admin";
+
+export type WaitlistState = { success?: boolean; error?: string } | null;
+
+export async function joinWaitlist(
+  _prev: WaitlistState,
+  formData: FormData
+): Promise<WaitlistState> {
+  const email = (formData.get("email") as string | null)?.trim().toLowerCase();
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return { error: "Please enter a valid email address." };
+  }
+
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("waitlist")
+    .insert({ email })
+    .select()
+    .single();
+
+  if (error) {
+    if (error.code === "23505") return { success: true }; // already on list
+    return { error: "Something went wrong. Please try again." };
+  }
+
+  return { success: true };
+}
