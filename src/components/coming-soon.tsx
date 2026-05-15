@@ -12,6 +12,7 @@ export function ComingSoon() {
     null
   );
 
+  const [showCode, setShowCode] = useState(false);
   const [code, setCode] = useState("");
   const [codeError, setCodeError] = useState<string | null>(null);
   const [codeLoading, setCodeLoading] = useState(false);
@@ -96,35 +97,41 @@ export function ComingSoon() {
         No spam. Just a launch notification.
       </p>
 
-      {/* Invite code */}
-      <div className="mt-10 w-full max-w-sm">
-        <div className="relative flex items-center gap-3 before:flex-1 before:border-t before:border-border after:flex-1 after:border-t after:border-border">
-          <span className="text-xs text-muted-foreground/50 whitespace-nowrap">Have an invite code?</span>
+      {/* Invite code panel — shown only when triggered */}
+      {showCode && (
+        <div className="mt-6 w-full max-w-sm">
+          <form onSubmit={handleCodeSubmit} className="flex gap-2">
+            <Input
+              autoFocus
+              value={code}
+              onChange={(e) => setCode(e.target.value.toUpperCase())}
+              placeholder="ENTER CODE"
+              className="flex-1 font-mono tracking-widest text-center"
+              disabled={codeLoading}
+            />
+            <Button type="submit" variant="outline" disabled={codeLoading || !code.trim()} className="shrink-0">
+              {codeLoading ? (
+                <span className="size-4 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />
+              ) : (
+                "Go"
+              )}
+            </Button>
+          </form>
+          {codeError && (
+            <p className="mt-2 text-xs text-destructive">{codeError}</p>
+          )}
         </div>
-        <form onSubmit={handleCodeSubmit} className="mt-3 flex gap-2">
-          <Input
-            value={code}
-            onChange={(e) => setCode(e.target.value.toUpperCase())}
-            placeholder="ENTER CODE"
-            className="flex-1 font-mono tracking-widest uppercase text-center"
-            disabled={codeLoading}
-          />
-          <Button type="submit" variant="outline" disabled={codeLoading || !code.trim()} className="shrink-0">
-            {codeLoading ? (
-              <span className="size-4 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />
-            ) : (
-              "Go"
-            )}
-          </Button>
-        </form>
-        {codeError && (
-          <p className="mt-2 text-xs text-destructive">{codeError}</p>
-        )}
-      </div>
+      )}
 
       <div className="mt-10 flex gap-5 text-xs text-muted-foreground/40">
         <a href="/terms" className="hover:text-muted-foreground transition-colors">Terms</a>
         <a href="/privacy" className="hover:text-muted-foreground transition-colors">Privacy</a>
+        <button
+          onClick={() => { setShowCode(true); setCodeError(null); }}
+          className="hover:text-muted-foreground transition-colors"
+        >
+          Have an invite?
+        </button>
       </div>
     </div>
   );
