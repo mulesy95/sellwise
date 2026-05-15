@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { sendEmail } from "@/lib/email";
+import { welcomeEmail } from "@/lib/emails/welcome";
 
 export type AuthState = { error: string } | null;
 export type ForgotPasswordState = { error?: string; success?: boolean } | null;
@@ -77,15 +79,21 @@ export async function signUp(
 
   const supabase = await createClient();
 
+  const email = formData.get("email") as string;
+  const name = formData.get("name") as string;
+
   const { error } = await supabase.auth.signUp({
-    email: formData.get("email") as string,
+    email,
     password,
-    options: {
-      data: { full_name: formData.get("name") as string },
-    },
+    options: { data: { full_name: name } },
   });
 
   if (error) return { error: friendlyAuthError(error.message) };
+
+  // Fire welcome email — non-blocking
+  const firstName = name?.split(" ")[0] ?? null;
+  const { subject, html } = welcomeEmail(firstName);
+  void sendEmail({ to: email, subject, html });
 
   revalidatePath("/", "layout");
   redirect("/onboarding");
