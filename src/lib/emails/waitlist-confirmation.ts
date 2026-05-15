@@ -7,10 +7,10 @@ export function waitlistConfirmationEmail(): { subject: string; html: string } {
         You're on the list.
       </h1>
       <p style="margin:0 0 16px;font-size:15px;color:#444444;line-height:1.6">
-        We'll let you know the moment SellWise opens. You're getting early access — before we announce publicly.
+        We'll let you know the moment SellWise opens. You're getting early access before we announce publicly.
       </p>
       <p style="margin:0 0 28px;font-size:15px;color:#444444;line-height:1.6">
-        SellWise is an AI co-pilot for online sellers. It writes optimised titles, tags, and descriptions for Etsy, Shopify, and Amazon — in under 10 seconds.
+        SellWise is an AI co-pilot for online sellers. It writes optimised titles, tags, and descriptions for Etsy, Shopify, and Amazon. Done in under 10 seconds.
       </p>
     </td></tr>
 
@@ -18,7 +18,7 @@ export function waitlistConfirmationEmail(): { subject: string; html: string } {
       <p style="margin:0 0 12px;font-size:11px;font-weight:600;color:#999999;text-transform:uppercase;letter-spacing:0.06em">
         What's coming
       </p>
-      ${["AI-optimised listings for Etsy, Shopify &amp; Amazon", "Keyword research with volume and competition data", "Competitor analysis — see how you stack up", "Listing audit — 0–100 score with fixes you can act on"].map(f => `
+      ${["AI-optimised listings for Etsy, Shopify &amp; Amazon", "Keyword research with volume and competition data", "Competitor analysis: see how your listings stack up", "Listing audit: a score out of 100 with fixes you can act on"].map(f => `
       <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:8px" role="presentation">
         <tr>
           <td width="20" valign="top" style="padding-top:2px">

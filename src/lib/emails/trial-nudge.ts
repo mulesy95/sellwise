@@ -37,7 +37,7 @@ export function trialNudgeEmail(firstName: string | null): { subject: string; ht
         </tr>
       </table>`).join("")}
       <p style="margin:16px 0 0;font-size:13px;color:#777777">
-        Or try <a href="${appUrl}/pricing" style="color:#f0873b;text-decoration:none">Starter at $19/mo</a> — 50 optimisations plus all features.
+        Or try <a href="${appUrl}/pricing" style="color:#f0873b;text-decoration:none">Starter at $19/mo</a>. 50 optimisations plus all features.
       </p>
     </td></tr>
   `);

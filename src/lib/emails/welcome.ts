@@ -24,7 +24,7 @@ export function welcomeEmail(firstName: string | null): { subject: string; html:
       <p style="margin:0 0 12px;font-size:11px;font-weight:600;color:#999999;text-transform:uppercase;letter-spacing:0.06em">
         What's included in your trial
       </p>
-      ${["Listing Optimiser — titles, tags, descriptions", "Keyword Research — 15 keywords with volume &amp; competition", "Competitor Peek — paste a URL, get a better version", "Listing Audit — 0–100 score with specific fixes"].map(f => `
+      ${["Listing Optimiser: titles, tags, descriptions", "Keyword Research: 15 keywords with volume &amp; competition data", "Competitor Peek: paste a listing URL, get a better version", "Listing Audit: a score out of 100 with specific fixes"].map(f => `
       <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:8px" role="presentation">
         <tr>
           <td width="20" valign="top" style="padding-top:2px">
