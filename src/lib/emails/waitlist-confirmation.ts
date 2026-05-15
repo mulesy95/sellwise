@@ -7,7 +7,7 @@ export function waitlistConfirmationEmail(): { subject: string; html: string } {
         You're on the list.
       </h1>
       <p style="margin:0 0 16px;font-size:15px;color:#444444;line-height:1.6">
-        We'll let you know the moment SellWise opens. You're getting early access before we announce publicly.
+        We'll send you an email the moment SellWise is open. You'll be first to know.
       </p>
       <p style="margin:0 0 28px;font-size:15px;color:#444444;line-height:1.6">
         SellWise is an AI co-pilot for online sellers. It writes optimised titles, tags, and descriptions for Etsy, Shopify, and Amazon. Done in under 10 seconds.
