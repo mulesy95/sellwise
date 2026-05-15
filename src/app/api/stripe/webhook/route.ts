@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendEmail } from "@/lib/email";
+import { upgradeSuccessEmail } from "@/lib/emails/upgrade-success";
+import { subscriptionCancelledEmail } from "@/lib/emails/subscription-cancelled";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2026-04-22.dahlia",
@@ -51,6 +54,25 @@ export async function POST(request: NextRequest) {
           stripe_subscription_id: session.subscription as string,
         })
         .eq("id", userId);
+
+      // Send upgrade confirmation email
+      try {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("full_name, marketing_opted_out")
+          .eq("id", userId)
+          .single();
+        if (profile && !profile.marketing_opted_out) {
+          const { data: { user: authUser } } = await supabase.auth.admin.getUserById(userId);
+          if (authUser?.email) {
+            const firstName = (profile.full_name as string | null)?.split(" ")[0] ?? null;
+            const { subject, html } = upgradeSuccessEmail(firstName, authUser.email, plan);
+            void sendEmail({ to: authUser.email, subject, html });
+          }
+        }
+      } catch (e) {
+        console.error("[upgrade email]", e);
+      }
       break;
     }
 
@@ -71,10 +93,26 @@ export async function POST(request: NextRequest) {
     case "customer.subscription.deleted": {
       const sub = event.data.object as Stripe.Subscription;
 
-      await supabase
+      const { data: profile } = await supabase
         .from("profiles")
         .update({ plan: "free", stripe_subscription_id: null })
-        .eq("stripe_customer_id", sub.customer as string);
+        .eq("stripe_customer_id", sub.customer as string)
+        .select("id, full_name, marketing_opted_out")
+        .single();
+
+      // Send cancellation email
+      if (profile && !profile.marketing_opted_out) {
+        try {
+          const { data: { user: authUser } } = await supabase.auth.admin.getUserById(profile.id);
+          if (authUser?.email) {
+            const firstName = (profile.full_name as string | null)?.split(" ")[0] ?? null;
+            const { subject, html } = subscriptionCancelledEmail(firstName, authUser.email);
+            void sendEmail({ to: authUser.email, subject, html });
+          }
+        } catch (e) {
+          console.error("[cancellation email]", e);
+        }
+      }
       break;
     }
   }
