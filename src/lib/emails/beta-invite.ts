@@ -2,9 +2,11 @@ import { emailLayout, appUrl } from "./_layout";
 
 export function betaInviteEmail(
   firstName: string | null,
-  code: string
+  code: string,
+  token: string
 ): { subject: string; html: string } {
   const name = firstName ?? "there";
+  const inviteUrl = `${appUrl}/invite/${token}`;
 
   const html = emailLayout(`
     <tr><td style="padding:32px 32px 20px">
@@ -15,46 +17,29 @@ export function betaInviteEmail(
         Hi ${name}, we're letting a small group of sellers in early to try SellWise before we launch. You're one of them.
       </p>
       <p style="margin:0 0 28px;font-size:15px;color:#444444;line-height:1.6">
-        Use the code below to create your account. It takes 30 seconds.
+        Click the button below to create your account. It takes 30 seconds.
       </p>
 
-      <!-- Invite code block -->
-      <table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="margin-bottom:28px">
-        <tr><td style="background:#f9f9fb;border:1px solid #e4e4e7;border-radius:8px;padding:20px;text-align:center">
-          <p style="margin:0 0 6px;font-size:11px;font-weight:600;color:#999999;text-transform:uppercase;letter-spacing:0.08em">
-            Your invite code
-          </p>
-          <p style="margin:0;font-size:28px;font-weight:700;color:#111111;letter-spacing:0.12em">
+      <!-- CTA -->
+      <a href="${inviteUrl}"
+         style="display:inline-block;background:#f0873b;color:#1a1a1a;text-decoration:none;font-size:15px;font-weight:700;padding:14px 28px;border-radius:8px;margin-bottom:28px">
+        Accept invite →
+      </a>
+
+      <!-- Fallback code -->
+      <p style="margin:0 0 8px;font-size:11px;font-weight:600;color:#999999;text-transform:uppercase;letter-spacing:0.06em">
+        Button not working? Enter your code manually
+      </p>
+      <table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="margin-bottom:8px">
+        <tr><td style="background:#f9f9fb;border:1px solid #e4e4e7;border-radius:8px;padding:16px;text-align:center">
+          <p style="margin:0;font-size:24px;font-weight:700;color:#111111;letter-spacing:0.12em">
             ${code}
           </p>
         </td></tr>
       </table>
-
-      <!-- How to use -->
-      <p style="margin:0 0 12px;font-size:11px;font-weight:600;color:#999999;text-transform:uppercase;letter-spacing:0.06em">
-        How to get in
+      <p style="margin:0;font-size:12px;color:#999999;line-height:1.5">
+        Go to <a href="${appUrl}/invite" style="color:#f0873b;text-decoration:none">${appUrl.replace("https://", "")}/invite</a>, enter the code above, and hit Get access.
       </p>
-      ${[
-        `Go to <a href="${appUrl}" style="color:#f0873b;text-decoration:none">${appUrl.replace("https://", "")}</a>`,
-        `Click <strong>Have an invite?</strong> in the footer`,
-        `Enter your code above and hit Go`,
-        `Create your account — you're in`,
-      ].map((step, i) => `
-      <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:8px" role="presentation">
-        <tr>
-          <td width="24" valign="top" style="padding-top:1px">
-            <span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:#f0873b;text-align:center;font-size:10px;font-weight:700;color:#1a1a1a;line-height:18px">${i + 1}</span>
-          </td>
-          <td style="font-size:14px;color:#333333;line-height:1.5">${step}</td>
-        </tr>
-      </table>`).join("")}
-
-      <div style="height:24px"></div>
-
-      <a href="${appUrl}"
-         style="display:inline-block;background:#f0873b;color:#1a1a1a;text-decoration:none;font-size:14px;font-weight:700;padding:13px 24px;border-radius:8px">
-        Go to SellWise →
-      </a>
     </td></tr>
 
     <tr><td style="padding:0 32px 32px">

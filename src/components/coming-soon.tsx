@@ -66,7 +66,7 @@ export function ComingSoon() {
       <div className="mt-10 flex gap-5 text-xs text-muted-foreground/40">
         <a href="/terms" className="hover:text-muted-foreground transition-colors">Terms</a>
         <a href="/privacy" className="hover:text-muted-foreground transition-colors">Privacy</a>
-        <a href="/invite" className="hover:text-muted-foreground transition-colors">Have an invite?</a>
+        <a href="/invite" className="hover:text-muted-foreground transition-colors">Beta access</a>
       </div>
     </div>
   );

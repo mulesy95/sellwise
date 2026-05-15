@@ -1,15 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-export default function InvitePage() {
+function InviteForm() {
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const linkError = searchParams.get("error");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -40,11 +42,20 @@ export default function InvitePage() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6 text-center">
-      <h1 className="mb-2 text-4xl font-extrabold tracking-tight text-foreground">
+      <a href="/" className="mb-6 text-3xl font-extrabold tracking-tight text-foreground">
         Sell<span className="text-primary">Wise</span>
-      </h1>
+      </a>
 
-      <p className="mb-8 text-sm text-muted-foreground">Enter your invite code to get started.</p>
+      <h1 className="mb-1 text-xl font-semibold text-foreground">Beta access</h1>
+      <p className="mb-8 text-sm text-muted-foreground">
+        Enter your invite code to get in, or log back into your existing account below.
+      </p>
+
+      {linkError === "invalid" && (
+        <p className="mb-4 text-sm text-destructive">
+          That invite link is invalid or has expired. Enter your code manually below.
+        </p>
+      )}
 
       <form onSubmit={handleSubmit} className="flex w-full max-w-sm flex-col gap-3">
         <Input
@@ -68,8 +79,15 @@ export default function InvitePage() {
       <div className="mt-8 flex gap-5 text-xs text-muted-foreground/50">
         <a href="/login" className="hover:text-muted-foreground transition-colors">Log in</a>
         <a href="/signup" className="hover:text-muted-foreground transition-colors">Sign up</a>
-        <a href="/" className="hover:text-muted-foreground transition-colors">Back</a>
       </div>
     </div>
+  );
+}
+
+export default function InvitePage() {
+  return (
+    <Suspense>
+      <InviteForm />
+    </Suspense>
   );
 }

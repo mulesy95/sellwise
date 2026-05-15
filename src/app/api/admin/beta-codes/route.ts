@@ -24,7 +24,7 @@ export async function GET() {
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("beta_codes")
-    .select("id, code, label, used_count, max_uses, created_at")
+    .select("id, code, label, used_count, max_uses, created_at, token")
     .order("created_at", { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

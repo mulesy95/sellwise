@@ -14,6 +14,7 @@ interface BetaCode {
   used_count: number;
   max_uses: number;
   created_at: string;
+  token: string;
 }
 
 export function AdminClient({ initialCodes }: { initialCodes: BetaCode[] }) {
@@ -77,9 +78,9 @@ export function AdminClient({ initialCodes }: { initialCodes: BetaCode[] }) {
     }
   }
 
-  function copyCode(code: string) {
-    navigator.clipboard.writeText(code);
-    setCopied(code);
+  function copyLink(token: string) {
+    navigator.clipboard.writeText(`${window.location.origin}/invite/${token}`);
+    setCopied(token);
     setTimeout(() => setCopied(null), 2000);
   }
 
@@ -195,11 +196,11 @@ export function AdminClient({ initialCodes }: { initialCodes: BetaCode[] }) {
                     </td>
                     <td className="px-6 py-3 text-right">
                       <button
-                        onClick={() => copyCode(c.code)}
+                        onClick={() => copyLink(c.token)}
                         className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
                       >
-                        {copied === c.code ? <Check className="size-3.5 text-primary" /> : <Copy className="size-3.5" />}
-                        {copied === c.code ? "Copied" : "Copy"}
+                        {copied === c.token ? <Check className="size-3.5 text-primary" /> : <Copy className="size-3.5" />}
+                        {copied === c.token ? "Copied" : "Copy link"}
                       </button>
                     </td>
                   </tr>

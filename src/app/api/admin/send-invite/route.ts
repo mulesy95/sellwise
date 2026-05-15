@@ -28,7 +28,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "email and code are required" }, { status: 400 });
   }
 
-  const { subject, html } = betaInviteEmail(firstName ?? null, code);
+  const admin = createAdminClient();
+  const { data: codeData, error: codeError } = await admin
+    .from("beta_codes")
+    .select("token")
+    .eq("code", code)
+    .single();
+
+  if (codeError || !codeData?.token) {
+    return NextResponse.json({ error: "Code not found" }, { status: 404 });
+  }
+
+  const { subject, html } = betaInviteEmail(firstName ?? null, code, codeData.token);
   await sendEmail({ to: email, subject, html });
 
   return NextResponse.json({ success: true });
