@@ -1,7 +1,20 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { checkRateLimit, ipFromRequest } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
+  const ip = ipFromRequest(req);
+  const { allowed, retryAfterMs } = checkRateLimit(`beta:${ip}`, 5, 10 * 60 * 1000);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Too many attempts. Try again in a few minutes." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(Math.ceil(retryAfterMs / 1000)) },
+      }
+    );
+  }
+
   const { code } = await req.json();
 
   if (!code || typeof code !== "string") {
@@ -24,7 +37,7 @@ export async function POST(req: Request) {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 90, // 90 days
+    maxAge: 60 * 60 * 24 * 90,
     path: "/",
   });
 
