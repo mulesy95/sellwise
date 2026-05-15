@@ -3,8 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { sendEmail } from "@/lib/email";
-import { welcomeEmail } from "@/lib/emails/welcome";
 
 export type AuthState = { error: string } | null;
 export type ForgotPasswordState = { error?: string; success?: boolean } | null;
@@ -89,11 +87,6 @@ export async function signUp(
   });
 
   if (error) return { error: friendlyAuthError(error.message) };
-
-  // Fire welcome email — non-blocking
-  const firstName = name?.split(" ")[0] ?? null;
-  const { subject, html } = welcomeEmail(firstName);
-  void sendEmail({ to: email, subject, html });
 
   revalidatePath("/", "layout");
   redirect("/onboarding");
