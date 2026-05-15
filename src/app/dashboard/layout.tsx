@@ -4,8 +4,6 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getUsageData } from "@/lib/usage";
 import { Sidebar } from "@/components/layout/sidebar";
 import { TrialBanner } from "@/components/layout/trial-banner";
-import { sendEmail } from "@/lib/email";
-import { welcomeEmail } from "@/lib/emails/welcome";
 
 export default async function DashboardLayout({
   children,
@@ -22,7 +20,7 @@ export default async function DashboardLayout({
   const admin = createAdminClient();
   const { data: profile } = await admin
     .from("profiles")
-    .select("onboarding_completed, welcome_sent, full_name")
+    .select("onboarding_completed, welcome_sent, welcome_queued_at, full_name")
     .eq("id", user.id)
     .single();
 
@@ -30,12 +28,9 @@ export default async function DashboardLayout({
 
   const usage = await getUsageData(user.id);
 
-  // Send welcome email on first authenticated dashboard load
-  if (profile && !profile.welcome_sent) {
-    await admin.from("profiles").update({ welcome_sent: true }).eq("id", user.id);
-    const firstName = profile.full_name?.split(" ")[0] ?? null;
-    const { subject, html } = welcomeEmail(firstName, user.email!);
-    void sendEmail({ to: user.email!, subject, html });
+  // Queue welcome email on first dashboard load — cron sends after 1 hour
+  if (profile && !profile.welcome_sent && !profile.welcome_queued_at) {
+    void admin.from("profiles").update({ welcome_queued_at: new Date().toISOString() }).eq("id", user.id);
   }
 
   return (
