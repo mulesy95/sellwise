@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Store, Plus, Sparkles, ExternalLink, RefreshCw, ArrowRight, Lock } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -39,9 +39,9 @@ function ConnectForm({ plan }: { plan: string }) {
         <p className="text-sm text-muted-foreground max-w-sm mx-auto">
           Connecting your shop and running live audits is available on Growth and Studio plans.
         </p>
-        <Button asChild>
-          <a href="/pricing">Upgrade to connect <ArrowRight className="size-3.5" /></a>
-        </Button>
+        <a href="/pricing" className={buttonVariants()}>
+          Upgrade to connect <ArrowRight className="size-3.5" />
+        </a>
       </div>
     );
   }
@@ -243,12 +243,10 @@ function OptimisePanel({
                     {pushing ? "Applying..." : "Apply to Shopify"}
                   </Button>
                 ) : (
-                  <Button className="flex-1 text-xs" asChild>
-                    <a href="/pricing">
-                      <Lock className="size-3" />
-                      Studio to apply
-                    </a>
-                  </Button>
+                  <a href="/pricing" className={cn(buttonVariants(), "flex-1 text-xs")}>
+                    <Lock className="size-3" />
+                    Studio to apply
+                  </a>
                 )}
               </div>
             </div>
@@ -346,11 +344,9 @@ export function ShopDashboard({
               <Button variant="ghost" size="icon-sm" onClick={() => fetchProducts()} disabled={loadingProducts}>
                 <RefreshCw className={cn("size-3.5", loadingProducts && "animate-spin")} />
               </Button>
-              <Button variant="ghost" size="icon-sm" asChild>
-                <a href={`https://${shop.shop_url}`} target="_blank" rel="noopener noreferrer">
-                  <ExternalLink className="size-3.5" />
-                </a>
-              </Button>
+              <a href={`https://${shop.shop_url}`} target="_blank" rel="noopener noreferrer" className={buttonVariants({ variant: "ghost", size: "icon-sm" })}>
+                <ExternalLink className="size-3.5" />
+              </a>
             </div>
           </div>
 
@@ -398,9 +394,9 @@ export function ShopDashboard({
                 <p className="text-sm font-medium">Push optimisations directly to Shopify</p>
                 <p className="text-xs text-muted-foreground mt-0.5">Apply AI improvements without copy-paste. Studio plan only.</p>
               </div>
-              <Button size="sm" asChild>
-                <a href="/pricing">Upgrade to Studio <ArrowRight className="size-3.5" /></a>
-              </Button>
+              <a href="/pricing" className={buttonVariants({ size: "sm" })}>
+                Upgrade to Studio <ArrowRight className="size-3.5" />
+              </a>
             </div>
           )}
         </div>
