@@ -30,12 +30,14 @@ export const metadata: Metadata = {
     description:
       "Generate SEO-optimised titles, tags, and descriptions in seconds. Built for Etsy, Amazon, Shopify, and eBay sellers.",
     url: appUrl,
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "SellWise — AI Listing Optimiser" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "SellWise — AI Listing Optimiser for Marketplace Sellers",
     description:
       "Generate SEO-optimised titles, tags, and descriptions in seconds. Built for Etsy, Amazon, Shopify, and eBay sellers.",
+    images: ["/og.png"],
   },
 };
 
