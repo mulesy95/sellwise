@@ -3,7 +3,10 @@ import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { checkLimit, incrementUsage } from "@/lib/usage";
+import { sendEmail } from "@/lib/email";
+import { firstOptimisationEmail } from "@/lib/emails/first-optimisation";
 import type { Platform } from "@/lib/platforms";
 
 const client = new Anthropic();
@@ -181,6 +184,36 @@ export async function POST(request: NextRequest) {
     try {
       await incrementUsage(user.id, "optimisations");
       revalidatePath("/dashboard", "layout");
+
+      // First optimisation email — fire once, non-blocking
+      if (used === 0) {
+        void (async () => {
+          try {
+            const admin = createAdminClient();
+            const { data: profile } = await admin
+              .from("profiles")
+              .select("full_name, first_optimisation_sent")
+              .eq("id", user.id)
+              .single();
+
+            if (profile && !profile.first_optimisation_sent) {
+              const { data: authUser } = await admin.auth.admin.getUserById(user.id);
+              const email = authUser?.user?.email;
+              if (email) {
+                const firstName = (profile.full_name as string | null)?.split(" ")[0] ?? null;
+                const { subject, html } = firstOptimisationEmail(firstName);
+                await sendEmail({ to: email, subject, html });
+                await admin
+                  .from("profiles")
+                  .update({ first_optimisation_sent: true })
+                  .eq("id", user.id);
+              }
+            }
+          } catch (e) {
+            console.error("[first-optimisation email]", e);
+          }
+        })();
+      }
     } catch (incErr) {
       console.error("Failed to increment usage:", incErr);
     }
