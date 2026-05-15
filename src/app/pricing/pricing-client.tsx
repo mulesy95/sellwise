@@ -230,6 +230,11 @@ export function PricingClient() {
         <p className="mt-8 text-center text-xs text-muted-foreground">
           All paid plans include a 7-day free trial. No credit card required to start free.
         </p>
+
+        <div className="mt-10 flex justify-center gap-5 text-xs text-muted-foreground/50">
+          <a href="/terms" className="hover:text-muted-foreground transition-colors">Terms</a>
+          <a href="/privacy" className="hover:text-muted-foreground transition-colors">Privacy</a>
+        </div>
       </div>
     </div>
   );
