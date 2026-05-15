@@ -9,17 +9,12 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { createClient } from "@/lib/supabase/server";
+import { getUsageData } from "@/lib/usage";
 
 export const metadata = {
   title: "Dashboard",
 };
-
-const stats = [
-  { label: "Optimisations used", value: "0", sub: "this month" },
-  { label: "Listings saved", value: "0", sub: "in history" },
-  { label: "Keywords explored", value: "0", sub: "this month" },
-  { label: "Audits run", value: "0", sub: "this month" },
-];
 
 const quickActions = [
   {
@@ -53,16 +48,63 @@ const quickActions = [
   },
 ];
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const usage = user ? await getUsageData(user.id) : null;
+
+  const firstName = user?.user_metadata?.full_name?.split(" ")[0] ?? null;
+
+  const isNewUser =
+    !usage ||
+    (usage.optimisations === 0 &&
+      usage.keywords === 0 &&
+      usage.competitor === 0 &&
+      usage.audits === 0);
+
+  const stats = [
+    { label: "Optimisations", value: usage?.optimisations ?? 0, sub: "this month" },
+    { label: "Keywords explored", value: usage?.keywords ?? 0, sub: "this month" },
+    { label: "Competitors analysed", value: usage?.competitor ?? 0, sub: "this month" },
+    { label: "Audits run", value: usage?.audits ?? 0, sub: "this month" },
+  ];
+
   return (
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          {isNewUser && firstName ? `Welcome, ${firstName}` : "Dashboard"}
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Welcome back. What would you like to optimise today?
+          {isNewUser
+            ? "You're all set. Optimise your first listing to get started."
+            : "Welcome back. What would you like to optimise today?"}
         </p>
       </div>
+
+      {/* First-run CTA */}
+      {isNewUser && (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardContent className="flex flex-col gap-3 py-6 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-semibold">Optimise your first listing</p>
+              <p className="mt-0.5 text-sm text-muted-foreground">
+                Paste in your product details and get an SEO-ready title, 13 tags, and description.
+              </p>
+            </div>
+            <Link href="/dashboard/optimise">
+              <Button className="shrink-0">
+                <Sparkles className="size-3.5" />
+                Try it now
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

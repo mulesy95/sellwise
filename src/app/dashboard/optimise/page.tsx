@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Sparkles, Copy, Check, RotateCcw } from "lucide-react";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import { PlatformSelector } from "@/components/platform-selector";
@@ -82,12 +82,64 @@ const PLATFORM_DESCRIPTIONS: Record<Platform, string> = {
   ebay: "Get an optimised listing title and item description.",
 };
 
+const LOADING_STEPS: Record<Platform, string[]> = {
+  etsy: [
+    "Analysing your product…",
+    "Researching Etsy keywords…",
+    "Writing your title…",
+    "Crafting your 13 tags…",
+    "Writing your description…",
+  ],
+  amazon: [
+    "Analysing your product…",
+    "Researching Amazon keywords…",
+    "Writing your title…",
+    "Crafting bullet points…",
+    "Writing your description…",
+  ],
+  shopify: [
+    "Analysing your product…",
+    "Researching SEO keywords…",
+    "Writing meta title and description…",
+    "Writing product copy…",
+  ],
+  ebay: [
+    "Analysing your product…",
+    "Researching eBay keywords…",
+    "Writing your title and description…",
+  ],
+};
+
+function useLoadingStep(loading: boolean, platform: Platform) {
+  const [step, setStep] = useState(0);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (loading) {
+      setStep(0);
+      const steps = LOADING_STEPS[platform];
+      intervalRef.current = setInterval(() => {
+        setStep((s) => (s + 1 < steps.length ? s + 1 : s));
+      }, 1800);
+    } else {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      setStep(0);
+    }
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [loading, platform]);
+
+  return LOADING_STEPS[platform][step];
+}
+
 export default function OptimisePage() {
   const [platform, setPlatform] = useState<Platform>("etsy");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<OptimisedListing | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const loadingStep = useLoadingStep(loading, platform);
 
   function handlePlatformChange(p: Platform) {
     setPlatform(p);
@@ -248,9 +300,10 @@ export default function OptimisePage() {
           {loading && (
             <Card className="flex min-h-64 items-center justify-center border-border/30">
               <CardContent className="text-center">
-                <div className="mx-auto mb-3 size-8 animate-spin rounded-full border-2 border-primary/20 border-t-primary" />
-                <p className="text-sm text-muted-foreground">
-                  Generating your listing…
+                <div className="mx-auto mb-4 size-8 animate-spin rounded-full border-2 border-primary/20 border-t-primary" />
+                <p className="text-sm font-medium">{loadingStep}</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  This takes around 10 seconds
                 </p>
               </CardContent>
             </Card>
