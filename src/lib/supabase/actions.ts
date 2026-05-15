@@ -2,7 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export type AuthState = { error: string } | null;
 export type ForgotPasswordState = { error?: string; success?: boolean } | null;
@@ -80,13 +82,22 @@ export async function signUp(
   const email = formData.get("email") as string;
   const name = formData.get("name") as string;
 
-  const { error } = await supabase.auth.signUp({
+  const { data: signUpData, error } = await supabase.auth.signUp({
     email,
     password,
     options: { data: { full_name: name } },
   });
 
   if (error) return { error: friendlyAuthError(error.message) };
+
+  // Record which beta code was used, then increment its used_count
+  const cookieStore = await cookies();
+  const betaCode = cookieStore.get("beta_access")?.value;
+  if (betaCode && signUpData.user) {
+    const admin = createAdminClient();
+    await admin.from("profiles").update({ beta_code: betaCode }).eq("id", signUpData.user.id);
+    await admin.rpc("increment_beta_code_usage", { p_code: betaCode });
+  }
 
   revalidatePath("/", "layout");
   redirect("/onboarding");

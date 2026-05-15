@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   LogOut,
   Store,
+  ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -33,14 +34,20 @@ export function Sidebar({
   used = 0,
   limit = 3,
   inTrial = false,
+  isAdmin = false,
 }: {
   userEmail?: string;
   plan?: string;
   used?: number;
   limit?: number | null;
   inTrial?: boolean;
+  isAdmin?: boolean;
 }) {
   const pathname = usePathname();
+  const allNavItems = [
+    ...navItems,
+    ...(isAdmin ? [{ label: "Admin", href: "/dashboard/admin", icon: ShieldCheck }] : []),
+  ];
 
   return (
     <aside className="flex h-full w-56 flex-col border-r border-sidebar-border bg-sidebar">
@@ -53,7 +60,7 @@ export function Sidebar({
 
       {/* Nav */}
       <nav className="flex-1 space-y-0.5 overflow-y-auto p-2">
-        {navItems.map((item) => {
+        {allNavItems.map((item) => {
           const isActive =
             item.href === "/dashboard"
               ? pathname === "/dashboard"

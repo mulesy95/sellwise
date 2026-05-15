@@ -11,9 +11,10 @@ interface MobileNavProps {
   used: number;
   limit: number | null;
   inTrial: boolean;
+  isAdmin?: boolean;
 }
 
-export function MobileNav({ userEmail, plan, used, limit, inTrial }: MobileNavProps) {
+export function MobileNav({ userEmail, plan, used, limit, inTrial, isAdmin }: MobileNavProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
@@ -44,6 +45,7 @@ export function MobileNav({ userEmail, plan, used, limit, inTrial }: MobileNavPr
               used={used}
               limit={limit}
               inTrial={inTrial}
+              isAdmin={isAdmin}
             />
           </div>
         </>

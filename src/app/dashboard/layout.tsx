@@ -21,7 +21,7 @@ export default async function DashboardLayout({
   const admin = createAdminClient();
   const { data: profile } = await admin
     .from("profiles")
-    .select("onboarding_completed, welcome_sent, welcome_queued_at, full_name")
+    .select("onboarding_completed, welcome_sent, welcome_queued_at, full_name, is_admin")
     .eq("id", user.id)
     .single();
 
@@ -40,6 +40,7 @@ export default async function DashboardLayout({
     used: usage.optimisations,
     limit: usage.limit,
     inTrial: usage.inTrial,
+    isAdmin: profile?.is_admin ?? false,
   };
 
   return (
