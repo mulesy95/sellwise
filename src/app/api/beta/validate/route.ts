@@ -16,6 +16,7 @@ export async function POST(req: Request) {
     .single();
 
   if (error || !data) {
+    console.error("[beta/validate] query error:", JSON.stringify(error), "code queried:", code.toUpperCase().trim());
     return NextResponse.json({ error: "Invalid invite code" }, { status: 404 });
   }
 
