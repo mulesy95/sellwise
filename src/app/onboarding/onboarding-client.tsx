@@ -100,17 +100,24 @@ export function OnboardingClient({ firstName }: { firstName: string | null }) {
     });
   }
 
-  async function markComplete() {
-    await fetch("/api/onboarding/complete", { method: "POST" });
+  async function markComplete(opts?: { categories?: string[]; platforms?: string[] }) {
+    await fetch("/api/onboarding/complete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        categories: opts?.categories ?? [],
+        platforms: opts?.platforms ?? [],
+      }),
+    });
   }
 
   async function finish() {
-    await markComplete();
+    await markComplete({ categories, platforms });
     router.push("/dashboard");
   }
 
   async function skip() {
-    await markComplete();
+    await markComplete({ categories, platforms });
     router.push("/dashboard");
   }
 
