@@ -16,6 +16,9 @@ const requestSchema = z.object({
   style: z.string().max(200).optional().default(""),
   targetBuyer: z.string().max(200).optional().default(""),
   keywords: z.string().max(300).optional().default(""),
+  imageBase64: z.string().optional(),
+  imageMediaType: z.enum(["image/jpeg", "image/png", "image/gif", "image/webp"]).optional(),
+  imageUrl: z.string().url().optional(),
 });
 
 const WRITING_RULES = `Writing rules:
@@ -145,21 +148,38 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { platform, productName, materials, style, targetBuyer, keywords } =
+  const { platform, productName, materials, style, targetBuyer, keywords, imageBase64, imageMediaType, imageUrl } =
     parsed.data;
-  const prompt = buildPrompt(platform, {
-    productName,
-    materials,
-    style,
-    targetBuyer,
-    keywords,
-  });
+
+  const hasImage = !!(imageUrl || (imageBase64 && imageMediaType));
+  const basePrompt = buildPrompt(platform, { productName, materials, style, targetBuyer, keywords });
+  const prompt = hasImage
+    ? `A photo of the product is included. Use what you can see — colour, material, texture, form, scale — to write accurate, specific copy.\n\n${basePrompt}`
+    : basePrompt;
+
+  type ImageSource =
+    | { type: "url"; url: string }
+    | { type: "base64"; media_type: "image/jpeg" | "image/png" | "image/gif" | "image/webp"; data: string };
+
+  const imageSource: ImageSource | null = imageUrl
+    ? { type: "url", url: imageUrl }
+    : imageBase64 && imageMediaType
+    ? { type: "base64", media_type: imageMediaType, data: imageBase64 }
+    : null;
 
   try {
     const message = await client.messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: 1024,
-      messages: [{ role: "user", content: prompt }],
+      messages: [{
+        role: "user",
+        content: imageSource
+          ? [
+              { type: "image" as const, source: imageSource },
+              { type: "text" as const, text: prompt },
+            ]
+          : prompt,
+      }],
     });
 
     const text =

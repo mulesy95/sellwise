@@ -142,12 +142,14 @@ function OptimisePanel({
     setLoading(true);
     setResult(null);
     try {
+      const imageUrl = product.images?.[0]?.src;
       const res = await fetch("/api/optimise", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           platform: "shopify",
           productName: product.title,
+          ...(imageUrl && { imageUrl }),
         }),
       });
       const data = await res.json();
