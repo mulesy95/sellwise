@@ -28,26 +28,34 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard/shop?error=shop_mismatch", req.url));
   }
 
+  let access_token: string;
   try {
-    console.log("[shopify] 1 exchanging code for shop:", callbackShop);
-    const { access_token } = await exchangeShopifyCode(callbackShop, code);
-    console.log("[shopify] 2 token received, length:", access_token?.length ?? 0);
+    const result = await exchangeShopifyCode(callbackShop, code);
+    access_token = result.access_token;
+  } catch (err) {
+    console.error("[shopify] token exchange failed:", err instanceof Error ? err.message : JSON.stringify(err));
+    return NextResponse.redirect(new URL("/dashboard/shop?error=token_exchange_failed", req.url));
+  }
 
-    const shopInfo = await getShopInfo(callbackShop, access_token);
-    console.log("[shopify] 3 shop info:", shopInfo.id, shopInfo.name);
+  let shopInfo: { id: string; name: string; myshopify_domain: string };
+  try {
+    shopInfo = await getShopInfo(callbackShop, access_token);
+  } catch (err) {
+    console.error("[shopify] getShopInfo failed:", err instanceof Error ? err.message : JSON.stringify(err));
+    return NextResponse.redirect(new URL("/dashboard/shop?error=shop_info_failed", req.url));
+  }
 
+  try {
     const admin = createAdminClient();
 
     const { data: profile } = await admin.from("profiles").select("plan").eq("id", user.id).single();
     const plan = profile?.plan ?? "free";
-    console.log("[shopify] 4 plan:", plan);
 
     if (plan !== "studio") {
       await admin.from("shops").delete().eq("user_id", user.id).eq("platform", "shopify");
-      console.log("[shopify] 5 deleted existing shops");
     }
 
-    const payload = {
+    const { error: upsertError } = await admin.from("shops").upsert({
       user_id: user.id,
       platform: "shopify",
       shop_name: shopInfo.name,
@@ -55,21 +63,15 @@ export async function GET(req: NextRequest) {
       shop_id: String(shopInfo.id),
       access_token,
       is_primary: true,
-    };
-    console.log("[shopify] 6 upserting shop_id:", payload.shop_id, "name:", payload.shop_name);
-
-    const { error: upsertError } = await admin.from("shops").upsert(payload, { onConflict: "user_id,platform,shop_id" });
+    }, { onConflict: "user_id,platform,shop_id" });
 
     if (upsertError) {
-      console.error("[shopify] 7 upsert error code:", upsertError.code, "msg:", upsertError.message, "detail:", upsertError.details);
-      throw upsertError;
+      console.error("[shopify] upsert failed:", upsertError.code, upsertError.message, upsertError.details);
+      return NextResponse.redirect(new URL(`/dashboard/shop?error=db_${upsertError.code}`, req.url));
     }
-    console.log("[shopify] 7 upsert ok");
-
   } catch (err) {
-    const msg = err instanceof Error ? err.message : JSON.stringify(err);
-    console.error("[shopify callback] error:", msg);
-    return NextResponse.redirect(new URL("/dashboard/shop?error=connection_failed", req.url));
+    console.error("[shopify] db error:", err instanceof Error ? err.message : JSON.stringify(err));
+    return NextResponse.redirect(new URL("/dashboard/shop?error=db_failed", req.url));
   }
 
   const response = NextResponse.redirect(new URL("/dashboard/shop?connected=true", req.url));
