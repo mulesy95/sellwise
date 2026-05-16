@@ -57,16 +57,17 @@ async function checkStatusPage(url: string): Promise<ServiceStatus> {
       4500
     );
     const latency = Date.now() - start;
-    if (!res.ok) return { status: "degraded", latency, message: `HTTP ${res.status}` };
+    // Non-OK response (blocked, rate-limited, etc.) — can't determine status, assume fine
+    if (!res.ok) return { status: "ok", latency };
     const data = await res.json() as { status?: { indicator?: string; description?: string } };
     const indicator = data?.status?.indicator;
-    if (indicator === "none") return { status: "ok", latency };
+    // Only flag an issue when the status page explicitly reports one
     if (indicator === "minor") return { status: "degraded", latency, message: data?.status?.description };
     if (indicator === "maintenance") return { status: "degraded", latency, message: data?.status?.description ?? "Maintenance in progress" };
-    if (indicator) return { status: "down", latency, message: data?.status?.description ?? "Incident reported" };
+    if (indicator && indicator !== "none") return { status: "down", latency, message: data?.status?.description ?? "Incident reported" };
     return { status: "ok", latency };
   } catch {
-    // Can't reach the status page — assume the service itself is fine rather than false-alarming users
+    // Unreachable or timed out — assume fine rather than false-alarming users
     return { status: "ok", latency: Date.now() - start };
   }
 }
