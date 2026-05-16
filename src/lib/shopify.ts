@@ -164,6 +164,74 @@ export async function pushShopifyProduct(
   if (errors.length) throw new Error(errors[0].message);
 }
 
+// ─── Push product image ───────────────────────────────────────────────────────
+
+const STAGED_UPLOADS_MUTATION = `
+  mutation stagedUploadsCreate($input: [StagedUploadInput!]!) {
+    stagedUploadsCreate(input: $input) {
+      stagedTargets {
+        url
+        resourceUrl
+        parameters { name value }
+      }
+      userErrors { field message }
+    }
+  }
+`;
+
+const PRODUCT_CREATE_MEDIA_MUTATION = `
+  mutation productCreateMedia($productId: ID!, $media: [CreateMediaInput!]!) {
+    productCreateMedia(productId: $productId, media: $media) {
+      media { ... on MediaImage { id } }
+      mediaUserErrors { field message }
+      product { id }
+    }
+  }
+`;
+
+export async function pushShopifyImage(
+  shop: string,
+  accessToken: string,
+  productId: string,
+  imageBuffer: Buffer,
+  mimeType: string,
+  filename: string
+): Promise<void> {
+  // 1. Request a presigned staged upload URL from Shopify
+  const stagedData = await shopifyGraphQL<{
+    stagedUploadsCreate: {
+      stagedTargets: { url: string; resourceUrl: string; parameters: { name: string; value: string }[] }[];
+      userErrors: { field: string[]; message: string }[];
+    };
+  }>(shop, accessToken, STAGED_UPLOADS_MUTATION, {
+    input: [{ filename, mimeType, resource: "PRODUCT_IMAGE", fileSize: String(imageBuffer.byteLength), httpMethod: "POST" }],
+  });
+
+  const stageErrors = stagedData.stagedUploadsCreate.userErrors;
+  if (stageErrors.length) throw new Error(stageErrors[0].message);
+
+  const target = stagedData.stagedUploadsCreate.stagedTargets[0];
+
+  // 2. Upload directly to the staged URL (Shopify's S3)
+  const form = new FormData();
+  for (const { name, value } of target.parameters) form.append(name, value);
+  form.append("file", new Blob([new Uint8Array(imageBuffer)], { type: mimeType }), filename);
+
+  const uploadRes = await fetch(target.url, { method: "POST", body: form });
+  if (!uploadRes.ok) throw new Error(`Staged upload failed: ${uploadRes.status}`);
+
+  // 3. Attach the staged image to the product
+  const mediaData = await shopifyGraphQL<{
+    productCreateMedia: { mediaUserErrors: { field: string[]; message: string }[] };
+  }>(shop, accessToken, PRODUCT_CREATE_MEDIA_MUTATION, {
+    productId,
+    media: [{ originalSource: target.resourceUrl, alt: filename.replace(/\.[^.]+$/, ""), mediaContentType: "IMAGE" }],
+  });
+
+  const mediaErrors = mediaData.productCreateMedia.mediaUserErrors;
+  if (mediaErrors.length) throw new Error(mediaErrors[0].message);
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface ShopifyProduct {

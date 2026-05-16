@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Store, Sparkles, ExternalLink, RefreshCw, ArrowRight,
-  Lock, AlertCircle, Unplug, X, Copy, Check, Plus, ChevronRight,
+  Lock, AlertCircle, Unplug, X, Copy, Check, Plus, ChevronRight, ImagePlus,
 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -71,6 +71,32 @@ const SCORE_CONFIG: Record<SeoScore, { label: string; dot: string; badge: string
 function sortByScore(products: ShopifyProduct[]): ShopifyProduct[] {
   const order: Record<SeoScore, number> = { poor: 0, fair: 1, good: 2 };
   return [...products].sort((a, b) => order[calcSeoScore(a)] - order[calcSeoScore(b)]);
+}
+
+// ─── Client-side image resize (keeps base64 small for AI + upload) ────────────
+
+async function resizeImageToBase64(
+  file: File,
+  maxPx = 1500,
+  quality = 0.9
+): Promise<{ base64: string; mediaType: "image/jpeg" }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      const scale = Math.min(1, maxPx / Math.max(img.width, img.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return reject(new Error("Canvas unavailable"));
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve({ base64: canvas.toDataURL("image/jpeg", quality).split(",")[1], mediaType: "image/jpeg" });
+    };
+    img.onerror = reject;
+    img.src = objectUrl;
+  });
 }
 
 // ─── Copy button ──────────────────────────────────────────────────────────────
@@ -249,10 +275,42 @@ function OptimisePanel({
     description: string;
   } | null>(null);
   const [pushing, setPushing] = useState(false);
+  const [uploadedImage, setUploadedImage] = useState<{
+    base64: string;
+    mediaType: "image/jpeg";
+    filename: string;
+    previewUrl: string;
+  } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const isStudio = plan === "studio";
 
   const existingText = product.body_html?.replace(/<[^>]+>/g, "").trim() ?? "";
   const imageUrl = product.images?.[0]?.src;
+
+  useEffect(() => {
+    return () => { if (uploadedImage) URL.revokeObjectURL(uploadedImage.previewUrl); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { toast.error("Image must be under 5MB"); return; }
+    try {
+      const previewUrl = URL.createObjectURL(file);
+      const { base64, mediaType } = await resizeImageToBase64(file);
+      if (uploadedImage) URL.revokeObjectURL(uploadedImage.previewUrl);
+      setUploadedImage({ base64, mediaType, filename: file.name, previewUrl });
+    } catch {
+      toast.error("Failed to process image");
+    }
+  }
+
+  function removeUploadedImage() {
+    if (uploadedImage) URL.revokeObjectURL(uploadedImage.previewUrl);
+    setUploadedImage(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
 
   async function handleOptimise() {
     setLoading(true);
@@ -265,7 +323,12 @@ function OptimisePanel({
           platform: "shopify",
           productName: product.title,
           existingContent: existingText.slice(0, 800),
-          ...(imageUrl && { imageUrl }),
+          // Uploaded image takes precedence over existing Shopify image URL
+          ...(uploadedImage
+            ? { imageBase64: uploadedImage.base64, imageMediaType: uploadedImage.mediaType }
+            : imageUrl
+            ? { imageUrl }
+            : {}),
         }),
       });
       const data = await res.json();
@@ -287,19 +350,39 @@ function OptimisePanel({
     if (!result) return;
     setPushing(true);
     try {
-      const res = await fetch("/api/shopify/push", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          productId: product.id,
-          shopId,
-          title: result.productTitle,
-          body_html: result.description,
+      const requests: Promise<Response>[] = [
+        fetch("/api/shopify/push", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ productId: product.id, shopId, title: result.productTitle, body_html: result.description }),
         }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Failed to push");
-      toast.success("Product updated in Shopify");
+      ];
+
+      if (uploadedImage) {
+        requests.push(
+          fetch("/api/shopify/media", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              productId: product.id,
+              shopId,
+              imageBase64: uploadedImage.base64,
+              imageMediaType: uploadedImage.mediaType,
+              filename: uploadedImage.filename,
+            }),
+          })
+        );
+      }
+
+      const responses = await Promise.all(requests);
+      for (const res of responses) {
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error ?? "Failed to push");
+        }
+      }
+
+      toast.success(uploadedImage ? "Content and image pushed to Shopify" : "Product updated in Shopify");
       onClose();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to push");
@@ -371,18 +454,49 @@ function OptimisePanel({
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">Images</p>
-                  {product.images && product.images.length > 0 ? (
-                    <div className="flex gap-1.5 flex-wrap">
-                      {product.images.slice(0, 5).map((img, i) => (
-                        <img key={i} src={img.src} alt="" className="size-12 rounded-md object-cover bg-muted border border-border/40" />
-                      ))}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
+                  {uploadedImage ? (
+                    <div className="space-y-2">
+                      <div className="relative inline-block">
+                        <img src={uploadedImage.previewUrl} alt="Uploaded" className="h-20 w-auto rounded-md object-cover border border-border/40" />
+                        <button
+                          onClick={removeUploadedImage}
+                          className="absolute -top-1.5 -right-1.5 flex size-4 items-center justify-center rounded-full bg-destructive text-white"
+                          aria-label="Remove image"
+                        >
+                          <X className="size-2.5" />
+                        </button>
+                      </div>
+                      <p className="text-xs text-emerald-600 dark:text-emerald-400">
+                        Ready — AI will analyse this and it will be pushed to Shopify with your content.
+                      </p>
+                    </div>
+                  ) : product.images && product.images.length > 0 ? (
+                    <div className="space-y-2">
+                      <div className="flex gap-1.5 flex-wrap">
+                        {product.images.slice(0, 5).map((img, i) => (
+                          <img key={i} src={img.src} alt="" className="size-12 rounded-md object-cover bg-muted border border-border/40" />
+                        ))}
+                      </div>
                     </div>
                   ) : (
-                    <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2">
-                      <AlertCircle className="size-3.5 text-amber-500 shrink-0 mt-0.5" />
-                      <p className="text-xs text-amber-700 dark:text-amber-400">
-                        No product images. Add images in Shopify so the AI can describe colour, texture and materials accurately — and your SEO score will improve too.
-                      </p>
+                    <div className="space-y-2">
+                      <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2">
+                        <AlertCircle className="size-3.5 text-amber-500 shrink-0 mt-0.5" />
+                        <p className="text-xs text-amber-700 dark:text-amber-400">
+                          No product images. Upload one and the AI will use it to write accurate copy — then push it to Shopify with your content.
+                        </p>
+                      </div>
+                      <Button variant="outline" size="sm" className="text-xs w-full" onClick={() => fileInputRef.current?.click()}>
+                        <ImagePlus className="size-3.5" />
+                        Upload image
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -416,9 +530,9 @@ function OptimisePanel({
                       ? "AI will analyse and improve your existing listing."
                       : "AI will generate an optimised listing from your product name."}
                   </p>
-                  {!imageUrl && (
+                  {!imageUrl && !uploadedImage && (
                     <p className="text-xs text-amber-600 dark:text-amber-400 max-w-[220px]">
-                      No images found. Add product photos in Shopify for more accurate copy.
+                      No images found. Upload a photo on the left for more accurate copy.
                     </p>
                   )}
                   <Button onClick={handleOptimise} className="mt-1">
@@ -481,7 +595,11 @@ function OptimisePanel({
             <div className="flex-1" />
             {isStudio ? (
               <Button size="sm" onClick={handlePush} disabled={pushing}>
-                {pushing ? <><Spinner size="sm" className="mr-1.5" />Applying…</> : "Apply to Shopify"}
+                {pushing
+                  ? <><Spinner size="sm" className="mr-1.5" />Applying…</>
+                  : uploadedImage
+                  ? "Apply content + image"
+                  : "Apply to Shopify"}
               </Button>
             ) : (
               <a href="/pricing" className={cn(buttonVariants({ size: "sm" }), "text-xs")}>
