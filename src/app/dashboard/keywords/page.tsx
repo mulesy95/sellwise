@@ -17,11 +17,11 @@ export default async function KeywordsPage() {
     return (
       <FeatureGate
         title="Keyword Research"
-        description="Find the exact phrases Etsy buyers search for — before your competitors do."
+        description="Find the exact phrases buyers search for on your platform — before your competitors do."
         bullets={[
           "15 keyword suggestions per search",
           "Volume, competition, and trend signals",
-          "Occasion, recipient, and style variations",
+          "Platform-aware: occasion and style for Etsy, purchase intent for Amazon, and more",
         ]}
       />
     );

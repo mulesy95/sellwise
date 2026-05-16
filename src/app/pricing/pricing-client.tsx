@@ -8,10 +8,10 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 const features = {
-  free:    ["1 optimisation / month", "Etsy platform", "Basic listing optimiser"],
-  starter: ["50 optimisations / month", "Keyword Research", "Listing Audit", "Competitor Peek", "Email support"],
+  free:    ["1 optimisation / month", "All platforms (manual entry)", "Basic listing optimiser"],
+  starter: ["50 optimisations / month", "Keyword Research", "Listing Audit", "Competitor Peek", "Platform Migration", "Email support"],
   growth:  ["Unlimited optimisations", "Unlimited keywords", "Unlimited audits", "Unlimited competitor analyses", "Priority support", "Optimisation history"],
-  studio:  ["Everything in Growth", "Multi-shop management", "Connect Etsy + Amazon + Shopify", "Bulk audit dashboard", "Push edits back to your shop", "Dedicated support"],
+  studio:  ["Everything in Growth", "Connect your Shopify store", "Push edits back to your shop", "Multi-shop management", "Dedicated support"],
 };
 
 const plans = [

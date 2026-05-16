@@ -131,7 +131,7 @@ export function CompetitorClient() {
         <CardHeader className="pb-4">
           <CardTitle className="text-base">Listing URL</CardTitle>
           <CardDescription className="text-xs">
-            Supports Amazon, Shopify stores, and eBay.
+            Shopify stores only. Amazon and eBay support coming soon.
           </CardDescription>
         </CardHeader>
         <CardContent>
