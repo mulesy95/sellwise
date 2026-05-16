@@ -17,7 +17,7 @@ export function ForgotPasswordForm() {
     <Card className="border-border/50 bg-card">
       <CardHeader className="pb-2 text-center">
         <div className="mb-2 text-2xl font-bold tracking-tight">
-          Sell<span className="text-primary">Wise</span><span className="text-[0.55em] align-super">™</span>
+          Sell<span className="text-primary">Wise</span>
         </div>
         <p className="text-sm text-muted-foreground">Reset your password</p>
       </CardHeader>

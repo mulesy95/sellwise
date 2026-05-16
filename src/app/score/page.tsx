@@ -58,7 +58,7 @@ export default async function ScorePage({ searchParams }: Props) {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm text-center space-y-8">
         <div className="text-2xl font-bold tracking-tight">
-          Sell<span className="text-primary">Wise</span><span className="text-[0.55em] align-super">™</span>
+          Sell<span className="text-primary">Wise</span>
         </div>
 
         <div className="space-y-3">

@@ -44,7 +44,7 @@ function InviteForm() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6 text-center">
       <a href="/" className="mb-6 text-3xl font-extrabold tracking-tight text-foreground">
-        Sell<span className="text-primary">Wise</span><span className="text-[0.55em] align-super">™</span>
+        Sell<span className="text-primary">Wise</span>
       </a>
 
       <h1 className="mb-1 text-xl font-semibold text-foreground">Beta access</h1>

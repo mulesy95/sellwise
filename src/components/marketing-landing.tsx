@@ -41,7 +41,7 @@ export function MarketingLanding() {
     <div className="min-h-screen bg-background text-foreground font-sans">
       {/* NAV */}
       <nav className="sticky top-0 z-50 flex items-center justify-between px-7 py-3.5 border-b border-border bg-background">
-        <span className="font-bold text-foreground text-[15px]">Sell<span className="text-primary">Wise</span><span className="text-[0.55em] align-super">™</span></span>
+        <span className="font-bold text-foreground text-[15px]">Sell<span className="text-primary">Wise</span></span>
         <div className="flex items-center gap-5 text-xs text-muted-foreground">
           <a href="#features" className="hover:text-foreground transition-colors">
             Features

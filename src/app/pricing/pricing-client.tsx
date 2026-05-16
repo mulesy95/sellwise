@@ -93,7 +93,7 @@ export function PricingClient() {
             <Zap className="size-4" />
           </div>
           <a href="/" className="font-bold tracking-tight text-xl">
-            Sell<span className="text-primary">Wise</span><span className="text-[0.55em] align-super">™</span>
+            Sell<span className="text-primary">Wise</span>
           </a>
         </div>
         <h1 className="text-4xl font-bold tracking-tight">Simple, transparent pricing</h1>

@@ -105,7 +105,7 @@ export function OnboardingClient({ firstName }: { firstName: string | null }) {
       <div className="w-full max-w-lg space-y-8">
         <div className="text-center">
           <div className="text-2xl font-bold tracking-tight">
-            Sell<span className="text-primary">Wise</span><span className="text-[0.55em] align-super">™</span>
+            Sell<span className="text-primary">Wise</span>
           </div>
         </div>
 

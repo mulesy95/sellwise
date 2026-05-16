@@ -16,7 +16,7 @@ export function ComingSoon() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6 text-center">
       {/* Wordmark */}
       <h1 className="mb-3 text-5xl font-extrabold tracking-tight text-foreground md:text-6xl">
-        Sell<span className="text-primary">Wise</span><span className="text-[0.55em] align-super">™</span>
+        Sell<span className="text-primary">Wise</span>
       </h1>
 
       <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-primary">
