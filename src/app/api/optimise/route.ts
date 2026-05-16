@@ -154,13 +154,13 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { allowed, used, limit } = await checkLimit(user.id, "optimisations");
+  const { allowed, used, limit, dailyLimitHit, dailyLimit } = await checkLimit(user.id, "optimisations");
   if (!allowed) {
+    const error = dailyLimitHit
+      ? `You've hit today's limit of ${dailyLimit} optimisations. Resets at midnight — or upgrade your plan for a higher daily limit.`
+      : `You've used all ${limit} optimisations for this month. Upgrade your plan to continue.`;
     return NextResponse.json(
-      {
-        error: `You've used all ${limit} optimisations for this month. Upgrade your plan to continue.`,
-        code: "LIMIT_EXCEEDED",
-      },
+      { error, code: dailyLimitHit ? "DAILY_LIMIT_EXCEEDED" : "LIMIT_EXCEEDED" },
       { status: 402 }
     );
   }
