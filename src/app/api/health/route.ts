@@ -31,12 +31,14 @@ async function checkDatabase(): Promise<ServiceStatus> {
   const start = Date.now();
   try {
     const admin = createAdminClient();
-    const { error } = await withTimeout(
-      () => admin.from("profiles").select("id").limit(1),
-      4000
-    );
+    const result = await Promise.race([
+      admin.from("profiles").select("id").limit(1),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("Timeout")), 4000)
+      ),
+    ]);
     const latency = Date.now() - start;
-    if (error) return { status: "down", latency, message: error.message };
+    if (result.error) return { status: "down", latency, message: result.error.message };
     return { status: latency > 2000 ? "degraded" : "ok", latency };
   } catch {
     return { status: "down", latency: Date.now() - start, message: "Unreachable" };
