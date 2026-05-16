@@ -9,6 +9,7 @@ import {
   ArrowRight,
   Lock,
   AlertCircle,
+  Unplug,
 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -314,6 +315,25 @@ export function ShopDashboard({
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<ShopifyProduct | null>(null);
+  const [disconnecting, setDisconnecting] = useState(false);
+
+  async function handleDisconnect() {
+    if (!shopifyShop) return;
+    if (!confirm(`Disconnect ${shopifyShop.shop_name}? You can reconnect at any time.`)) return;
+    setDisconnecting(true);
+    try {
+      const res = await fetch("/api/shopify/disconnect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ shopId: shopifyShop.id }),
+      });
+      if (!res.ok) throw new Error("Failed to disconnect");
+      window.location.reload();
+    } catch {
+      toast.error("Failed to disconnect store. Please try again.");
+      setDisconnecting(false);
+    }
+  }
 
   const fetchProducts = useCallback(async (cursor?: string) => {
     setLoading(true);
@@ -400,6 +420,15 @@ export function ShopDashboard({
               >
                 <ExternalLink className="size-3.5" />
               </a>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={handleDisconnect}
+                disabled={disconnecting}
+                title="Disconnect store"
+              >
+                <Unplug className={cn("size-3.5 text-muted-foreground", disconnecting && "animate-pulse")} />
+              </Button>
             </div>
           </div>
 
