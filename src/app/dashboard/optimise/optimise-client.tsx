@@ -181,8 +181,22 @@ export function OptimiseClient({ plan }: { plan: string }) {
     setImageBase64(null);
   }
 
+  async function copyAll() {
+    if (!result || tabs.length === 0) return;
+    const parts = tabs.map((tab) => {
+      if (tab.isTags || tab.isBullets) {
+        const arr = tab.content as string[];
+        return `${tab.label.toUpperCase()}:\n${arr.join(tab.isTags ? ", " : "\n")}`;
+      }
+      return `${tab.label.toUpperCase()}:\n${tab.content as string}`;
+    });
+    await navigator.clipboard.writeText(parts.join("\n\n"));
+    toast.success("Full listing copied");
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const previousResult = result;
     setLoading(true);
     setResult(null);
     setError(null);
@@ -212,6 +226,7 @@ export function OptimiseClient({ plan }: { plan: string }) {
       if (!res.ok) {
         const err = await res.json();
         if (res.status === 402) {
+          setResult(previousResult);
           setUpgradeOpen(true);
           return;
         }
@@ -439,15 +454,27 @@ export function OptimiseClient({ plan }: { plan: string }) {
             <Card className="border-border/50">
               <CardHeader className="flex flex-row items-center justify-between pb-3">
                 <CardTitle className="text-base">Optimised listing</CardTitle>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setResult(null)}
-                  className="h-7 gap-1.5 text-xs text-muted-foreground"
-                >
-                  <RotateCcw className="size-3" />
-                  New listing
-                </Button>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={copyAll}
+                    className="h-7 gap-1 text-xs"
+                  >
+                    <Copy className="size-3" />
+                    Copy all
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setResult(null)}
+                    disabled={loading}
+                    className="h-7 gap-1.5 text-xs text-muted-foreground"
+                  >
+                    <RotateCcw className="size-3" />
+                    New listing
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 <Tabs defaultValue={tabs[0].id}>

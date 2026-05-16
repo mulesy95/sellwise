@@ -252,6 +252,10 @@ export function OnboardingClient({ firstName }: { firstName: string | null }) {
               ))}
             </div>
 
+            <p className="text-xs text-muted-foreground/70">
+              Free plan: 1 optimisation per month. Upgrade anytime for unlimited access.
+            </p>
+
             <Button className="w-full" onClick={finish}>
               Go to dashboard
               <ArrowRight className="size-3.5" />

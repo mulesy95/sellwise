@@ -58,17 +58,34 @@ function ShopifyConnectForm({ plan }: { plan: string }) {
 
   if (!canConnect) {
     return (
-      <div className="rounded-xl border border-border/50 bg-card p-8 text-center space-y-3">
-        <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-muted">
-          <Lock className="size-5 text-muted-foreground" />
+      <div className="space-y-4">
+        <div className="rounded-xl border border-border/50 bg-card p-8 text-center space-y-4 max-w-md mx-auto">
+          <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-primary/10">
+            <Store className="size-5 text-primary" />
+          </div>
+          <div>
+            <h2 className="font-semibold">Connect your Shopify store</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Available on Growth and Studio plans. Here&apos;s what you get:
+            </p>
+          </div>
+          <ul className="space-y-2 text-left text-sm text-muted-foreground">
+            {[
+              "See all your products in one place",
+              "Optimise listings with one click — no copy-paste",
+              "AI-generated titles, bullets, and descriptions",
+              "Push changes directly back to Shopify (Studio only)",
+            ].map((item) => (
+              <li key={item} className="flex items-start gap-2">
+                <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-primary" />
+                {item}
+              </li>
+            ))}
+          </ul>
+          <a href="/pricing" className={buttonVariants({ className: "w-full" })}>
+            Upgrade to Growth <ArrowRight className="size-3.5" />
+          </a>
         </div>
-        <h2 className="font-semibold">Connect your Shopify store</h2>
-        <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-          Connecting your shop is available on Growth and Studio plans.
-        </p>
-        <a href="/pricing" className={buttonVariants()}>
-          Upgrade to connect <ArrowRight className="size-3.5" />
-        </a>
       </div>
     );
   }

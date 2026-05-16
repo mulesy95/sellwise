@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Sparkles, Search, Eye, BarChart3, ArrowRight } from "lucide-react";
+import { Sparkles, Search, Eye, BarChart3, ArrowRight, ArrowLeftRight } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -39,6 +39,12 @@ const quickActions = [
     description: "Score your existing listing 0–100 and get specific improvements to make.",
     href: "/dashboard/audit",
     icon: BarChart3,
+  },
+  {
+    label: "Platform Migration",
+    description: "Paste your listing from one platform and get it reformatted for another in seconds.",
+    href: "/dashboard/migrate",
+    icon: ArrowLeftRight,
   },
 ];
 
