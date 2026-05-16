@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BarChart3, Sparkles, AlertCircle, Link2, PenLine } from "lucide-react";
+import { BarChart3, Sparkles, AlertCircle, Link2, PenLine, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -232,6 +232,19 @@ export function AuditClient() {
     await runAudit(payload);
   }
 
+  async function shareScore() {
+    if (!result) return;
+    const label = overallLabel(result.score);
+    const improvements = (result.improvements as string[])?.length ?? 0;
+    const url = new URL("/score", window.location.origin);
+    url.searchParams.set("score", String(result.score));
+    url.searchParams.set("platform", detectedPlatform ?? platform);
+    url.searchParams.set("label", label);
+    url.searchParams.set("improvements", String(improvements));
+    await navigator.clipboard.writeText(url.toString());
+    toast.success("Score card link copied — paste it anywhere to share.");
+  }
+
   const sections = AUDIT_SECTIONS[detectedPlatform ?? platform];
 
   return (
@@ -424,6 +437,16 @@ export function AuditClient() {
                     </div>
                     <Progress value={result.score} className="h-2" />
                   </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={shareScore}
+                    className="shrink-0"
+                  >
+                    <Share2 className="size-3.5" />
+                    Share
+                  </Button>
                 </CardContent>
               </Card>
 
