@@ -48,9 +48,14 @@ export function CompetitorClient() {
 
   function handleUrlChange(e: React.ChangeEvent<HTMLInputElement>) {
     const detected = detectPlatformFromUrl(e.target.value);
-    setDetectedPlatform(detected === "etsy" ? null : detected);
+    const unsupported = detected === "etsy" || detected === "amazon" || detected === "ebay";
+    setDetectedPlatform(unsupported ? null : detected);
     if (detected === "etsy") {
-      setError("Etsy URLs aren't supported. Copy the listing content and use the Listing Audit tool with manual entry instead.");
+      setError("Etsy URLs aren't supported. Copy the listing content and use the Listing Audit tool with manual entry.");
+    } else if (detected === "amazon") {
+      setError("Amazon URL analysis is coming soon via the official SP-API. For now, copy the content and paste it into the Listing Audit tool.");
+    } else if (detected === "ebay") {
+      setError("eBay URL analysis is coming soon via the official eBay API. For now, copy the content and paste it into the Listing Audit tool.");
     } else {
       setError(null);
     }
@@ -118,7 +123,7 @@ export function CompetitorClient() {
           Competitor Peek
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Paste any listing URL from Amazon, Shopify, or eBay to get a better version.
+          Paste a Shopify listing URL to get an AI-optimised version. Amazon and eBay coming soon.
         </p>
       </div>
 

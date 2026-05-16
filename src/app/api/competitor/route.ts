@@ -185,12 +185,14 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (platform === "etsy") {
+  if (platform === "etsy" || platform === "amazon" || platform === "ebay") {
+    const messages: Record<string, string> = {
+      etsy: "Etsy URLs are not supported. Copy the listing content and use the Listing Audit tool with manual entry instead.",
+      amazon: "Amazon URL analysis is coming soon via the official SP-API. For now, copy the listing content and paste it into the Listing Audit tool.",
+      ebay: "eBay URL analysis is coming soon via the official eBay API. For now, copy the listing content and paste it into the Listing Audit tool.",
+    };
     return NextResponse.json(
-      {
-        error: "Etsy URLs are not supported. To analyse an Etsy listing, copy the title, tags, and description and use the Listing Audit tool with manual entry.",
-        code: "UNSUPPORTED_PLATFORM",
-      },
+      { error: messages[platform], code: "UNSUPPORTED_PLATFORM" },
       { status: 422 }
     );
   }

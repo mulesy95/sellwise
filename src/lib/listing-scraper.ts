@@ -31,9 +31,9 @@ export function extractListing(
     case "etsy":
       throw new Error("Etsy URL analysis is not supported. Please enter your listing content manually.");
     case "amazon":
-      return extractAmazon(html);
+      throw new Error("Amazon URL analysis is not supported. Please enter your listing content manually.");
     case "ebay":
-      return extractEbay(html);
+      throw new Error("eBay URL analysis is not supported. Please enter your listing content manually.");
     case "shopify":
       return extractShopify(html);
   }

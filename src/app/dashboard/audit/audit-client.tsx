@@ -167,6 +167,12 @@ export function AuditClient() {
     if (detected === "etsy") {
       setDetectedPlatform(null);
       setError("Etsy URLs aren't supported. Switch to manual entry and paste your title, tags, and description.");
+    } else if (detected === "amazon") {
+      setDetectedPlatform(null);
+      setError("Amazon URL auditing is coming soon. Switch to manual entry and paste your listing content.");
+    } else if (detected === "ebay") {
+      setDetectedPlatform(null);
+      setError("eBay URL auditing is coming soon. Switch to manual entry and paste your listing content.");
     } else {
       setDetectedPlatform(detected);
       setError(null);

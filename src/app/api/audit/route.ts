@@ -231,12 +231,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (detectedPlatform === "etsy") {
+    if (detectedPlatform === "etsy" || detectedPlatform === "amazon" || detectedPlatform === "ebay") {
+      const messages: Record<string, string> = {
+        etsy: "Etsy URLs are not supported. Switch to manual entry and paste your title, tags, and description.",
+        amazon: "Amazon URL auditing is coming soon via the official SP-API. Switch to manual entry and paste your listing content.",
+        ebay: "eBay URL auditing is coming soon via the official eBay API. Switch to manual entry and paste your listing content.",
+      };
       return NextResponse.json(
-        {
-          error: "Etsy URLs are not supported. Switch to manual entry and paste your title, tags, and description to run the audit.",
-          code: "UNSUPPORTED_PLATFORM",
-        },
+        { error: messages[detectedPlatform], code: "UNSUPPORTED_PLATFORM" },
         { status: 422 }
       );
     }
