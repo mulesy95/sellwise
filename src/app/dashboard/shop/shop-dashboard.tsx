@@ -48,7 +48,7 @@ function ShopifyConnectForm({ plan }: { plan: string }) {
 
   if (!canConnect) {
     return (
-      <div className="rounded-xl border border-border/50 p-8 text-center space-y-3">
+      <div className="rounded-xl border border-border/50 bg-card p-8 text-center space-y-3">
         <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-muted">
           <Lock className="size-5 text-muted-foreground" />
         </div>
@@ -64,7 +64,7 @@ function ShopifyConnectForm({ plan }: { plan: string }) {
   }
 
   return (
-    <div className="rounded-xl border border-border/50 p-8 text-center space-y-4 max-w-md mx-auto">
+    <div className="rounded-xl border border-border/50 bg-card p-8 text-center space-y-4 max-w-md mx-auto">
       <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-primary/10">
         <Store className="size-5 text-primary" />
       </div>
@@ -216,7 +216,7 @@ function ShopifyOptimisePanel({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="w-full max-w-lg bg-background rounded-xl border border-border shadow-xl overflow-y-auto max-h-[90vh]">
+      <div className="w-full max-w-lg bg-card rounded-xl border border-border shadow-xl overflow-y-auto max-h-[90vh]">
         <div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="font-semibold text-sm">Optimise listing</h2>
           <button
@@ -369,7 +369,7 @@ export function ShopDashboard({
         <ShopifyConnectForm plan={plan} />
       ) : (
         <div className="space-y-4">
-          <div className="flex items-center justify-between rounded-xl border border-border/50 p-4">
+          <div className="flex items-center justify-between rounded-xl border border-border/50 bg-card p-4">
             <div className="flex items-center gap-3">
               <div className="flex size-9 items-center justify-center rounded-md bg-primary/10">
                 <Store className="size-4 text-primary" />
@@ -447,17 +447,19 @@ export function ShopDashboard({
           </Card>
 
           {plan !== "studio" && (
-            <div className="rounded-xl border border-border/50 bg-muted/30 p-4 flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium">Push optimisations directly to Shopify</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Apply AI improvements without copy-paste. Studio plan only.
-                </p>
-              </div>
-              <a href="/pricing" className={buttonVariants({ size: "sm" })}>
-                Upgrade to Studio <ArrowRight className="size-3.5" />
-              </a>
-            </div>
+            <Card className="border-border/50">
+              <CardContent className="flex items-center justify-between py-4">
+                <div>
+                  <p className="text-sm font-medium">Push optimisations directly to Shopify</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Apply AI improvements without copy-paste. Studio plan only.
+                  </p>
+                </div>
+                <a href="/pricing" className={buttonVariants({ size: "sm" })}>
+                  Upgrade to Studio <ArrowRight className="size-3.5" />
+                </a>
+              </CardContent>
+            </Card>
           )}
         </div>
       )}

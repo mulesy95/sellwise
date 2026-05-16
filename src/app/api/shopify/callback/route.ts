@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { exchangeShopifyCode, getShopInfo } from "@/lib/shopify";
+import { exchangeShopifyCode, getShopInfo, normaliseShopDomain } from "@/lib/shopify";
 
 export async function GET(req: NextRequest) {
   const supabase = await createClient();
@@ -19,16 +19,18 @@ export async function GET(req: NextRequest) {
   if (!code || !state || !shop) {
     return NextResponse.redirect(new URL("/dashboard/shop?error=missing_params", req.url));
   }
-  if (state !== storedState) {
+  if (!storedState || state !== storedState) {
     return NextResponse.redirect(new URL("/dashboard/shop?error=state_mismatch", req.url));
   }
-  if (shop !== storedShop) {
+
+  const callbackShop = normaliseShopDomain(shop);
+  if (storedShop && callbackShop !== storedShop) {
     return NextResponse.redirect(new URL("/dashboard/shop?error=shop_mismatch", req.url));
   }
 
   try {
-    const { access_token } = await exchangeShopifyCode(shop, code);
-    const shopInfo = await getShopInfo(shop, access_token);
+    const { access_token } = await exchangeShopifyCode(callbackShop, code);
+    const shopInfo = await getShopInfo(callbackShop, access_token);
 
     const admin = createAdminClient();
 
@@ -45,7 +47,7 @@ export async function GET(req: NextRequest) {
       user_id: user.id,
       platform: "shopify",
       shop_name: shopInfo.name,
-      shop_url: shop,
+      shop_url: callbackShop,
       shop_id: String(shopInfo.id),
       access_token,
       is_primary: true,

@@ -34,7 +34,7 @@ const quickActions = [
   },
   {
     label: "Analyse a competitor",
-    description: "Paste any marketplace listing URL and extract their SEO strategy.",
+    description: "Paste a Shopify listing URL and get an AI-optimised version.",
     href: "/dashboard/competitor",
     icon: Eye,
     cta: "Analyse listing",
