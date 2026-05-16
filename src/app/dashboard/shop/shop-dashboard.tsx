@@ -370,6 +370,24 @@ function OptimisePanel({
                   <p className="text-sm bg-muted/30 rounded-md px-3 py-2">{product.title}</p>
                 </div>
                 <div>
+                  <p className="text-xs text-muted-foreground mb-1">Images</p>
+                  {product.images && product.images.length > 0 ? (
+                    <div className="flex gap-1.5 flex-wrap">
+                      {product.images.slice(0, 5).map((img, i) => (
+                        <img key={i} src={img.src} alt="" className="size-12 rounded-md object-cover bg-muted border border-border/40" />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2">
+                      <AlertCircle className="size-3.5 text-amber-500 shrink-0 mt-0.5" />
+                      <p className="text-xs text-amber-700 dark:text-amber-400">
+                        No product images. Add images in Shopify so the AI can describe colour, texture and materials accurately — and your SEO score will improve too.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div>
                   <p className="text-xs text-muted-foreground mb-1">Description</p>
                   {existingText ? (
                     <p className="text-sm bg-muted/30 rounded-md px-3 py-2 line-clamp-6 leading-relaxed">
@@ -398,6 +416,11 @@ function OptimisePanel({
                       ? "AI will analyse and improve your existing listing."
                       : "AI will generate an optimised listing from your product name."}
                   </p>
+                  {!imageUrl && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400 max-w-[220px]">
+                      No images found. Add product photos in Shopify for more accurate copy.
+                    </p>
+                  )}
                   <Button onClick={handleOptimise} className="mt-1">
                     <Sparkles className="size-3.5" />
                     Generate optimised listing
