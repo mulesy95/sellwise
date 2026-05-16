@@ -309,25 +309,25 @@ export function ShopDashboard({
   error?: string;
 }) {
   const [products, setProducts] = useState<ShopifyProduct[]>([]);
-  const [nextPageInfo, setNextPageInfo] = useState<string | undefined>();
+  const [nextCursor, setNextCursor] = useState<string | undefined>();
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<ShopifyProduct | null>(null);
 
-  const fetchProducts = useCallback(async (pageInfo?: string) => {
+  const fetchProducts = useCallback(async (cursor?: string) => {
     setLoading(true);
     setLoadError(null);
     try {
-      const params = pageInfo ? `?page_info=${pageInfo}` : "";
+      const params = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
       const res = await fetch(`/api/shopify/listings${params}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Failed to load products");
-      if (pageInfo) {
+      if (cursor) {
         setProducts((p) => [...p, ...data.products]);
       } else {
         setProducts(data.products ?? []);
       }
-      setNextPageInfo(data.nextPageInfo);
+      setNextCursor(data.nextCursor);
     } catch (err) {
       setLoadError(err instanceof Error ? err.message : "Failed to load products");
     } finally {
@@ -431,11 +431,11 @@ export function ShopDashboard({
                   {products.map((p) => (
                     <ShopifyProductRow key={p.id} product={p} onOptimise={setSelectedProduct} />
                   ))}
-                  {nextPageInfo && (
+                  {nextCursor && (
                     <Button
                       variant="outline"
                       className="w-full mt-3 text-xs"
-                      onClick={() => fetchProducts(nextPageInfo)}
+                      onClick={() => fetchProducts(nextCursor)}
                       disabled={loading}
                     >
                       Load more

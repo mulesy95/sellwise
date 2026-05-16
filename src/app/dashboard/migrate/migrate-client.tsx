@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, Copy, Check, Sparkles, AlertCircle, ArrowLeftRight } from "lucide-react";
+import { Copy, Check, Sparkles, AlertCircle, ArrowLeftRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -200,19 +200,26 @@ export function MigrateClient() {
         {/* Input */}
         <Card className="border-border/50">
           <CardHeader className="pb-4">
-            <div className="flex items-center gap-3">
-              <div className="flex-1">
+            <div className="space-y-2">
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-muted-foreground">From</p>
                 <PlatformSelector value={source} onChange={handleSourceChange} />
               </div>
-              <button
-                type="button"
-                onClick={swap}
-                title="Swap platforms"
-                className="rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-              >
-                <ArrowRight className="size-4" />
-              </button>
-              <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <div className="flex-1 border-t border-border/50" />
+                <button
+                  type="button"
+                  onClick={swap}
+                  title="Swap platforms"
+                  className="flex items-center gap-1 rounded-full border border-border/50 px-2 py-0.5 text-[11px] text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                >
+                  <ArrowLeftRight className="size-3" />
+                  swap
+                </button>
+                <div className="flex-1 border-t border-border/50" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-muted-foreground">To</p>
                 <PlatformSelector
                   value={target}
                   onChange={handleTargetChange}
@@ -220,7 +227,7 @@ export function MigrateClient() {
                 />
               </div>
             </div>
-            <CardDescription className="text-xs mt-2">
+            <CardDescription className="text-xs mt-3">
               Paste your {PLATFORM_LABELS[source]} listing below — any combination of fields works.
             </CardDescription>
           </CardHeader>

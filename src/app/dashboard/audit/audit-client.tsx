@@ -303,7 +303,7 @@ export function AuditClient() {
                   )}
                   {urlValue && !detectedPlatform && (
                     <p className="text-[11px] text-muted-foreground">
-                      Supported: Etsy, Amazon, eBay, Shopify
+                      URL mode supports Shopify stores. Use manual entry for Etsy, Amazon, and eBay.
                     </p>
                   )}
                 </div>

@@ -17,10 +17,10 @@ export default async function CompetitorPage() {
     return (
       <FeatureGate
         title="Competitor Peek"
-        description="Analyse any Etsy listing and get an AI-optimised version that outranks it."
+        description="Paste a competitor's Shopify listing URL and get an AI-optimised version that outranks it."
         bullets={[
-          "Extract title, tags, and description from any Etsy listing",
-          "Side-by-side comparison with your optimised version",
+          "Fetch any public Shopify product — no copy-paste needed",
+          "Side-by-side comparison: their listing vs your optimised version",
           "Specific improvements that give you the edge",
         ]}
       />

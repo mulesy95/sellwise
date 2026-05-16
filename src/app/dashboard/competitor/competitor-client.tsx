@@ -69,7 +69,7 @@ export function CompetitorClient() {
 
     if (!detectedPlatform) {
       setError(
-        "URL not recognised. Paste a listing URL from Etsy (etsy.com/listing/...), Amazon (amazon.com/dp/...), eBay (ebay.com/itm/...), or a Shopify store (/products/...)."
+        "URL not recognised. Paste a Shopify product URL (yourstore.com/products/...). Amazon and eBay support is coming soon."
       );
       return;
     }

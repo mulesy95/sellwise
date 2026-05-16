@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
 
-  const pageInfo = req.nextUrl.searchParams.get("page_info") ?? undefined;
+  const cursor = req.nextUrl.searchParams.get("cursor") ?? undefined;
 
   const admin = createAdminClient();
   const { data: shop } = await admin
@@ -21,13 +21,13 @@ export async function GET(req: NextRequest) {
   if (!shop) return NextResponse.json({ error: "No Shopify shop connected" }, { status: 404 });
 
   try {
-    const { products, nextPageInfo } = await getShopifyProducts(
+    const { products, nextCursor } = await getShopifyProducts(
       shop.shop_url,
       shop.access_token,
       50,
-      pageInfo
+      cursor
     );
-    return NextResponse.json({ products, nextPageInfo });
+    return NextResponse.json({ products, nextCursor });
   } catch (err) {
     console.error("[shopify listings]", err);
     return NextResponse.json({ error: "Failed to fetch listings" }, { status: 500 });

@@ -5,7 +5,7 @@ import { pushShopifyProduct } from "@/lib/shopify";
 import { z } from "zod";
 
 const schema = z.object({
-  productId: z.number(),
+  productId: z.string(),
   title: z.string().optional(),
   body_html: z.string().optional(),
 });
