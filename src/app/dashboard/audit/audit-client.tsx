@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BarChart3, Sparkles, AlertCircle } from "lucide-react";
+import { BarChart3, Sparkles, AlertCircle, Link2, PenLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import { PlatformSelector } from "@/components/platform-selector";
 import { cn } from "@/lib/utils";
-import { AUDIT_SECTIONS, type Platform } from "@/lib/platforms";
+import { AUDIT_SECTIONS, detectPlatformFromUrl, PLATFORM_URL_EXAMPLES, type Platform } from "@/lib/platforms";
 
 interface AuditResult {
   score: number;
@@ -143,8 +143,13 @@ function overallLabel(score: number) {
   return "Poor";
 }
 
+type InputMode = "url" | "manual";
+
 export function AuditClient() {
+  const [mode, setMode] = useState<InputMode>("url");
   const [platform, setPlatform] = useState<Platform>("etsy");
+  const [urlValue, setUrlValue] = useState("");
+  const [detectedPlatform, setDetectedPlatform] = useState<Platform | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AuditResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -155,47 +160,29 @@ export function AuditClient() {
     setResult(null);
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const form = e.currentTarget;
-    const fields = FORM_CONFIGS[platform];
+  function handleUrlChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const val = e.target.value;
+    setUrlValue(val);
+    const detected = detectPlatformFromUrl(val);
+    setDetectedPlatform(detected);
+  }
 
-    const payload: Record<string, string> = { platform };
-    for (const field of fields) {
-      const el = form.elements.namedItem(field.name);
-      if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
-        payload[field.name] = el.value;
-      }
-    }
-
-    const hasContent = fields.some((f) => payload[f.name]?.trim());
-    if (!hasContent) {
-      toast.error("Enter at least one field to audit");
-      return;
-    }
-
+  async function runAudit(payload: Record<string, string>) {
     setLoading(true);
     setResult(null);
     setError(null);
-
     try {
       const res = await fetch("/api/audit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
       if (!res.ok) {
         const err = await res.json();
-        if (res.status === 402) {
-          setUpgradeOpen(true);
-          return;
-        }
+        if (res.status === 402) { setUpgradeOpen(true); return; }
         throw new Error(err.error ?? "Something went wrong");
       }
-
-      const data = await res.json();
-      setResult(data);
+      setResult(await res.json());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to run audit");
     } finally {
@@ -203,7 +190,34 @@ export function AuditClient() {
     }
   }
 
-  const sections = AUDIT_SECTIONS[platform];
+  async function handleUrlSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!detectedPlatform) {
+      toast.error("Paste a supported listing URL to continue");
+      return;
+    }
+    await runAudit({ platform: detectedPlatform, url: urlValue });
+  }
+
+  async function handleManualSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const fields = FORM_CONFIGS[platform];
+    const payload: Record<string, string> = { platform };
+    for (const field of fields) {
+      const el = form.elements.namedItem(field.name);
+      if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
+        payload[field.name] = el.value;
+      }
+    }
+    if (!fields.some((f) => payload[f.name]?.trim())) {
+      toast.error("Enter at least one field to audit");
+      return;
+    }
+    await runAudit(payload);
+  }
+
+  const sections = AUDIT_SECTIONS[detectedPlatform ?? platform];
 
   return (
     <div className="space-y-6">
@@ -219,61 +233,115 @@ export function AuditClient() {
         </p>
       </div>
 
-      <PlatformSelector value={platform} onChange={handlePlatformChange} />
+      {/* Mode toggle */}
+      <div className="inline-flex rounded-lg border border-border/50 bg-muted/30 p-1">
+        <button
+          type="button"
+          onClick={() => { setMode("url"); setResult(null); setError(null); }}
+          className={cn(
+            "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+            mode === "url" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <Link2 className="size-3.5" />
+          Paste URL
+        </button>
+        <button
+          type="button"
+          onClick={() => { setMode("manual"); setResult(null); setError(null); }}
+          className={cn(
+            "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+            mode === "manual" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <PenLine className="size-3.5" />
+          Enter manually
+        </button>
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="border-border/50">
           <CardHeader className="pb-4">
-            <CardTitle className="text-base">Your listing</CardTitle>
+            <CardTitle className="text-base">
+              {mode === "url" ? "Listing URL" : "Your listing"}
+            </CardTitle>
             <CardDescription className="text-xs">
-              Paste your existing content — any combination of fields works.
+              {mode === "url"
+                ? "Paste any listing URL — your own or a competitor's — and we'll score it."
+                : "Paste your existing content — any combination of fields works."}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {FORM_CONFIGS[platform].map((field) => (
-                <div key={field.name} className="space-y-1.5">
-                  <Label htmlFor={field.name}>{field.label}</Label>
-                  {field.type === "textarea" ? (
-                    <textarea
-                      id={field.name}
-                      name={field.name}
-                      rows={4}
-                      placeholder={field.placeholder}
-                      className={cn(
-                        "flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs",
-                        "placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
-                        "disabled:cursor-not-allowed disabled:opacity-50 resize-none"
-                      )}
-                    />
-                  ) : (
-                    <Input
-                      id={field.name}
-                      name={field.name}
-                      placeholder={field.placeholder}
-                    />
+            {mode === "url" ? (
+              <form onSubmit={handleUrlSubmit} className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="listing-url">Listing URL</Label>
+                  <Input
+                    id="listing-url"
+                    type="url"
+                    placeholder={Object.values(PLATFORM_URL_EXAMPLES).join(" · ")}
+                    value={urlValue}
+                    onChange={handleUrlChange}
+                    autoComplete="off"
+                  />
+                  {detectedPlatform && (
+                    <p className="text-[11px] text-primary">
+                      Detected: {detectedPlatform.charAt(0).toUpperCase() + detectedPlatform.slice(1)}
+                    </p>
                   )}
-                  {field.hint && (
+                  {urlValue && !detectedPlatform && (
                     <p className="text-[11px] text-muted-foreground">
-                      {field.hint}
+                      Supported: Etsy, Amazon, eBay, Shopify
                     </p>
                   )}
                 </div>
-              ))}
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? (
-                  <>
-                    <span className="mr-2 inline-block size-3.5 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />
-                    Auditing…
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="size-3.5" />
-                    Run audit
-                  </>
-                )}
-              </Button>
-            </form>
+                <Button type="submit" className="w-full" disabled={loading || !detectedPlatform}>
+                  {loading ? (
+                    <><span className="mr-2 inline-block size-3.5 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />Auditing…</>
+                  ) : (
+                    <><Sparkles className="size-3.5" />Audit this listing</>
+                  )}
+                </Button>
+              </form>
+            ) : (
+              <>
+                <div className="mb-4">
+                  <PlatformSelector value={platform} onChange={handlePlatformChange} />
+                </div>
+                <form onSubmit={handleManualSubmit} className="space-y-4">
+                  {FORM_CONFIGS[platform].map((field) => (
+                    <div key={field.name} className="space-y-1.5">
+                      <Label htmlFor={field.name}>{field.label}</Label>
+                      {field.type === "textarea" ? (
+                        <textarea
+                          id={field.name}
+                          name={field.name}
+                          rows={4}
+                          placeholder={field.placeholder}
+                          className={cn(
+                            "flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs",
+                            "placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                            "disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                          )}
+                        />
+                      ) : (
+                        <Input id={field.name} name={field.name} placeholder={field.placeholder} />
+                      )}
+                      {field.hint && (
+                        <p className="text-[11px] text-muted-foreground">{field.hint}</p>
+                      )}
+                    </div>
+                  ))}
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? (
+                      <><span className="mr-2 inline-block size-3.5 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />Auditing…</>
+                    ) : (
+                      <><Sparkles className="size-3.5" />Run audit</>
+                    )}
+                  </Button>
+                </form>
+              </>
+            )}
           </CardContent>
         </Card>
 

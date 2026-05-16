@@ -158,8 +158,8 @@ export function OptimiseClient({ plan }: { plan: string }) {
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("Image must be under 2 MB");
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Image must be under 10 MB");
       return;
     }
     const reader = new FileReader();

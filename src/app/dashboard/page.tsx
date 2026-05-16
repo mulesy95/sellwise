@@ -77,12 +77,14 @@ export default async function DashboardPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight">
-          {isNewUser && firstName ? `Welcome, ${firstName}` : "Dashboard"}
+          {isNewUser
+            ? firstName ? `Welcome, ${firstName}` : "Welcome"
+            : firstName ? `Welcome back, ${firstName}` : "Welcome back"}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {isNewUser
             ? "You're all set. Optimise your first listing to get started."
-            : "Welcome back. What would you like to optimise today?"}
+            : "What would you like to optimise today?"}
         </p>
       </div>
 

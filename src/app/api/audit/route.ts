@@ -4,12 +4,14 @@ import Anthropic, { APIConnectionError, APIError } from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getUsageData, incrementUsage } from "@/lib/usage";
-import type { Platform } from "@/lib/platforms";
+import { detectPlatformFromUrl, type Platform } from "@/lib/platforms";
+import { fetchListingPage, extractListing } from "@/lib/listing-scraper";
 
 const client = new Anthropic();
 
 const requestSchema = z.object({
   platform: z.enum(["etsy", "amazon", "shopify", "ebay"]).default("etsy"),
+  url: z.string().url().optional(),
   // Etsy / eBay
   title: z.string().max(200).optional().default(""),
   tags: z.string().max(500).optional().default(""),
@@ -213,7 +215,61 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { platform, ...fields } = parsed.data;
+  let { platform, ...fields } = parsed.data;
+
+  // If a URL was supplied, scrape and populate fields automatically
+  if (fields.url) {
+    const detectedPlatform = detectPlatformFromUrl(fields.url);
+    if (!detectedPlatform) {
+      return NextResponse.json(
+        {
+          error:
+            "URL not recognised. Supported: Etsy (etsy.com/listing/...), Amazon (amazon.com/dp/...), eBay (ebay.com/itm/...), Shopify (/products/...).",
+          code: "UNSUPPORTED_URL",
+        },
+        { status: 422 }
+      );
+    }
+
+    let html: string;
+    try {
+      html = await fetchListingPage(fields.url);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      return NextResponse.json(
+        {
+          error: `Could not fetch this listing. ${msg.startsWith("HTTP") ? `The site returned ${msg}.` : "The site may be blocking automated requests."} Try entering the content manually instead.`,
+          code: "FETCH_FAILED",
+        },
+        { status: 422 }
+      );
+    }
+
+    let extracted: ReturnType<typeof extractListing>;
+    try {
+      extracted = extractListing(detectedPlatform, html);
+    } catch (err) {
+      return NextResponse.json(
+        { error: err instanceof Error ? err.message : "Extraction failed", code: "EXTRACT_FAILED" },
+        { status: 422 }
+      );
+    }
+
+    // Map extracted content to audit fields
+    platform = detectedPlatform;
+    fields.title = extracted.title;
+    fields.description = extracted.description ?? "";
+    if (detectedPlatform === "etsy" && extracted.tags?.length) {
+      fields.tags = extracted.tags.join(", ");
+    }
+    if (detectedPlatform === "amazon" && extracted.bullets?.length) {
+      fields.bullets = extracted.bullets.join("\n");
+    }
+    if (detectedPlatform === "shopify") {
+      fields.metaTitle = extracted.title;
+      fields.productCopy = extracted.description ?? "";
+    }
+  }
 
   // Require at least one meaningful field per platform
   const hasContent =
@@ -233,7 +289,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const prompt = buildPrompt(platform, parsed.data);
+  const prompt = buildPrompt(platform, { platform, ...fields });
 
   try {
     const message = await client.messages.create({
