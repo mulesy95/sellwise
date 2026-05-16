@@ -5,7 +5,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getUsageData, incrementUsage } from "@/lib/usage";
 import { detectPlatformFromUrl, type Platform } from "@/lib/platforms";
-import { fetchListingPage, extractListing } from "@/lib/listing-scraper";
+import { fetchShopifyProduct } from "@/lib/listing-scraper";
 
 const client = new Anthropic();
 
@@ -243,44 +243,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let html: string;
+    let extracted: { title: string; description: string };
     try {
-      html = await fetchListingPage(fields.url);
+      extracted = await fetchShopifyProduct(fields.url);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Unknown error";
       return NextResponse.json(
         {
-          error: `Could not fetch this listing. ${msg.startsWith("HTTP") ? `The site returned ${msg}.` : "The site may be blocking automated requests."} Try entering the content manually instead.`,
+          error: `Could not fetch this listing. ${msg.startsWith("HTTP") ? `The site returned ${msg}.` : "The store may not have a public products API or the URL is incorrect."} Try entering the content manually instead.`,
           code: "FETCH_FAILED",
         },
         { status: 422 }
       );
     }
 
-    let extracted: ReturnType<typeof extractListing>;
-    try {
-      extracted = extractListing(detectedPlatform, html);
-    } catch (err) {
-      return NextResponse.json(
-        { error: err instanceof Error ? err.message : "Extraction failed", code: "EXTRACT_FAILED" },
-        { status: 422 }
-      );
-    }
-
     // Map extracted content to audit fields
     platform = detectedPlatform;
-    fields.title = extracted.title;
-    fields.description = extracted.description ?? "";
-    if (detectedPlatform === "etsy" && extracted.tags?.length) {
-      fields.tags = extracted.tags.join(", ");
-    }
-    if (detectedPlatform === "amazon" && extracted.bullets?.length) {
-      fields.bullets = extracted.bullets.join("\n");
-    }
-    if (detectedPlatform === "shopify") {
-      fields.metaTitle = extracted.title;
-      fields.productCopy = extracted.description ?? "";
-    }
+    fields.metaTitle = extracted.title;
+    fields.productCopy = extracted.description ?? "";
   }
 
   // Require at least one meaningful field per platform

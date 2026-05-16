@@ -25,7 +25,7 @@ export default async function AdminPage() {
 
   const { data: codes } = await admin
     .from("beta_codes")
-    .select("id, code, label, used_count, max_uses, created_at")
+    .select("id, code, token, label, used_count, max_uses, created_at")
     .order("created_at", { ascending: false });
 
   return <AdminClient initialCodes={codes ?? []} />;

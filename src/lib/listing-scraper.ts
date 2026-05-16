@@ -9,99 +9,34 @@ export interface ExtractedListing {
   bullets?: string[];
 }
 
-export async function fetchListingPage(url: string): Promise<string> {
-  const response = await fetch(url, {
-    headers: {
-      "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-      "Accept-Language": "en-US,en;q=0.9",
-    },
+// Fetches product data via Shopify's public products.json endpoint (no auth, no scraping)
+export async function fetchShopifyProduct(
+  listingUrl: string
+): Promise<Omit<ExtractedListing, "platform">> {
+  const parsed = new URL(listingUrl);
+  const handleMatch = parsed.pathname.match(/\/products\/([^/?#]+)/);
+  if (!handleMatch) throw new Error("Could not extract product handle from URL");
+
+  const handle = handleMatch[1];
+  const apiUrl = `${parsed.origin}/products/${handle}.json`;
+
+  const response = await fetch(apiUrl, {
+    headers: { Accept: "application/json" },
     signal: AbortSignal.timeout(10000),
   });
+
+  if (response.status === 404) throw new Error("Product not found on this store");
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  return response.text();
-}
 
-export function extractListing(
-  platform: Platform,
-  html: string
-): Omit<ExtractedListing, "platform"> {
-  switch (platform) {
-    case "etsy":
-      throw new Error("Etsy URL analysis is not supported. Please enter your listing content manually.");
-    case "amazon":
-      throw new Error("Amazon URL analysis is not supported. Please enter your listing content manually.");
-    case "ebay":
-      throw new Error("eBay URL analysis is not supported. Please enter your listing content manually.");
-    case "shopify":
-      return extractShopify(html);
-  }
-}
+  const data = await response.json();
+  const product = data?.product;
+  if (!product?.title) throw new Error("Could not extract product data");
 
-function extractAmazon(html: string): Omit<ExtractedListing, "platform"> {
-  const $ = cheerio.load(html);
+  // Strip HTML from body_html
+  const rawHtml = product.body_html ?? "";
+  const description = rawHtml
+    ? cheerio.load(rawHtml).text().replace(/\s+/g, " ").trim()
+    : "";
 
-  const title =
-    $("#productTitle span").first().text().trim() ||
-    $("#productTitle").text().trim() ||
-    $('meta[property="og:title"]').attr("content") ||
-    $("h1").first().text().trim();
-
-  const bullets: string[] = [];
-  $("#feature-bullets ul li span.a-list-item").each((_, el) => {
-    const text = $(el).text().trim();
-    if (text && text.length > 10 && !/make sure this fits/i.test(text)) {
-      bullets.push(text);
-    }
-  });
-
-  const description =
-    $('meta[name="description"]').attr("content") ||
-    $("#productDescription p").first().text().trim() ||
-    $('meta[property="og:description"]').attr("content") ||
-    "";
-
-  if (!title) throw new Error("Could not extract product title");
-  return { title, description, bullets };
-}
-
-function extractEbay(html: string): Omit<ExtractedListing, "platform"> {
-  const $ = cheerio.load(html);
-
-  const title =
-    $(".x-item-title__mainTitle span.ux-textspans--BOLD").text().trim() ||
-    $("h1.x-item-title__mainTitle").text().trim() ||
-    $('meta[property="og:title"]').attr("content") ||
-    $("h1").first().text().trim();
-
-  const description =
-    $('meta[name="description"]').attr("content") ||
-    $('meta[property="og:description"]').attr("content") ||
-    "";
-
-  if (!title) throw new Error("Could not extract listing title");
-  return { title, description };
-}
-
-function extractShopify(html: string): Omit<ExtractedListing, "platform"> {
-  const $ = cheerio.load(html);
-
-  const title =
-    $("h1.product-title").text().trim() ||
-    $("h1.product__title").text().trim() ||
-    $("h1.productView-title").text().trim() ||
-    $('meta[property="og:title"]').attr("content") ||
-    $("h1").first().text().trim();
-
-  const description =
-    $(".product-description").text().trim() ||
-    $(".product__description").text().trim() ||
-    $(".productView-description").text().trim() ||
-    $('meta[property="og:description"]').attr("content") ||
-    $('meta[name="description"]').attr("content") ||
-    "";
-
-  if (!title) throw new Error("Could not extract product title");
-  return { title, description };
+  return { title: product.title as string, description };
 }

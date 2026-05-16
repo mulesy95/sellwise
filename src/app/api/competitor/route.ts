@@ -5,7 +5,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getUsageData, incrementUsage } from "@/lib/usage";
 import { detectPlatformFromUrl, type Platform } from "@/lib/platforms";
-import { fetchListingPage, extractListing } from "@/lib/listing-scraper";
+import { fetchShopifyProduct } from "@/lib/listing-scraper";
 
 const client = new Anthropic();
 
@@ -197,40 +197,16 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let html: string;
+  let extracted: Omit<ListingData, "platform">;
   try {
-    html = await fetchListingPage(url);
+    extracted = await fetchShopifyProduct(url);
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json(
       {
-        error: `Could not fetch this listing. ${msg.startsWith("HTTP") ? `The site returned ${msg}.` : "The site may be blocking automated requests."} Try copying the listing content and using the Listing Audit tool instead.`,
+        error: `Could not fetch this listing. ${msg.startsWith("HTTP") ? `The site returned ${msg}.` : "The store may not have a public products API or the URL is incorrect."} Try copying the listing content and using the Listing Audit tool instead.`,
         code: "FETCH_FAILED",
       },
-      { status: 422 }
-    );
-  }
-
-  let extracted: Omit<ListingData, "platform">;
-  try {
-    switch (platform) {
-      case "etsy":
-        extracted = extractListing("etsy", html);
-        break;
-      case "amazon":
-        extracted = extractListing("amazon", html);
-        break;
-      case "ebay":
-        extracted = extractListing("ebay", html);
-        break;
-      case "shopify":
-        extracted = extractListing("shopify", html);
-        break;
-    }
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : "Extraction failed";
-    return NextResponse.json(
-      { error: msg, code: "EXTRACT_FAILED" },
       { status: 422 }
     );
   }
