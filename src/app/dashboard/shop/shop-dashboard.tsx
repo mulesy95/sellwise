@@ -44,7 +44,14 @@ interface ShopifyResult {
 
 function ShopifyConnectForm({ plan }: { plan: string }) {
   const [shopUrl, setShopUrl] = useState("");
+  const [connecting, setConnecting] = useState(false);
   const canConnect = plan === "growth" || plan === "studio";
+
+  function handleConnect() {
+    if (!shopUrl.trim()) return;
+    setConnecting(true);
+    window.location.href = `/api/shopify/connect?shop=${encodeURIComponent(shopUrl.trim())}`;
+  }
 
   if (!canConnect) {
     return (
@@ -79,21 +86,15 @@ function ShopifyConnectForm({ plan }: { plan: string }) {
           placeholder="yourstore.myshopify.com"
           value={shopUrl}
           onChange={(e) => setShopUrl(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && shopUrl.trim()) {
-              window.location.href = `/api/shopify/connect?shop=${encodeURIComponent(shopUrl.trim())}`;
-            }
-          }}
+          onKeyDown={(e) => { if (e.key === "Enter") handleConnect(); }}
+          disabled={connecting}
         />
-        <Button
-          onClick={() => {
-            if (shopUrl.trim()) {
-              window.location.href = `/api/shopify/connect?shop=${encodeURIComponent(shopUrl.trim())}`;
-            }
-          }}
-          disabled={!shopUrl.trim()}
-        >
-          Connect
+        <Button onClick={handleConnect} disabled={!shopUrl.trim() || connecting}>
+          {connecting ? (
+            <span className="size-4 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />
+          ) : (
+            "Connect"
+          )}
         </Button>
       </div>
     </div>

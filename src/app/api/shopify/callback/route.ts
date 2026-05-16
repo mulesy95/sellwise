@@ -56,7 +56,8 @@ export async function GET(req: NextRequest) {
     if (upsertError) throw upsertError;
 
   } catch (err) {
-    console.error("[shopify callback]", err);
+    const msg = err instanceof Error ? err.message : JSON.stringify(err);
+    console.error("[shopify callback] error:", msg);
     return NextResponse.redirect(new URL("/dashboard/shop?error=connection_failed", req.url));
   }
 

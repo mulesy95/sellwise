@@ -11,7 +11,6 @@ export function getShopifyAuthUrl(shop: string, state: string): string {
     scope: SCOPES,
     redirect_uri: REDIRECT_URI,
     state,
-    "grant_options[]": "per-user",
   });
   return `https://${shop}/admin/oauth/authorize?${params.toString()}`;
 }
@@ -177,9 +176,9 @@ export interface ShopifyProduct {
 }
 
 export function normaliseShopDomain(input: string): string {
-  return input
-    .toLowerCase()
-    .replace(/^https?:\/\//, "")
-    .replace(/\/.*$/, "")
-    .trim();
+  const clean = input.toLowerCase().trim().replace(/^https?:\/\//, "");
+  // Handle admin.shopify.com/store/{name} format
+  const adminMatch = clean.match(/^admin\.shopify\.com\/store\/([^/?#]+)/);
+  if (adminMatch) return `${adminMatch[1]}.myshopify.com`;
+  return clean.replace(/\/.*$/, "");
 }
