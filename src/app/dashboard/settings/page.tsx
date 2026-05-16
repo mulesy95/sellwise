@@ -84,11 +84,11 @@ export default async function SettingsPage() {
               <div>
                 <div className="flex items-center gap-2">
                   <span className="font-semibold">{currentPlan.label}</span>
-                  <Badge variant="outline" className="h-4 px-1 text-[10px]">
+                  <Badge variant="outline" className="h-5 px-1.5 text-xs">
                     Active
                   </Badge>
                   {inTrial && (
-                    <Badge className="h-4 px-1 text-[10px] bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30">
+                    <Badge className="h-5 px-1.5 text-xs bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30">
                       Trial
                     </Badge>
                   )}
@@ -125,7 +125,7 @@ export default async function SettingsPage() {
                     }`}
                   >
                     {p.popular && (
-                      <Badge className="absolute -top-2 left-3 text-[10px] h-4 px-1.5 py-0">
+                      <Badge className="absolute -top-2 left-3 text-xs h-5 px-1.5 py-0">
                         Popular
                       </Badge>
                     )}
@@ -140,7 +140,7 @@ export default async function SettingsPage() {
                         className: "w-full text-xs h-7",
                       })}
                     >
-                      Upgrade
+                      View plans
                     </a>
                   </div>
                 ))}

@@ -229,7 +229,7 @@ export function OnboardingClient({ firstName }: { firstName: string | null }) {
                 {
                   icon: ImageIcon,
                   title: "Competitor Peek",
-                  desc: "Paste any listing URL and get a better version instantly.",
+                  desc: "Paste a Shopify listing URL and get an AI-optimised version side by side.",
                 },
                 {
                   icon: Search,

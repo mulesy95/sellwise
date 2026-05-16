@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface UsageBarProps {
@@ -54,7 +55,7 @@ export function UsageBar({ initialUsed, initialLimit, plan, inTrial = false }: U
           href="/dashboard/settings"
           className="mt-2 block text-center text-primary hover:underline"
         >
-          Upgrade →
+          Upgrade <ArrowRight className="inline size-3 ml-0.5" />
         </Link>
       )}
     </div>

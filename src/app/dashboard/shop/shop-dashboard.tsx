@@ -10,6 +10,7 @@ import {
   Lock,
   AlertCircle,
   Unplug,
+  X,
 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -141,7 +142,7 @@ function ShopifyProductRow({
           className="text-xs h-7"
           onClick={() => onOptimise(product)}
         >
-          <Sparkles className="size-3" />
+          <Sparkles className="size-3.5" />
           Optimise
         </Button>
       </div>
@@ -214,15 +215,21 @@ function ShopifyOptimisePanel({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="optimise-panel-title"
+    >
       <div className="w-full max-w-lg bg-card rounded-xl border border-border shadow-xl overflow-y-auto max-h-[90vh]">
         <div className="flex items-center justify-between p-4 border-b border-border">
-          <h2 className="font-semibold text-sm">Optimise listing</h2>
+          <h2 id="optimise-panel-title" className="font-semibold text-sm">Optimise listing</h2>
           <button
             onClick={onClose}
-            className="text-muted-foreground hover:text-foreground text-xs"
+            aria-label="Close"
+            className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
           >
-            Close
+            <X className="size-4" />
           </button>
         </div>
         <div className="p-4 space-y-4">
@@ -256,7 +263,7 @@ function ShopifyOptimisePanel({
                 </Button>
                 {isStudio ? (
                   <Button className="flex-1 text-xs" onClick={handlePush} disabled={pushing}>
-                    {pushing ? "Applying..." : "Apply to Shopify"}
+                    {pushing ? <><Spinner size="sm" className="mr-1.5" />Applying…</> : "Apply to Shopify"}
                   </Button>
                 ) : (
                   <a href="/pricing" className={cn(buttonVariants(), "flex-1 text-xs")}>
