@@ -21,6 +21,7 @@ const requestSchema = z.object({
   imageBase64: z.string().optional(),
   imageMediaType: z.enum(["image/jpeg", "image/png", "image/gif", "image/webp"]).optional(),
   imageUrl: z.string().url().refine((u) => u.startsWith("https://"), "imageUrl must use HTTPS").optional(),
+  existingContent: z.string().max(1000).optional().default(""),
 });
 
 const WRITING_RULES = `Writing rules:
@@ -36,9 +37,10 @@ function buildPrompt(
     style: string;
     targetBuyer: string;
     keywords: string;
+    existingContent?: string;
   }
 ): string {
-  const { productName, materials, style, targetBuyer, keywords } = inputs;
+  const { productName, materials, style, targetBuyer, keywords, existingContent } = inputs;
   const context = [
     `Product: ${productName}`,
     materials && `Materials/techniques: ${materials}`,
@@ -84,7 +86,7 @@ Return only the JSON object, no markdown.`;
     case "shopify":
       return `You are an expert Shopify SEO and conversion copywriter. Generate optimised Shopify product content.
 
-${context}
+${context}${existingContent ? `\nExisting description (improve this, keep accurate product details):\n${existingContent}` : ""}
 
 Return ONLY a valid JSON object:
 {
@@ -158,11 +160,11 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { platform, productName, materials, style, targetBuyer, keywords, imageBase64, imageMediaType, imageUrl } =
+  const { platform, productName, materials, style, targetBuyer, keywords, imageBase64, imageMediaType, imageUrl, existingContent } =
     parsed.data;
 
   const hasImage = !!(imageUrl || (imageBase64 && imageMediaType));
-  const basePrompt = buildPrompt(platform, { productName, materials, style, targetBuyer, keywords });
+  const basePrompt = buildPrompt(platform, { productName, materials, style, targetBuyer, keywords, existingContent });
   const prompt = hasImage
     ? `A photo of the product is included. Use what you can see — colour, material, texture, form, scale — to write accurate, specific copy.\n\n${basePrompt}`
     : basePrompt;

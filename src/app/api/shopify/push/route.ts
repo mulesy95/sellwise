@@ -6,6 +6,7 @@ import { z } from "zod";
 
 const schema = z.object({
   productId: z.string(),
+  shopId: z.string().optional(),
   title: z.string().optional(),
   body_html: z.string().optional(),
 });
@@ -15,7 +16,6 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
 
-  // Studio only
   const admin = createAdminClient();
   const { data: profile } = await admin.from("profiles").select("plan").eq("id", user.id).single();
   if (profile?.plan !== "studio") {
@@ -26,13 +26,15 @@ export async function POST(req: NextRequest) {
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "Invalid input" }, { status: 400 });
 
-  const { data: shop } = await admin
+  const query = admin
     .from("shops")
     .select("shop_url, access_token")
     .eq("user_id", user.id)
-    .eq("platform", "shopify")
-    .single();
+    .eq("platform", "shopify");
 
+  if (parsed.data.shopId) query.eq("id", parsed.data.shopId);
+
+  const { data: shop } = await query.single();
   if (!shop) return NextResponse.json({ error: "No Shopify shop connected" }, { status: 404 });
 
   try {

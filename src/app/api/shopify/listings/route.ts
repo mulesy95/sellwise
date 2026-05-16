@@ -9,14 +9,18 @@ export async function GET(req: NextRequest) {
   if (!user) return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
 
   const cursor = req.nextUrl.searchParams.get("cursor") ?? undefined;
+  const shopId = req.nextUrl.searchParams.get("shopId") ?? undefined;
 
   const admin = createAdminClient();
-  const { data: shop } = await admin
+  const query = admin
     .from("shops")
     .select("shop_url, access_token")
     .eq("user_id", user.id)
-    .eq("platform", "shopify")
-    .single();
+    .eq("platform", "shopify");
+
+  if (shopId) query.eq("id", shopId);
+
+  const { data: shop } = await query.single();
 
   if (!shop) return NextResponse.json({ error: "No Shopify shop connected" }, { status: 404 });
 

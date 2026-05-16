@@ -15,14 +15,13 @@ export default async function ShopPage({
   if (!user) redirect("/login");
 
   const admin = createAdminClient();
-  const [{ data: profile }, { data: shopifyShop }] = await Promise.all([
+  const [{ data: profile }, { data: shops }] = await Promise.all([
     admin.from("profiles").select("plan").eq("id", user.id).single(),
     admin
       .from("shops")
       .select("id, shop_name, shop_url, shop_id, platform, created_at")
       .eq("user_id", user.id)
-      .eq("platform", "shopify")
-      .maybeSingle(),
+      .order("created_at", { ascending: true }),
   ]);
 
   const plan = profile?.plan ?? "free";
@@ -31,7 +30,7 @@ export default async function ShopPage({
   return (
     <ShopDashboard
       plan={plan}
-      shopifyShop={shopifyShop}
+      shops={shops ?? []}
       connected={params.connected === "true"}
       error={params.error}
     />
