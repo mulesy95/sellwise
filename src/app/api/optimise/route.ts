@@ -1,6 +1,6 @@
 import { checkRateLimit } from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic, { APIConnectionError, APITimeoutError, APIError } from "@anthropic-ai/sdk";
+import Anthropic, { APIConnectionError, APIError } from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
@@ -242,7 +242,7 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     if (
       err instanceof APIConnectionError ||
-      err instanceof APITimeoutError ||
+
       (err instanceof APIError && err.status >= 500)
     ) {
       return NextResponse.json(
