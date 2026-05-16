@@ -53,15 +53,21 @@ function buildPrompt(
 
   switch (platform) {
     case "etsy":
-      return `You are an expert Etsy SEO specialist. Generate an optimised Etsy listing.
+      return `You are an expert Etsy SEO specialist and conversion copywriter. Etsy buyers are emotional — they are buying a feeling, a gift, a story. Your listing must rank AND make someone stop scrolling.
 
 ${context}
+
+The description must:
+- Open with the emotional reason someone buys this — the occasion, the feeling, the recipient — before any product details
+- Paint a picture of the product in use or as a gift being unwrapped
+- Include practical details (materials, size, care) but weave them in naturally, not as a spec sheet
+- End with a warm call to action that matches Etsy's handmade, personal tone
 
 Return ONLY a valid JSON object:
 {
   "title": "max 140 chars, keyword-front-loaded, reads as a natural phrase — use connective words (for, with, and), never comma-separate keywords. Example: \\"Handmade Ceramic Coffee Mug for Coffee Lovers, Hand Thrown Stoneware Cup with Minimalist Design\\"",
   "tags": ["exactly 13 tags", "each max 20 chars", "mix of short and long-tail buyer search phrases", "no repeated words across tags"],
-  "description": "150–250 words, opens with primary keyword, highlights materials and uniqueness, includes use cases and gift potential, ends with a call to action"
+  "description": "150–250 words, emotion-first opening, product details woven in naturally, use cases and gift potential, warm call to action"
 }
 
 ${WRITING_RULES}
@@ -84,30 +90,44 @@ ${WRITING_RULES}
 Return only the JSON object, no markdown.`;
 
     case "shopify":
-      return `You are an expert Shopify SEO and conversion copywriter. Generate optimised Shopify product content.
+      return `You are an expert Shopify SEO and conversion copywriter. Your goal is twofold: rank in Google and make a real customer want to buy the moment they land on the product page.
 
 ${context}${existingContent ? `\nExisting description (improve this, keep accurate product details):\n${existingContent}` : ""}
+
+Write as if a real person is browsing this product page on their phone. The description must:
+- Open with a sentence that creates desire, not just states facts
+- Make the product feel worth the price before the customer even scrolls
+- Use short paragraphs — 2–3 sentences max — so it reads cleanly on mobile
+- Mention the most compelling detail (material, fit, feel, occasion) in the first 40 words
+- End with a line that removes hesitation or creates urgency (not fake urgency — something true like limited colourways, handmade, ships same day)
 
 Return ONLY a valid JSON object:
 {
   "metaTitle": "max 60 chars strictly — primary keyword near the start, brand name at end if space allows",
-  "metaDescription": "max 160 chars strictly — contains primary keyword, includes a clear value proposition, ends with a soft call to action",
-  "productTitle": "clean storefront product title, 5–10 words, conversion-focused, no keyword stuffing",
-  "description": "200–350 words, opens with primary keyword, benefit-led paragraphs, includes materials/dimensions, use cases, ends with reason to buy"
+  "metaDescription": "max 160 chars strictly — primary keyword included, clear value proposition, ends with a soft call to action that makes someone want to click",
+  "productTitle": "clean storefront product title, 4–8 words, sounds like something you'd actually buy — no keyword stuffing",
+  "description": "200–300 words, desire-first opening, short benefit-led paragraphs, covers materials/fit/feel, ends with a line that closes the sale"
 }
 
 ${WRITING_RULES}
 Return only the JSON object, no markdown.`;
 
     case "ebay":
-      return `You are an expert eBay listing specialist. Generate an optimised eBay product listing.
+      return `You are an expert eBay listing specialist. eBay buyers are comparison shoppers — they search by exact spec and scan listings fast. Your listing must match their search AND give them a reason to choose this listing over 20 identical ones.
 
 ${context}
+
+The description must:
+- Lead with the single most important spec or selling point (brand, model, condition, key feature)
+- Use short lines — eBay descriptions are scanned, not read
+- State condition clearly and honestly (New, Like New, Used — Good Condition, etc.)
+- Include anything that removes buyer hesitation: warranty, return policy, fast shipping, authenticity
+- End with a clear line on postage or pickup options
 
 Return ONLY a valid JSON object:
 {
   "title": "max 80 chars — keyword-rich from the start, include brand/model/size/condition if known, no ALL CAPS, be specific",
-  "description": "150–300 words, opens with product name and key spec, states condition (New/Used), lists key features in short lines, ends with a note on shipping or returns"
+  "description": "150–300 words, most important spec first, short scannable lines, condition stated clearly, ends with shipping and returns note"
 }
 
 ${WRITING_RULES}
