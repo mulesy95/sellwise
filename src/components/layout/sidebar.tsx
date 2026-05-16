@@ -12,6 +12,7 @@ import {
   LogOut,
   Store,
   ShieldCheck,
+  ArrowLeftRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +25,7 @@ const navItems = [
   { label: "Keywords", href: "/dashboard/keywords", icon: Search },
   { label: "Competitor", href: "/dashboard/competitor", icon: Eye },
   { label: "Audit", href: "/dashboard/audit", icon: BarChart3 },
+  { label: "Migrate", href: "/dashboard/migrate", icon: ArrowLeftRight },
   { label: "My Shop", href: "/dashboard/shop", icon: Store },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
