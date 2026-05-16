@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
 
 export function ManageBillingButton() {
@@ -24,7 +25,7 @@ export function ManageBillingButton() {
   return (
     <Button size="sm" variant="outline" onClick={handleClick} disabled={loading}>
       {loading ? (
-        <span className="size-3.5 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />
+        <Spinner size="sm" />
       ) : (
         "Manage billing"
       )}

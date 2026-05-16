@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Sparkles, Copy, Check, RotateCcw, ImagePlus, X, Lock, AlertCircle } from "lucide-react";
 import { UpgradeModal } from "@/components/upgrade-modal";
+import { Spinner } from "@/components/ui/spinner";
 import { PlatformSelector } from "@/components/platform-selector";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -379,7 +380,7 @@ export function OptimiseClient({ plan }: { plan: string }) {
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? (
                   <>
-                    <span className="mr-2 inline-block size-3.5 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />
+                    <Spinner size="sm" className="mr-2" />
                     Optimising…
                   </>
                 ) : (
@@ -413,7 +414,10 @@ export function OptimiseClient({ plan }: { plan: string }) {
               <CardContent className="text-center">
                 <Sparkles className="mx-auto mb-3 size-8 text-muted-foreground/40" />
                 <p className="text-sm text-muted-foreground">
-                  Your optimised listing will appear here.
+                  Fill in your product details and click <span className="font-medium text-foreground">Optimise listing</span>.
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground/70">
+                  Your AI-generated listing will appear here.
                 </p>
               </CardContent>
             </Card>
@@ -422,8 +426,8 @@ export function OptimiseClient({ plan }: { plan: string }) {
           {loading && (
             <Card className="flex min-h-64 items-center justify-center border-border/30">
               <CardContent className="text-center">
-                <div className="mx-auto mb-4 size-8 animate-spin rounded-full border-2 border-primary/20 border-t-primary" />
-                <p className="text-sm font-medium">{loadingStep}</p>
+                <Spinner size="lg" className="mx-auto mb-4" />
+                <p className="text-sm font-medium" aria-live="polite">{loadingStep}</p>
                 <p className="mt-1 text-xs text-muted-foreground">
                   This takes around 10 seconds
                 </p>
@@ -481,7 +485,7 @@ export function OptimiseClient({ plan }: { plan: string }) {
                               }
                             >
                               {copiedField === tab.id ? (
-                                <Check className="size-3.5 text-green-500" />
+                                <Check className="size-3.5 text-primary" />
                               ) : (
                                 <Copy className="size-3.5" />
                               )}
@@ -513,7 +517,7 @@ export function OptimiseClient({ plan }: { plan: string }) {
                               }
                             >
                               {copiedField === tab.id ? (
-                                <Check className="size-3.5 text-green-500" />
+                                <Check className="size-3.5 text-primary" />
                               ) : (
                                 <Copy className="size-3.5" />
                               )}
@@ -538,7 +542,7 @@ export function OptimiseClient({ plan }: { plan: string }) {
                               }
                             >
                               {copiedField === tab.id ? (
-                                <Check className="size-3.5 text-green-500" />
+                                <Check className="size-3.5 text-primary" />
                               ) : (
                                 <Copy className="size-3.5" />
                               )}
@@ -554,12 +558,12 @@ export function OptimiseClient({ plan }: { plan: string }) {
                               <span
                                 className={
                                   (tab.content as string).length <= tab.maxChars
-                                    ? "text-green-500"
+                                    ? "text-emerald-600 dark:text-emerald-400"
                                     : "text-destructive"
                                 }
                               >
                                 {(tab.content as string).length <= tab.maxChars
-                                  ? "✓ Good"
+                                  ? "✓ Within limit"
                                   : "Too long"}
                               </span>
                             )}

@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Card,
   CardContent,
@@ -70,9 +71,9 @@ const competitionConfig = {
 
 const TrendIcon = ({ trend }: { trend: "up" | "stable" | "down" }) => {
   if (trend === "up")
-    return <TrendingUp className="size-3.5 text-green-500" />;
+    return <TrendingUp className="size-3.5 text-emerald-600 dark:text-emerald-400" />;
   if (trend === "down")
-    return <TrendingDown className="size-3.5 text-red-400" />;
+    return <TrendingDown className="size-3.5 text-red-600 dark:text-red-400" />;
   return <Minus className="size-3.5 text-muted-foreground" />;
 };
 
@@ -192,7 +193,7 @@ export function KeywordsClient() {
             </div>
             <Button type="submit" disabled={loading} className="shrink-0">
               {loading ? (
-                <span className="size-4 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />
+                <Spinner size="md" />
               ) : (
                 <>
                   <Search className="size-3.5" />
@@ -207,7 +208,7 @@ export function KeywordsClient() {
       {loading && (
         <Card className="flex min-h-48 items-center justify-center border-border/30">
           <CardContent className="text-center">
-            <div className="mx-auto mb-3 size-8 animate-spin rounded-full border-2 border-primary/20 border-t-primary" />
+            <Spinner size="lg" className="mx-auto mb-3" />
             <p className="text-sm text-muted-foreground">Finding keywords…</p>
           </CardContent>
         </Card>
@@ -259,7 +260,7 @@ export function KeywordsClient() {
                       title="Copy keyword"
                     >
                       {copied === kw.keyword ? (
-                        <Check className="size-3 text-green-500" />
+                        <Check className="size-3 text-primary" />
                       ) : (
                         <Copy className="size-3" />
                       )}
@@ -290,7 +291,10 @@ export function KeywordsClient() {
           <CardContent className="text-center">
             <Search className="mx-auto mb-3 size-8 text-muted-foreground/40" />
             <p className="text-sm text-muted-foreground">
-              Enter a keyword above to see research results.
+              Type a product keyword above and click <span className="font-medium text-foreground">Research</span>.
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground/70">
+              You'll get 15 keywords ranked by search volume and competition.
             </p>
           </CardContent>
         </Card>

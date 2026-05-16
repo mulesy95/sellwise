@@ -4,6 +4,7 @@ import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 
 function InviteForm() {
   const [code, setCode] = useState("");
@@ -48,7 +49,11 @@ function InviteForm() {
 
       <h1 className="mb-1 text-xl font-semibold text-foreground">Beta access</h1>
       <p className="mb-8 text-sm text-muted-foreground">
-        Enter your invite code to get in, or log back into your existing account below.
+        Already have an account?{" "}
+        <a href="/login" className="font-medium text-primary hover:underline">
+          Sign in here
+        </a>
+        . New? Enter your invite code below.
       </p>
 
       {linkError === "invalid" && (
@@ -67,19 +72,14 @@ function InviteForm() {
           disabled={loading}
         />
         <Button type="submit" disabled={loading || !code.trim()} className="w-full">
-          {loading ? (
-            <span className="size-4 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />
-          ) : (
-            "Get access"
-          )}
+          {loading ? <Spinner size="md" /> : "Get access"}
         </Button>
         {error && <p className="text-sm text-destructive">{error}</p>}
       </form>
 
-      <div className="mt-6 flex items-center gap-3 text-sm text-muted-foreground">
-        <span>Already have an account?</span>
-        <a href="/login" className="font-medium text-primary hover:underline">Log in</a>
-      </div>
+      <p className="mt-6 text-xs text-muted-foreground/60">
+        Your code is single-use and tied to one account.
+      </p>
     </div>
   );
 }

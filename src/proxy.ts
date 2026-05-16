@@ -2,7 +2,8 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 const COMING_SOON = process.env.NEXT_PUBLIC_COMING_SOON === "true";
-const GATED_PATHS = ["/login", "/signup", "/forgot-password", "/pricing"];
+// Only gate signup — existing users must always be able to reach /login and /forgot-password
+const GATED_PATHS = ["/signup"];
 
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });

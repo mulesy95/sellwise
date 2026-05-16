@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { X, Zap, Infinity } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -44,13 +44,22 @@ export function UpgradeModal({
   open: boolean;
   onClose: () => void;
 }) {
+  const closeRef = useRef<HTMLButtonElement>(null);
+
   useEffect(() => {
     if (!open) return;
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
     }
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    // Lock body scroll
+    document.body.style.overflow = "hidden";
+    // Move focus to close button
+    closeRef.current?.focus();
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
   }, [open, onClose]);
 
   if (!open) return null;
@@ -61,23 +70,31 @@ export function UpgradeModal({
       <div
         className="absolute inset-0 bg-background/80 backdrop-blur-sm"
         onClick={onClose}
+        aria-hidden="true"
       />
 
       {/* Modal */}
-      <div className="relative z-10 w-full max-w-lg rounded-xl border border-border bg-card shadow-2xl">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="upgrade-modal-title"
+        className="relative z-10 w-full max-w-lg rounded-xl border border-border bg-card shadow-2xl"
+      >
         {/* Header */}
         <div className="flex items-start justify-between p-6 pb-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <Zap className="size-4 text-primary" />
-              <h2 className="text-lg font-bold">Upgrade your plan</h2>
+              <h2 id="upgrade-modal-title" className="text-lg font-bold">Upgrade your plan</h2>
             </div>
             <p className="text-sm text-muted-foreground">
               You've reached your monthly limit. Upgrade to keep going.
             </p>
           </div>
           <button
+            ref={closeRef}
             onClick={onClose}
+            aria-label="Close"
             className="rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
           >
             <X className="size-4" />

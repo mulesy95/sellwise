@@ -12,6 +12,7 @@ import {
   Unplug,
 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -91,11 +92,7 @@ function ShopifyConnectForm({ plan }: { plan: string }) {
           disabled={connecting}
         />
         <Button onClick={handleConnect} disabled={!shopUrl.trim() || connecting}>
-          {connecting ? (
-            <span className="size-4 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />
-          ) : (
-            "Connect"
-          )}
+          {connecting ? <Spinner size="md" /> : "Connect"}
         </Button>
       </div>
     </div>
@@ -237,7 +234,7 @@ function ShopifyOptimisePanel({
             <Button onClick={handleOptimise} disabled={loading} className="w-full">
               {loading ? (
                 <>
-                  <span className="size-3.5 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground mr-2" />
+                  <Spinner size="sm" className="mr-2" />
                   Optimising...
                 </>
               ) : (
@@ -440,7 +437,7 @@ export function ShopDashboard({
             <CardContent>
               {loading && products.length === 0 ? (
                 <div className="py-8 text-center text-sm text-muted-foreground">
-                  <div className="mx-auto mb-3 size-5 animate-spin rounded-full border-2 border-primary/20 border-t-primary" />
+                  <Spinner size="lg" className="mx-auto mb-3" />
                   Loading products...
                 </div>
               ) : loadError ? (
