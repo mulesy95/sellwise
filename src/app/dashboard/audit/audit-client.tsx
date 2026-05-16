@@ -146,7 +146,7 @@ function overallLabel(score: number) {
 type InputMode = "url" | "manual";
 
 export function AuditClient() {
-  const [mode, setMode] = useState<InputMode>("url");
+  const [mode, setMode] = useState<InputMode>("manual");
   const [platform, setPlatform] = useState<Platform>("etsy");
   const [urlValue, setUrlValue] = useState("");
   const [detectedPlatform, setDetectedPlatform] = useState<Platform | null>(null);
@@ -256,7 +256,7 @@ export function AuditClient() {
           )}
         >
           <Link2 className="size-3.5" />
-          Paste URL
+          Shopify URL
         </button>
         <button
           type="button"
@@ -275,12 +275,12 @@ export function AuditClient() {
         <Card className="border-border/50">
           <CardHeader className="pb-4">
             <CardTitle className="text-base">
-              {mode === "url" ? "Listing URL" : "Your listing"}
+              {mode === "url" ? "Shopify product URL" : "Your listing"}
             </CardTitle>
             <CardDescription className="text-xs">
               {mode === "url"
-                ? "Paste any listing URL — your own or a competitor's — and we'll score it."
-                : "Paste your existing content — any combination of fields works."}
+                ? "Paste a Shopify product URL and we'll fetch and score it automatically."
+                : "Paste your existing content — any combination of fields works. Supported for all platforms."}
             </CardDescription>
           </CardHeader>
           <CardContent>
