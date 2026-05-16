@@ -4,16 +4,50 @@
 AI-powered SEO and listing optimiser for online sellers. Generates optimised titles, tags, bullet points, and descriptions using Claude AI — built platform-aware from day one.
 
 **Stack**: Next.js 16, React 19, Tailwind 4, TypeScript, Supabase, Stripe, Claude API
-**Repo**: github.com/[user]/sellwise
+**Repo**: github.com/mulesy95/sellwise
 **Local path**: C:\Dev\Projects\sellwise
 **Previously**: etsyai
 
 ---
 
 ## Vision
-SellWise is the AI co-pilot for online sellers — wherever they sell. Start with Etsy (fastest path to revenue, weakest existing tooling), expand to Amazon FBA, Shopify, and beyond. Platform-agnostic positioning from day one, Etsy-first execution.
+SellWise is the AI co-pilot for online sellers — wherever they sell. Platform-agnostic positioning, execution prioritised by API accessibility and market size.
 
 **Tagline**: *Sell smarter on every platform.*
+
+---
+
+## Platform Compliance Rules — READ BEFORE BUILDING
+
+This section is non-negotiable. Always verify before building any data access feature.
+
+### Etsy
+- **API access: PERMANENTLY BANNED.** The `sellwise` developer app is listed under "Banned Apps" on Brad's Etsy developer account. Do not reapply, do not create a new account, do not circumvent.
+- **URL scraping: BANNED.** Etsy ToS explicitly prohibits automated access to listing pages.
+- **What IS allowed**: Helping Etsy sellers write better listings when they paste their own content. Mentioning "Etsy" in marketing copy (nominative fair use). The listing optimiser, keywords, and manual audit all work fine.
+- **What IS NOT allowed**: Any automated access to etsy.com, any use of Etsy API/data with AI, any store connect feature.
+
+### Amazon
+- **URL scraping: BANNED.** Amazon's ToS explicitly prohibits all automated access. Active litigation (2025–26) against scrapers.
+- **PA-API: DEPRECATED.** Being shut down May 2026. Do not build on it.
+- **SP-API: LEGITIMATE** for seller-connected workflows. Sellers authorise SellWise to access their own account. Requires seller to have an Amazon Seller account.
+- **Competitor research via API**: No public competitor listing API exists. SP-API only accesses the connected seller's own data.
+- **Status**: URL mode blocked in competitor + audit. SP-API store integration is a future phase (high complexity, defer).
+
+### eBay
+- **URL scraping: BANNED.** eBay ToS explicitly prohibits automated access. Aggressive enforcement via fingerprinting.
+- **Shopping API (GetSingleItem): LEGITIMATE.** Free, instant AppID. Can fetch a public listing by item ID — replaces URL scraping legitimately.
+- **Browse API: LEGITIMATE.** Replaces the decommissioned Finding API (shut down Feb 2025). Search listings by keyword for competitor research.
+- **Trading API: LEGITIMATE** for seller-connected workflows. Full read/write access to seller's own listings.
+- **Developer Program**: Very easy — ~1 business day approval. Easiest platform to integrate with officially.
+- **Status**: URL scraping blocked. eBay Shopping/Browse API integration is next priority after Shopify is solid.
+
+### Shopify
+- **HTML scraping: RISKY.** No explicit platform-wide ban, but individual stores may have terms. DMCA exposure on images.
+- **`/products.json` endpoint: LEGITIMATE.** Public endpoint Shopify exposes by default. Returns structured product data, no auth required. Use this instead of HTML scraping.
+- **Admin GraphQL API: LEGITIMATE** for seller-connected workflows (OAuth). Required for new apps from April 2025 — do not use REST Admin API.
+- **Store integration: BUILT.** OAuth connect, product listing, push-back all built. Needs migration from REST to GraphQL.
+- **Status**: HTML scraping in competitor tool should be replaced with `/products.json`. Store integration working but REST-based — migrate to GraphQL.
 
 ---
 
@@ -23,9 +57,10 @@ Online sellers spend hours writing listings. SEO is opaque — each platform has
 ---
 
 ## Target Users
-- Etsy sellers with 10–200 active listings (MVP)
-- Amazon FBA sellers managing 5–50 ASINs (Phase 2)
-- Shopify / DTC brand owners (Phase 3)
+- Etsy sellers (manual paste optimiser — full support, no store connect)
+- eBay sellers (full support coming via official APIs)
+- Shopify / DTC brand owners (store connect built)
+- Amazon FBA sellers (manual optimiser works, store connect deferred)
 - Non-technical; often mobile; time-poor
 - Primary pain: writing titles/tags/bullets that actually rank
 - Secondary pain: keeping listings fresh after algorithm updates
@@ -34,45 +69,78 @@ Online sellers spend hours writing listings. SEO is opaque — each platform has
 
 ## Platform Roadmap
 
-| Phase | Platform | Key output format | Timeline |
-|-------|----------|-------------------|----------|
-| MVP | Etsy | Title (140c) + 13 tags + description | Weeks 1–6 |
-| Phase 2 | Amazon FBA | Title + 5 bullet points + backend keywords | Months 2–3 |
-| Phase 3 | Shopify | Meta title + meta description + product copy | Months 3–4 |
-| Future | eBay, Walmart, TikTok Shop | Platform-specific formats | TBD |
+| Phase | Platform | Approach | Status |
+|-------|----------|----------|--------|
+| MVP | Etsy | Manual paste optimiser only (no API, no scraping) | Live |
+| Current | Shopify | Store connect (OAuth) + competitor via /products.json | Store connect built, scraper to fix |
+| Next | eBay | Shopping/Browse API for competitor + Trading API for store connect | To build |
+| Future | Amazon | SP-API store connect (high complexity) | Deferred |
+| Never | Etsy API | Permanently banned | — |
 
 ---
 
-## Core Features (MVP — Etsy)
+## Core Features
 
 ### 1. Listing Optimiser (primary feature)
-- Platform selector (Etsy default, Amazon + Shopify disabled with "coming soon" badge)
+- Platform selector (Etsy, Amazon, Shopify, eBay all active for manual optimisation)
 - Input: product title, description, category, style, material
-- Output: optimised title with char counter, 13 tags as chips, description
+- Output: optimised title with char counter, tags/bullets, description
 - Copy buttons per field, SEO score badge (0–100), improvement tips
 - Usage check before API call, increment after success, upgrade modal if limit hit
 
 ### 2. Keyword Research
 - Seed keyword input + platform selector
 - Returns 15 keywords with volume/competition/trend indicators
-- Platform-aware: Etsy occasion/style patterns vs Amazon purchase intent
+- Platform-aware prompts (Etsy occasion/style vs Amazon purchase intent vs eBay specifics)
 - Save to keyword list (persisted in Supabase)
 
 ### 3. Competitor Peek
-- Etsy listing URL input
-- Server-side fetch → extract title + tags from page HTML
+- URL input — Shopify only via `/products.json` (legitimate public endpoint)
+- Amazon/eBay: "coming soon via official API" message (Shopping API for eBay, nothing public for Amazon)
+- Etsy: blocked with redirect to manual audit
 - Side-by-side: their listing vs AI-optimised version
-- "Beat this listing" generates a better version automatically
 
 ### 4. Listing Audit
-- Inputs: title, tags (comma separated), description
-- Score 0–100 with breakdown: title / tags / description
-- Quick wins list — specific, actionable fixes
+- **URL mode**: Shopify only (via scraping currently — migrate to `/products.json`)
+- **Manual mode**: all platforms — paste title, tags/bullets, description → score 0–100
+- Score breakdown per platform section, quick wins list
 
-### 5. Dashboard
+### 5. My Shop (store connect)
+- Shopify: OAuth connect, product list, optimise per product, push back (Studio only) — BUILT
+- eBay: Trading API connect — TO BUILD (next priority)
+- Amazon: SP-API — DEFERRED
+- Etsy: PERMANENTLY UNAVAILABLE
+
+### 6. Dashboard
 - Usage bar (X / limit used this month)
-- Recent optimisations history
+- Personal greeting (Welcome back, [First Name])
+- Quick actions grid
 - Subscription status + upgrade prompt
+
+---
+
+## New Features Identified (from API research, 2026-05-16)
+
+### eBay Shopping API — Competitor Research (HIGH PRIORITY)
+Extract item ID from eBay URL → call `GetSingleItem` via official Shopping API → return title, description, specifics, price. Replaces the banned URL scraping with a legitimate equivalent. Free, instant AppID, no auth required.
+
+### eBay Browse API — Competitor Search
+Search eBay by keyword to surface competing listings. Helps sellers understand what they're up against. No auth required for basic access.
+
+### Shopify `/products.json` — Competitor Research (REPLACE CURRENT SCRAPER)
+Replace the current HTML scraping in the competitor route with a fetch to `{storeUrl}/products.json`. Structured data, no auth, no scraping risk.
+
+### Shopify SEO Metafield Push (STUDIO DIFFERENTIATOR)
+When a seller connects their Shopify store, write the AI-generated meta title and meta description directly to the product's SEO metafields via GraphQL (`title_tag` and `description_tag`). No copy-paste. This is a genuine Studio tier differentiator — no competitor offers this.
+
+### Platform Migration Tool
+"I sell on Etsy — help me list this on Amazon too." User pastes their Etsy listing, selects a target platform, AI reformats for the new platform's requirements. No API access needed — pure AI transformation. High value, easy to build.
+
+### Bulk Listing Optimiser (Growth/Studio)
+Upload a CSV of listings → AI generates optimised versions for each → download results. High value for sellers with 50+ listings. No API access needed.
+
+### eBay Store Connect (Trading API)
+OAuth connect for eBay sellers. Read active listings, surface SEO scores, allow optimise-and-push-back. Easiest platform to get approved (~1 business day). Build after Shopify GraphQL migration.
 
 ---
 
@@ -87,7 +155,7 @@ interface EtsyOutput {
 }
 ```
 
-### Amazon FBA (Phase 2)
+### Amazon FBA
 ```typescript
 interface AmazonOutput {
   title: string             // max 200 chars, brand first
@@ -97,7 +165,7 @@ interface AmazonOutput {
 }
 ```
 
-### Shopify (Phase 3)
+### Shopify
 ```typescript
 interface ShopifyOutput {
   meta_title: string        // max 60 chars
@@ -107,16 +175,24 @@ interface ShopifyOutput {
 }
 ```
 
+### eBay
+```typescript
+interface EbayOutput {
+  title: string        // max 80 chars, keyword-front-loaded, specific product details
+  description: string  // condition stated, key specs in short lines, shipping/returns note
+}
+```
+
 ---
 
 ## Monetisation
 
 | Plan | Price | Features | Target user |
 |------|-------|----------|-------------|
-| Free | $0 | 3 optimisations/mo (optimiser only) | Try before buying |
+| Free | $0 | 1 optimisation/mo (optimiser only) | Try before buying |
 | Starter | $19/mo | 50 optimisations/mo + all features (keywords, competitor, audit) | Part-time sellers |
-| Growth | $29/mo | Unlimited + all features | Full-time sellers |
-| Studio | $79/mo | Unlimited + unlimited shops + push-back to platforms (coming soon — Phase 6) | Power users / agencies |
+| Growth | $29/mo | Unlimited + all features + connect 1 shop | Full-time sellers |
+| Studio | $79/mo | Unlimited + unlimited shops + push-back to platforms | Power users / agencies |
 
 - Stripe Billing, monthly/annual toggle (annual = 2 months free)
 - 7-day free trial of Growth tier, no card required
@@ -137,38 +213,48 @@ interface ShopifyOutput {
     /page.tsx                — dashboard home
     /optimise/page.tsx       — listing optimiser
     /keywords/page.tsx       — keyword research
-    /competitor/page.tsx     — competitor analysis
-    /audit/page.tsx          — listing audit
+    /competitor/page.tsx     — competitor analysis (Shopify URL + manual)
+    /audit/page.tsx          — listing audit (Shopify URL + manual all platforms)
+    /shop/page.tsx           — connected store dashboard
     /settings/page.tsx       — account + billing
+    /admin/page.tsx          — admin panel (is_admin only)
   /api
     /optimise/route.ts       — Claude API (platform-aware)
     /keywords/route.ts
-    /competitor/route.ts
-    /audit/route.ts
+    /competitor/route.ts     — Shopify /products.json + manual (Amazon/eBay/Etsy blocked)
+    /audit/route.ts          — Shopify URL + manual (Amazon/eBay/Etsy blocked for URL)
+    /shopify/connect         — OAuth initiation
+    /shopify/callback        — OAuth token exchange
+    /shopify/listings        — fetch connected store products
+    /shopify/push            — push optimised content back (Studio)
+    /health/route.ts         — service health check
     /stripe/webhook/route.ts
     /stripe/create-checkout/route.ts
     /stripe/portal/route.ts
   /(marketing)
     /page.tsx                — landing page
     /pricing/page.tsx
+    /status/page.tsx         — service status
+    /invite/page.tsx         — invite-only signup
 ```
 
 ### Database — Supabase
 ```sql
--- platform enum used throughout
 platform: 'etsy' | 'amazon' | 'shopify' | 'ebay'
 
-profiles        (id, email, plan, usage_count, usage_reset_at, stripe_customer_id, trial_ends_at)
+profiles        (id, email, plan, usage_count, usage_reset_at, stripe_customer_id, trial_ends_at, is_admin)
 optimisations   (id, user_id, platform, input jsonb, output jsonb, score, is_saved, created_at)
 keyword_lists   (id, user_id, platform, name, keywords jsonb, created_at)
-shops           (id, user_id, platform, shop_name, shop_url, is_primary)
+shops           (id, user_id, platform, shop_name, shop_url, shop_id, access_token, is_primary)
+waitlist        (id, email, name, platform, created_at)
+invite_codes    (id, code, token, max_uses, used_count, created_at)
 ```
 
-### AI — Claude claude-sonnet-4-20250514
-- All calls server-side only (never expose API key to client)
-- Platform-aware system prompts (see prompts section below)
-- Structured JSON output enforced via schema in prompt
-- Per-user rate limiting in middleware
+### AI — claude-sonnet-4-6
+- All calls server-side only
+- Platform-aware system prompts
+- Structured JSON output enforced via prompt schema
+- Per-user rate limiting (20 req/min sliding window)
 
 ---
 
@@ -181,7 +267,7 @@ shops           (id, user_id, platform, shop_name, shop_url, is_primary)
 | Styling | Tailwind 4 + shadcn | Speed + accessibility |
 | Database | Supabase | Auth + DB + free tier |
 | Payments | Stripe | Subscriptions + portal |
-| AI | Claude claude-sonnet-4-20250514 | Best copy quality |
+| AI | claude-sonnet-4-6 | Best copy quality |
 | Deploy | Vercel | Zero-config Next.js |
 | Email | Resend | Simple API, reliable delivery |
 | Analytics | PostHog | Product analytics + feature flags |
@@ -206,8 +292,17 @@ STRIPE_STARTER_PRICE_ID=
 STRIPE_GROWTH_PRICE_ID=
 STRIPE_STUDIO_PRICE_ID=
 
+# Shopify (custom app — already configured)
+SHOPIFY_CLIENT_ID=
+SHOPIFY_CLIENT_SECRET=
+
+# eBay (to add when building eBay integration)
+EBAY_APP_ID=
+EBAY_CLIENT_ID=
+EBAY_CLIENT_SECRET=
+
 # App
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_APP_URL=https://sellwise.au
 
 # Email
 RESEND_API_KEY=
@@ -240,46 +335,12 @@ Respond in valid JSON only.`,
 in meta titles (60 chars), meta descriptions (160 chars, click-optimised),
 and product descriptions that balance SEO with conversion.
 Respond in valid JSON only.`,
-}
-```
 
----
-
-## Shared TypeScript Types
-
-```typescript
-export type Platform = 'etsy' | 'amazon' | 'shopify' | 'ebay'
-
-export interface OptimiseRequest {
-  platform: Platform
-  title?: string
-  description?: string
-  category?: string
-  style?: string
-  material?: string
-}
-
-export interface OptimisationResult {
-  platform: Platform
-  etsy_title?: string
-  etsy_tags?: string[]
-  amazon_title?: string
-  amazon_bullets?: string[]
-  amazon_backend_keywords?: string
-  shopify_meta_title?: string
-  shopify_meta_description?: string
-  description: string
-  score: number
-  improvements: string[]
-}
-
-export type Plan = 'free' | 'starter' | 'growth' | 'studio'
-
-export const PLAN_LIMITS: Record<Plan, { optimisations: number | null; price: number }> = {
-  free:    { optimisations: 3,    price: 0  },
-  starter: { optimisations: 50,   price: 19 },
-  growth:  { optimisations: null, price: 29 },
-  studio:  { optimisations: null, price: 79 },
+  ebay: `You are an expert eBay listing specialist with deep knowledge of Cassini
+search. You specialise in titles (max 80 chars, keyword-front-loaded,
+specific product details including brand/model/size/condition) and
+descriptions (condition clearly stated, key specs in short lines,
+shipping and returns mentioned). Respond in valid JSON only.`,
 }
 ```
 
@@ -287,336 +348,133 @@ export const PLAN_LIMITS: Record<Plan, { optimisations: number | null; price: nu
 
 ## Build Progress
 
-Update this as work is completed. Tick `[x]` when done, add notes inline where useful.
-Claude Code should update this file at the end of every session.
-
 ### Phase 1 — Foundation
 - [x] create-next-app scaffold (Next 16, React 19, Tailwind 4, TypeScript)
 - [x] package.json clean + correct dependencies installed
-- [x] shadcn init + core components (button, input, label, card, tabs, badge, progress, toast, separator)
+- [x] shadcn init + core components
 - [x] Supabase project created + schema migrated
 - [x] Auth working (email/password sign-in/sign-up/sign-out, route protection)
 - [x] Dashboard shell + sidebar nav with usage bar
-- [x] Deployed to Vercel (staging)
+- [x] Deployed to Vercel
 
 ### Phase 2 — Core AI Features
 - [x] Listing Optimiser page + /api/optimise route
-- [x] Keyword Research page + /api/keywords route — 15 keywords with volume/competition/trend
-- [x] Competitor Peek page + /api/competitor route — cheerio scrape + side-by-side AI comparison
-- [x] Listing Audit page + /api/audit route — 0-100 score with title/tags/description breakdown
-- [x] Usage tracking (checkLimit + incrementUsage, separate counters per type)
-- [x] Upgrade modal component (reusable, triggered on 402 across all features)
-- [x] Feature gating — keywords/competitor/audit locked behind Starter+; free tier gets optimiser only (1 use/mo)
-- [x] FeatureGate server component — free users see locked gate with upgrade CTA, no API call wasted
+- [x] Keyword Research page + /api/keywords route
+- [x] Competitor Peek page + /api/competitor route (Shopify URL only; Amazon/eBay/Etsy blocked)
+- [x] Listing Audit page + /api/audit route (Shopify URL + manual all platforms)
+- [x] Usage tracking (separate counters per feature type)
+- [x] Upgrade modal component (reusable, triggered on 402)
+- [x] Feature gating (keywords/competitor/audit behind Starter+)
+- [x] FeatureGate server component
 
 ### Phase 3 — Monetisation
-- [x] Stripe products + prices created in Stripe sandbox + price IDs in .env.local
-- [x] /api/stripe/webhook (checkout.session.completed, subscription.updated, subscription.deleted)
-- [x] /api/stripe/create-checkout (accepts plan + billing period, resolves price ID server-side)
+- [x] Stripe products + prices (live mode configured)
+- [x] /api/stripe/webhook
+- [x] /api/stripe/create-checkout
 - [x] /api/stripe/portal
-- [x] Pricing page (/pricing) with monthly/annual toggle
-- [x] Plan enforcement on all API routes (via checkLimit in each route)
-- [x] 7-day free trial flow — trial_ends_at set on signup, Growth limits during trial, trial banner in dashboard
-- [x] "Manage billing" in /settings — real plan/usage data + Stripe portal button
+- [x] Pricing page with monthly/annual toggle
+- [x] Plan enforcement on all API routes
+- [x] 7-day free trial flow
+- [x] /settings billing section
 
 ### Phase 4 — Polish + Launch
 - [x] Marketing landing page
-- [x] Onboarding flow (3-step post-signup) — category + platform picker → mini optimiser → dashboard; gated in dashboard layout
-- [x] Email sequences via Resend (welcome, trial nudge, trial expired, first optimisation, upgrade success, subscription cancelled, win-back)
+- [x] Onboarding flow (3-step post-signup)
+- [x] Email sequences via Resend
+- [x] Service health endpoint (/api/health) + status page (/status)
+- [x] Service status banners in dashboard
+- [x] Admin dashboard with invite code management
+- [x] /invite page (invite-only signup)
 - [ ] Empty / error / loading states throughout
 - [ ] SEO meta + og tags + sitemap
 - [ ] Production deploy + domain
-- [ ] Launch posts drafted (r/Etsy, Facebook groups)
+- [ ] Launch posts drafted
 
-### Phase 5 — Amazon FBA
-- [ ] Amazon platform unlocked in selector
-- [ ] Amazon output format + prompts wired up
-- [ ] ASIN URL competitor scraper
-- [ ] FBA fee / profitability calculator
-- [ ] Pricing page updated
+### Phase 5 — eBay Integration (NEXT)
+Priority: eBay is easiest platform to integrate legitimately (~1 day approval).
 
-### Phase 6 — Store API Integration (Studio flagship)
-The goal: sellers connect their shop once and SellWise reads all their live listings, runs bulk audits, and can push optimised content back directly. No more copy-paste.
+**Competitor research (no auth needed):**
+- [ ] Register for eBay Developer Program (free, ~1 day approval) — get AppID
+- [ ] Replace eBay URL scraping with Shopping API `GetSingleItem` — extract item ID from URL, call official API, return listing data
+- [ ] eBay Browse API — search competitor listings by keyword
 
-**Etsy OAuth API**
-- [ ] OAuth 2.0 flow — connect Etsy shop (`/api/etsy/connect`, callback, token storage in `shops` table)
-- [ ] Read all active listings via Etsy API (`GET /v3/application/shops/{shopId}/listings/active`)
-- [ ] Bulk audit dashboard — paginated table of every listing with live SEO score badge
-- [ ] "Fix this" action — open optimiser pre-filled with the listing's current content
-- [ ] Push optimised content back via Etsy API (`PATCH /v3/application/listings/{listingId}`) — Studio only
+**Store connect (Trading API):**
+- [ ] eBay OAuth flow — connect seller account (similar pattern to Shopify)
+- [ ] Read seller's active listings via `GetSellerList`
+- [ ] Optimise panel per listing (pre-filled with current content)
+- [ ] Push updated title/description back via `ReviseFixedPriceItem` — Studio only
 
-**Amazon SP-API** (Phase 5 prerequisite)
-- [ ] SP-API OAuth via Login with Amazon (LWA) — connect seller account
-- [ ] Read ASIN catalogue + listing content
+**Kickoff prompt:**
+```
+Read CLAUDE.md for full project context, especially the Platform Compliance Rules section.
+
+Build Phase 5 — eBay integration using official APIs only (no scraping):
+
+1. eBay Developer Program
+   - Register at developer.ebay.com (free). Get AppID + ClientID + ClientSecret.
+   - Add EBAY_APP_ID, EBAY_CLIENT_ID, EBAY_CLIENT_SECRET to .env.local + Vercel.
+
+2. Competitor research via Shopping API
+   - In /api/competitor: when platform is "ebay", extract item ID from URL and call:
+     GET https://open.api.ebay.com/shopping?callname=GetSingleItem&ItemID={id}&appid={EBAY_APP_ID}&version=967&IncludeSelector=Description,Details,ItemSpecifics
+   - Remove the "coming soon" block, replace with real API call.
+   - In competitor-client.tsx: eBay URLs now work properly — show detected platform.
+
+3. eBay store connect
+   - OAuth flow similar to Shopify: /api/ebay/connect + /api/ebay/callback
+   - Store token in shops table (platform: 'ebay')
+   - Add eBay tab to /dashboard/shop alongside Shopify
+   - Trading API: GetSellerList to read listings, ReviseFixedPriceItem to push back
+
+eBay API docs: https://developer.ebay.com/api-docs/buy/browse/overview.html
+Shopping API: https://developer.ebay.com/devzone/shopping/docs/callref/index.html
+Trading API: https://developer.ebay.com/api-docs/user-guides/static/trading-user-guide-landing.html
+```
+
+### Phase 6 — Shopify Enhancements
+- [ ] Replace competitor HTML scraping with `/products.json` endpoint
+- [ ] Migrate Shopify Admin API from REST to GraphQL (REST deprecated April 2025)
+- [ ] SEO metafield push — write `title_tag` + `description_tag` directly to Shopify products via GraphQL (Studio differentiator)
+- [ ] Bulk product optimisation — GraphQL bulk mutations for all products at once
+
+**Kickoff prompt:**
+```
+Read CLAUDE.md for full project context, especially the Platform Compliance Rules section.
+
+Build Phase 6 — Shopify enhancements:
+
+1. Replace competitor HTML scraping with /products.json
+   - In /api/competitor when platform is "shopify": fetch {storeUrl}/products.json
+   - Parse the JSON response for title, body_html (description)
+   - Remove cheerio dependency from Shopify path
+
+2. Migrate Shopify Admin API to GraphQL
+   - Current REST-based /api/shopify/listings and /api/shopify/push use deprecated REST
+   - Rewrite to use GraphQL Admin API (2026-01 version)
+   - Products query: fetch id, title, descriptionHtml, status, variants, images, onlineStoreUrl
+   - Product update mutation: update title and descriptionHtml
+
+3. SEO metafield push (Studio only)
+   - After optimising a Shopify product, offer "Push SEO" button (Studio only)
+   - GraphQL mutation: set title_tag metafield (meta title, max 60 chars)
+   - GraphQL mutation: set description_tag metafield (meta description, max 160 chars)
+   - This writes directly to the product's SEO settings in Shopify — no copy-paste
+
+Shopify GraphQL docs: https://shopify.dev/docs/api/admin-graphql/latest
+SEO metafields: https://shopify.dev/docs/apps/build/marketing-analytics/optimize-storefront-seo
+```
+
+### Phase 7 — New Features (No API Access Required)
+- [ ] Platform Migration Tool — paste Etsy listing → select target platform → AI reformats for Amazon/Shopify/eBay. Pure AI, no API needed. High value.
+- [ ] Bulk Listing Optimiser — CSV upload → AI optimises all listings → download results. Growth/Studio.
+- [ ] Saved results history — track audits over time, show SEO score improvements
+
+### Phase 8 — Amazon SP-API (Future, High Complexity)
+- [ ] Amazon Seller Central OAuth via Login with Amazon (LWA)
+- [ ] SP-API Listings API — read seller's own ASINs and listing content
 - [ ] Bulk audit across all ASINs
-- [ ] Push updated listing content back — Studio only
-
-**Shopify App** (Phase 3 prerequisite)
-- [ ] Shopify OAuth + custom app install flow
-- [ ] Read all products via Admin API
-- [ ] Push updated meta title / meta description / product copy — Studio only
-
-**Tiering**
-- Growth: connect 1 shop, read listings, bulk audit (view only)
-- Studio: connect unlimited shops, push updates back to the platform
-
-**Kickoff prompt for this phase:**
-```
-Read CLAUDE.md for full project context.
-
-Build Phase 6 — Etsy store integration:
-
-1. OAuth connect flow
-   - GET /api/etsy/connect — redirect to Etsy OAuth with scope listings_r listings_w
-   - GET /api/etsy/callback — exchange code for tokens, store in shops table
-   - "Connect your Etsy shop" button in /settings
-
-2. Listings dashboard (/dashboard/shop)
-   - Fetch all active listings for connected shop (paginated)
-   - Table: listing title, thumbnail, price, SEO score badge (audit each listing lazily)
-   - "Optimise" button per row — opens optimiser pre-filled
-   - Bulk audit: "Audit all" queues background jobs, updates scores
-
-3. Push-back (Studio only)
-   - "Apply" button on optimised result → PATCH listing on Etsy
-   - Feature gate: Studio plan only, show lock for Growth users
-
-Etsy API docs: https://developers.etsy.com/documentation/
-Store tokens in shops table: { user_id, platform, shop_id, shop_name, access_token, refresh_token, expires_at }
-```
-
----
-
-## Claude Code — Weekly Kickoff Prompts
-
-Paste the relevant prompt at the start of each new Claude Code session.
-Always starts: "Read docs/claude.md for full project context."
-
----
-
-### Week 1 — Foundation
-
-```
-Read docs/claude.md for full project context.
-
-Build the Week 1 foundation for SellWise:
-
-1. Fix dependencies
-   - Delete node_modules and package-lock.json
-   - Keep Next 16 + React 19 + Tailwind 4 from create-next-app, don't downgrade
-   - Add: @anthropic-ai/sdk @supabase/ssr @supabase/supabase-js stripe resend zod
-     lucide-react tailwind-merge clsx
-   - npm install
-   - npx shadcn@latest init (style: Default, color: Slate, CSS variables: yes)
-   - npx shadcn@latest add button input label card tabs badge progress toast separator
-
-2. Supabase
-   - Create src/lib/supabase/client.ts and server.ts using @supabase/ssr
-   - Schema: profiles, optimisations, keyword_lists, shops tables
-     all with platform field ('etsy' | 'amazon' | 'shopify' | 'ebay')
-   - RLS policies: users can only access their own rows
-   - Trigger: auto-create profile row on auth.users insert
-
-3. Auth pages
-   - /login — email + password, Google OAuth button, link to /signup
-   - /signup — email + password + name, Google OAuth, link to /login
-   - /forgot-password — email input, Supabase reset link
-   - Middleware: protect all /(dashboard) routes, redirect to /login if unauthed
-
-4. Dashboard shell
-   - Sidebar: Dashboard, Optimise, Keywords, Competitor, Audit, Settings
-   - Platform indicator in sidebar (Etsy active, others "coming soon")
-   - Top bar: page title + user avatar dropdown (profile, billing, sign out)
-   - Dashboard home: usage card, recent optimisations (empty state), quick actions
-   - Mobile responsive
-
-5. Deploy
-   - Push to GitHub (create repo if needed)
-   - Connect to Vercel, add env vars, deploy staging
-
-Update Build Progress in docs/claude.md after each task. Commit to GitHub after each major step.
-```
-
----
-
-### Week 2 — Core AI Features
-
-```
-Read docs/claude.md for full project context.
-
-Build the core AI features:
-
-1. Listing Optimiser (/optimise)
-   - Platform selector (Etsy active; Amazon + Shopify disabled with "coming soon")
-   - Input form: product title, description, category, style, material
-   - API route /api/optimise — server-side Claude call, use system prompt from claude.md
-   - Output: title + char counter (140 max), 13 tag chips, description textarea
-   - Copy button per field, SEO score badge (green ≥70, amber 40–69, red <40)
-   - Improvement tips list
-   - Check usage limit before call → 402 triggers upgrade modal
-   - On success: increment usage_count, save row to optimisations table
-
-2. Keyword Research (/keywords)
-   - Seed keyword input + platform selector
-   - API route /api/keywords — 15 results with volume/competition/trend
-   - Cards: colour-coded volume pill, competition pill, trend arrow
-   - Save list → prompt for name → persist to keyword_lists table
-   - Saved lists shown in sidebar or tab
-
-3. Competitor Peek (/competitor)
-   - Etsy listing URL input with validation
-   - Server-side fetch, extract title + tags from HTML (use cheerio)
-   - API route /api/competitor — analyse + generate better version
-   - Side-by-side: "Their listing" vs "Optimised version"
-   - Copy buttons on optimised side
-
-4. Listing Audit (/audit)
-   - Inputs: title, tags (comma separated), description (all optional)
-   - API route /api/audit — 0–100 score with breakdown
-   - Score display + section breakdown (title 0–40, tags 0–35, description 0–25)
-   - Quick wins: 3–5 specific fixes
-
-5. Reusable upgrade modal
-   - Triggered anywhere a 402 is returned
-   - Shows plan cards for Growth + Studio with upgrade CTA to /pricing
-
-Update Build Progress in docs/claude.md after each feature. Commit to GitHub.
-```
-
----
-
-### Week 3 — Monetisation
-
-```
-Read docs/claude.md for full project context.
-
-Build monetisation:
-
-1. Stripe setup
-   - Create products + prices in Stripe dashboard:
-     Starter $19/mo + $190/yr, Growth $39/mo + $390/yr, Studio $79/mo + $790/yr
-   - Add price IDs to .env.local
-
-2. /api/stripe/webhook
-   - Verify signature with STRIPE_WEBHOOK_SECRET
-   - checkout.session.completed → update profiles: plan + stripe_customer_id
-   - customer.subscription.updated → update plan
-   - customer.subscription.deleted → downgrade to 'free'
-
-3. /api/stripe/create-checkout
-   - Checkout session with user email + supabase user ID as metadata
-   - Accept price_id query param (monthly or annual)
-   - Success → /dashboard?upgraded=true, Cancel → /pricing
-
-4. /api/stripe/portal
-   - Create billing portal session for user's stripe_customer_id
-   - Redirect to portal URL
-
-5. Pricing page (/pricing)
-   - Monthly / annual toggle (annual saves ~17%, show badge)
-   - Plan cards: Free, Starter, Growth (highlighted), Studio
-   - Feature comparison table
-   - CTAs call /api/stripe/create-checkout with correct price ID
-
-6. Plan enforcement
-   - Middleware on all /api/optimise, /api/keywords, /api/competitor, /api/audit
-   - Check usage_count vs PLAN_LIMITS (from shared/types.ts)
-   - Return 402 { error: 'limit_reached', used, limit } if over
-
-7. Free trial
-   - On signup: trial_ends_at = now + 7 days, treat as Growth in middleware
-   - Trial banner in dashboard: "X days left in your trial"
-   - Expiry: downgrade to free
-
-8. /settings billing section
-   - Current plan, usage this month, "Manage billing" → Stripe portal
-
-Update Build Progress in docs/claude.md after each task. Commit to GitHub.
-```
-
----
-
-### Week 4 — Polish + Launch
-
-```
-Read docs/claude.md for full project context.
-
-Polish and launch:
-
-1. Marketing landing page (/)
-   - Hero: headline + subheadline + "Start free" CTA
-   - Platform logos: Etsy (live), Amazon + Shopify (coming soon)
-   - Feature highlights with screenshots or mockups
-   - Pricing section (mirrors /pricing)
-   - Footer: links, legal
-
-2. Onboarding (3 steps post-signup)
-   - Step 1: "What do you sell?" (type + platform)
-   - Step 2: "Try your first optimisation" (inline mini-optimiser)
-   - Step 3: "You're all set!" → dashboard
-   - Skip available at all steps
-
-3. Emails via Resend
-   - Welcome (on signup)
-   - Trial day 5: upgrade nudge
-   - Trial expired: downgrade notice
-   - First optimisation complete: encouragement + tips
-
-4. Empty / error / loading states
-   - Dashboard empty state with CTA
-   - Optimiser loading: animated steps ("Analysing keywords...", "Writing your title...")
-   - API error: friendly message + retry
-   - Competitor URL fail: specific error message
-
-5. SEO
-   - og:title, og:description, og:image on landing + pricing
-   - /sitemap.xml, robots.txt
-
-6. Pre-launch
-   - All env vars in Vercel production
-   - Stripe live mode
-   - Supabase RLS verified
-   - Custom domain configured
-   - Test full signup → trial → optimise → upgrade flow end to end
-
-Update Build Progress in docs/claude.md. Prepare launch post copy for r/Etsy.
-```
-
----
-
-### Phase 5 — Amazon FBA Expansion
-
-```
-Read docs/claude.md for full project context.
-
-Etsy MVP is live and generating revenue. Expand to Amazon FBA:
-
-1. Unlock Amazon in platform selector (remove "coming soon")
-
-2. Amazon Listing Optimiser
-   - Wire up Amazon system prompt from claude.md
-   - Output format: title (200c) + 5 bullets (255c each) + backend keywords + description
-   - UI adapts to show bullets instead of tags when Amazon is selected
-
-3. Amazon Competitor Peek
-   - Parse amazon.com/dp/ URLs
-   - Extract title + bullets from product page
-   - Side-by-side comparison with AI version
-
-4. FBA Fee Calculator (/tools/fba-calculator)
-   - Inputs: product cost, selling price, weight, dimensions, category
-   - Calculate: FBA fee, referral fee, net margin, ROI
-   - Flag the Apr 2026 3.5% surcharge impact
-   - "Optimise this listing" CTA
-
-5. Amazon keyword research
-   - Purchase-intent patterns (vs Etsy occasion-based)
-   - PPC competition indicator
-
-6. Update pricing + landing pages for Amazon messaging
-
-Update Build Progress in docs/claude.md throughout. Commit to GitHub.
-```
+- [ ] Push updated content back via Listings API — Studio only
+- Note: No public competitor research API. Competitor analysis for Amazon remains manual paste only.
 
 ---
 
@@ -629,15 +487,17 @@ Update Build Progress in docs/claude.md throughout. Commit to GitHub.
 | Helium 10 | Amazon only | Complex, expensive ($99+) | Simpler UX, multi-platform |
 | Jungle Scout | Amazon only | Data-heavy, overwhelming | Focused on listing copy |
 | ChatGPT direct | Any | No platform rules, no structure | Purpose-built, enforces format |
+| None | eBay | No good AI tool exists for eBay | First mover advantage |
 
 ---
 
 ## Go-To-Market
 
-- **Launch channels**: r/Etsy, r/EtsySellers, Etsy seller Facebook groups, TikTok demos
-- **Hook**: results-first social proof — "tested on 10 listings, views up 40%"
+- **Primary launch channels**: Shopify seller communities, eBay seller forums, r/EtsySellers (for manual optimiser), TikTok demos
+- **Hook**: results-first — "tested on 10 listings, views up 40%"
 - **Pricing anchor**: cheaper than Marmalead, smarter than ChatGPT
-- **Expansion signal**: track which users ask about Amazon → triggers Phase 5
+- **eBay angle**: no competing AI tool exists for eBay — first mover opportunity
+- **Expansion signal**: track platform distribution → prioritise roadmap by where users actually sell
 
 ---
 
@@ -663,4 +523,8 @@ Update Build Progress in docs/claude.md throughout. Commit to GitHub.
 | 2026-05-13 | Phase 2 complete — Keyword Research, Competitor Peek, Listing Audit + reusable upgrade modal |
 | 2026-05-13 | Phase 3 complete — Stripe checkout/portal/webhook, pricing page, 7-day trial, settings billing section |
 | 2026-05-13 | Freemium strategy locked in — feature gating on keywords/competitor/audit (Starter+), free limit lowered to 1, FeatureGate server component added |
-| 2026-05-13 | Phase 6 planned — Etsy/Amazon/Shopify store API integration (Growth: read+audit, Studio: push back) |
+| 2026-05-14 | Marketing landing page built and deployed |
+| 2026-05-16 | Etsy developer app permanently banned — removed all Etsy API routes, scraping, and store connect. Manual paste optimiser for Etsy sellers remains fully functional. |
+| 2026-05-16 | Full platform compliance audit — Amazon + eBay URL scraping blocked (ToS violation). Shopify URL mode only. Competitor tool now Shopify-only for URL analysis. |
+| 2026-05-16 | Platform API research complete — eBay Shopping/Browse/Trading APIs all legitimate and easy to access. Shopify /products.json + GraphQL is the clean path. Amazon SP-API deferred. |
+| 2026-05-16 | CLAUDE.md rewritten with compliance rules, revised roadmap, new feature opportunities, and updated kickoff prompts. |
