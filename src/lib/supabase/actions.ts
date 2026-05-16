@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { claimReferral } from "@/lib/referral";
 
 export type AuthState = { error: string } | null;
 export type ForgotPasswordState = { error?: string; success?: boolean } | null;
@@ -105,11 +106,21 @@ export async function signUp(
 
   if (error) return { error: friendlyAuthError(error.message) };
 
-  // Record which beta code was used, then increment its used_count
-  if (betaCode && signUpData.user) {
+  if (signUpData.user) {
     const admin = createAdminClient();
-    await admin.from("profiles").update({ beta_code: betaCode }).eq("id", signUpData.user.id);
-    await admin.rpc("increment_beta_code_usage", { p_code: betaCode });
+    const userId = signUpData.user.id;
+
+    // Record beta code usage
+    if (betaCode) {
+      await admin.from("profiles").update({ beta_code: betaCode }).eq("id", userId);
+      await admin.rpc("increment_beta_code_usage", { p_code: betaCode });
+    }
+
+    // Claim referral if a ref code was passed
+    const refCode = formData.get("ref_code") as string | null;
+    if (refCode?.trim()) {
+      void claimReferral(userId, refCode.trim()).catch(() => {});
+    }
   }
 
   revalidatePath("/", "layout");

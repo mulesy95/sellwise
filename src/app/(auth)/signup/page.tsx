@@ -6,6 +6,11 @@ export const metadata = {
   robots: { index: false },
 };
 
-export default function SignupPage() {
-  return <SignupForm />;
+interface Props {
+  searchParams: Promise<{ ref?: string }>;
+}
+
+export default async function SignupPage({ searchParams }: Props) {
+  const params = await searchParams;
+  return <SignupForm refCode={params.ref ?? null} />;
 }

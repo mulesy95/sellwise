@@ -13,6 +13,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getUsageData } from "@/lib/usage";
 import { ManageBillingButton } from "@/components/manage-billing-button";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getReferralStats } from "@/lib/referral";
+import { ReferralCard } from "@/components/referral-card";
 
 export const metadata = { title: "Settings" };
 
@@ -35,11 +37,12 @@ export default async function SettingsPage() {
   } = await supabase.auth.getUser();
 
   const admin = createAdminClient();
-  const [usageData, { data: profile }] = await Promise.all([
+  const [usageData, { data: profile }, referralStats] = await Promise.all([
     user ? getUsageData(user.id) : null,
     user
       ? admin.from("profiles").select("plan, stripe_customer_id, trial_ends_at").eq("id", user.id).single()
       : Promise.resolve({ data: null }),
+    user ? getReferralStats(user.id) : null,
   ]);
 
   const plan = profile?.plan ?? "free";
@@ -174,6 +177,17 @@ export default async function SettingsPage() {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      <Separator />
+
+      {/* Referral */}
+      {referralStats && user && (
+        <ReferralCard
+          link={`${process.env.NEXT_PUBLIC_APP_URL ?? "https://sellwise.au"}/signup?ref=${referralStats.code}`}
+          total={referralStats.total}
+          rewarded={referralStats.rewarded}
+        />
       )}
 
       <Separator />

@@ -10,7 +10,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { signUp } from "@/lib/supabase/actions";
 
-export function SignupForm() {
+export function SignupForm({ refCode }: { refCode: string | null }) {
   const [state, action, pending] = useActionState(signUp, null);
   const [confirmError, setConfirmError] = useState<string | null>(null);
 
@@ -36,12 +36,24 @@ export function SignupForm() {
         <div className="mb-2 text-2xl font-bold tracking-tight">
           Sell<span className="text-primary">Wise</span>
         </div>
-        <p className="text-sm text-muted-foreground">
-          7-day free trial. No card required.
-        </p>
+        {refCode ? (
+          <div className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm">
+            <p className="font-medium text-primary">You were invited!</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Sign up and run your first optimisation to unlock 7 days of Starter access — free.
+            </p>
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            7-day free trial. No card required.
+          </p>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         <form action={action} onSubmit={handleSubmit} className="space-y-4">
+          {refCode && (
+            <input type="hidden" name="ref_code" value={refCode} />
+          )}
           {errorMessage && (
             <div className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-xs text-destructive">
               {errorMessage}

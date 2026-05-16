@@ -27,7 +27,7 @@ export async function getUsageData(userId: string) {
   const [{ data: profile }, { data: usage }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("plan, trial_ends_at")
+      .select("plan, trial_ends_at, referral_bonus_ends_at")
       .eq("id", userId)
       .single(),
     supabase
@@ -40,9 +40,11 @@ export async function getUsageData(userId: string) {
 
   const storedPlan = profile?.plan ?? "free";
   const trialEndsAt = profile?.trial_ends_at ?? null;
+  const referralBonusEndsAt = profile?.referral_bonus_ends_at ?? null;
   const inTrial = storedPlan === "free" && isInTrial(trialEndsAt);
-  // While in trial, grant Growth-tier limits
-  const effectivePlan = inTrial ? "growth" : storedPlan;
+  const hasReferralBonus = storedPlan === "free" && isInTrial(referralBonusEndsAt);
+  // Trial → Growth limits; referral bonus → Starter limits
+  const effectivePlan = inTrial ? "growth" : hasReferralBonus ? "starter" : storedPlan;
   const limit = PLAN_LIMITS[effectivePlan];
 
   return {
@@ -50,6 +52,8 @@ export async function getUsageData(userId: string) {
     effectivePlan,
     inTrial,
     trialEndsAt,
+    hasReferralBonus,
+    referralBonusEndsAt,
     limit: limit === Infinity ? null : limit,
     optimisations: usage?.optimisations ?? 0,
     keywords: usage?.keywords ?? 0,

@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { checkLimit, incrementUsage } from "@/lib/usage";
+import { rewardReferral } from "@/lib/referral";
 import type { Platform } from "@/lib/platforms";
 
 const client = new Anthropic();
@@ -229,6 +230,9 @@ export async function POST(request: NextRequest) {
                 .update({ first_optimisation_at: new Date().toISOString() })
                 .eq("id", user.id);
             }
+
+            // Grant referral bonus to both parties on first use
+            await rewardReferral(user.id);
           } catch (e) {
             console.error("[first-optimisation stamp]", e);
           }
