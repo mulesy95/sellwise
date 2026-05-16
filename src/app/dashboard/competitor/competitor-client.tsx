@@ -48,7 +48,12 @@ export function CompetitorClient() {
 
   function handleUrlChange(e: React.ChangeEvent<HTMLInputElement>) {
     const detected = detectPlatformFromUrl(e.target.value);
-    setDetectedPlatform(detected);
+    setDetectedPlatform(detected === "etsy" ? null : detected);
+    if (detected === "etsy") {
+      setError("Etsy URLs aren't supported. Copy the listing content and use the Listing Audit tool with manual entry instead.");
+    } else {
+      setError(null);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -113,8 +118,7 @@ export function CompetitorClient() {
           Competitor Peek
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Paste any listing URL from Etsy, Amazon, Shopify, or eBay to get a
-          better version.
+          Paste any listing URL from Amazon, Shopify, or eBay to get a better version.
         </p>
       </div>
 
@@ -122,7 +126,7 @@ export function CompetitorClient() {
         <CardHeader className="pb-4">
           <CardTitle className="text-base">Listing URL</CardTitle>
           <CardDescription className="text-xs">
-            Supports Etsy, Amazon, Shopify stores, and eBay.
+            Supports Amazon, Shopify stores, and eBay.
           </CardDescription>
         </CardHeader>
         <CardContent>

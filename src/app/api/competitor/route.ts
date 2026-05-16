@@ -178,8 +178,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error:
-          "URL not recognised. Supported platforms: Etsy (etsy.com/listing/...), Amazon (amazon.com/dp/...), eBay (ebay.com/itm/...), Shopify (/products/...).",
+          "URL not recognised. Supported platforms: Amazon (amazon.com/dp/...), eBay (ebay.com/itm/...), Shopify (/products/...).",
         code: "UNSUPPORTED_URL",
+      },
+      { status: 422 }
+    );
+  }
+
+  if (platform === "etsy") {
+    return NextResponse.json(
+      {
+        error: "Etsy URLs are not supported. To analyse an Etsy listing, copy the title, tags, and description and use the Listing Audit tool with manual entry.",
+        code: "UNSUPPORTED_PLATFORM",
       },
       { status: 422 }
     );

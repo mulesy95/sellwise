@@ -29,7 +29,7 @@ export function extractListing(
 ): Omit<ExtractedListing, "platform"> {
   switch (platform) {
     case "etsy":
-      return extractEtsy(html);
+      throw new Error("Etsy URL analysis is not supported. Please enter your listing content manually.");
     case "amazon":
       return extractAmazon(html);
     case "ebay":
@@ -37,41 +37,6 @@ export function extractListing(
     case "shopify":
       return extractShopify(html);
   }
-}
-
-function extractEtsy(html: string): Omit<ExtractedListing, "platform"> {
-  const $ = cheerio.load(html);
-
-  let title =
-    $("h1").first().text().trim() ||
-    $("title")
-      .text()
-      .replace(/\s*[|—–]\s*.*$/, "")
-      .trim();
-
-  let tags: string[] = [];
-  let description = $('meta[name="description"]').attr("content") ?? "";
-
-  $('script[type="application/ld+json"]').each((_, el) => {
-    try {
-      const data = JSON.parse($(el).html() ?? "");
-      if (data["@type"] === "Product" || data.name) {
-        if (!title && data.name) title = data.name;
-        if (!description && data.description) description = data.description;
-        if (data.keywords) {
-          tags = String(data.keywords)
-            .split(",")
-            .map((k: string) => k.trim())
-            .filter(Boolean);
-        }
-      }
-    } catch {
-      // ignore malformed JSON-LD
-    }
-  });
-
-  if (!title) throw new Error("Could not extract listing title");
-  return { title, description, tags };
 }
 
 function extractAmazon(html: string): Omit<ExtractedListing, "platform"> {

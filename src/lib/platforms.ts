@@ -34,8 +34,7 @@ export const AUDIT_SECTIONS: Record<
   ],
 };
 
-export const PLATFORM_URL_EXAMPLES: Record<Platform, string> = {
-  etsy: "https://www.etsy.com/listing/123456/product-name",
+export const PLATFORM_URL_EXAMPLES: Partial<Record<Platform, string>> = {
   amazon: "https://www.amazon.com/dp/B08N5WRWNW",
   shopify: "https://yourstore.com/products/product-name",
   ebay: "https://www.ebay.com/itm/123456789",

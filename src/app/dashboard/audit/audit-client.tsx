@@ -164,7 +164,13 @@ export function AuditClient() {
     const val = e.target.value;
     setUrlValue(val);
     const detected = detectPlatformFromUrl(val);
-    setDetectedPlatform(detected);
+    if (detected === "etsy") {
+      setDetectedPlatform(null);
+      setError("Etsy URLs aren't supported. Switch to manual entry and paste your title, tags, and description.");
+    } else {
+      setDetectedPlatform(detected);
+      setError(null);
+    }
   }
 
   async function runAudit(payload: Record<string, string>) {
