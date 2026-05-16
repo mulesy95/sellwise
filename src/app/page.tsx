@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { ComingSoon } from "@/components/coming-soon";
+import { MarketingLanding } from "@/components/marketing-landing";
 
 export const metadata: Metadata = {
   title: "SellWise — AI Listing Optimiser for Online Sellers",
@@ -29,5 +30,6 @@ export default async function HomePage({
 }) {
   const { code } = await searchParams;
   if (code) redirect(`/auth/callback?code=${code}`);
-  return <ComingSoon />;
+  const comingSoon = process.env.NEXT_PUBLIC_COMING_SOON === "true";
+  return comingSoon ? <ComingSoon /> : <MarketingLanding />;
 }

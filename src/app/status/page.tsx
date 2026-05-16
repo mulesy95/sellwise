@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { CheckCircle2, AlertTriangle, XCircle, RefreshCw, Loader2 } from "lucide-react";
+import { CheckCircle2, AlertTriangle, XCircle, RefreshCw } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 
 interface ServiceStatus {
@@ -126,7 +127,7 @@ export default function StatusPage() {
         <div className={cn("mb-8 rounded-xl border px-5 py-4 text-center font-medium", banner.bg, banner.text)}>
           {loading && !data ? (
             <span className="flex items-center justify-center gap-2">
-              <Loader2 className="size-4 animate-spin" />
+              <Spinner size="sm" />
               Checking services...
             </span>
           ) : (

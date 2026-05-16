@@ -124,7 +124,7 @@ export function PricingClient() {
             )}
           >
             Annual
-            <Badge className="h-4 px-1 text-[10px] bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30">
+            <Badge className="h-5 px-1.5 text-xs bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30">
               Save 17%
             </Badge>
           </button>
@@ -232,7 +232,7 @@ export function PricingClient() {
           All paid plans include a 7-day free trial. No credit card required to start free.
         </p>
 
-        <div className="mt-10 flex justify-center gap-5 text-xs text-muted-foreground/50">
+        <div className="mt-10 flex justify-center gap-5 text-xs text-muted-foreground/60">
           <a href="/terms" className="hover:text-muted-foreground transition-colors">Terms</a>
           <a href="/privacy" className="hover:text-muted-foreground transition-colors">Privacy</a>
         </div>

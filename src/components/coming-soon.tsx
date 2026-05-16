@@ -60,14 +60,22 @@ export function ComingSoon() {
         <p className="mt-3 text-sm text-destructive">{state.error}</p>
       )}
 
-      <p className="mt-8 text-xs text-muted-foreground/50">
-        No spam. Just a launch notification.
+      <p className="mt-6 text-xs text-muted-foreground/60">
+        No spam. Just a one-time launch notification.
       </p>
 
-      <div className="mt-10 flex gap-5 text-xs text-muted-foreground/40">
+      <div className="mt-5 flex flex-col items-center gap-2 text-sm">
+        <a href="/invite" className="font-medium text-primary hover:opacity-80 transition-opacity">
+          Have a beta invite? Claim your access →
+        </a>
+        <a href="/login" className="text-muted-foreground hover:text-foreground transition-colors">
+          Already have an account? Sign in
+        </a>
+      </div>
+
+      <div className="mt-8 flex gap-5 text-xs text-muted-foreground/40">
         <a href="/terms" className="hover:text-muted-foreground transition-colors">Terms</a>
         <a href="/privacy" className="hover:text-muted-foreground transition-colors">Privacy</a>
-        <a href="/invite" className="hover:text-muted-foreground transition-colors">Beta access</a>
       </div>
     </div>
   );
