@@ -113,6 +113,9 @@ export default function StatusPage() {
       <div className="mx-auto max-w-2xl px-4 py-16 sm:py-24">
         {/* Header */}
         <div className="mb-10 text-center">
+          <a href="/" className="inline-block mb-6 text-2xl font-bold tracking-tight">
+            Sell<span className="text-primary">Wise</span>
+          </a>
           <h1 className="text-3xl font-bold tracking-tight">System Status</h1>
           <p className="mt-2 text-muted-foreground">
             Live health of SellWise services
