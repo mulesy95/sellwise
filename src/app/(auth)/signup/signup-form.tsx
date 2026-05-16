@@ -34,7 +34,7 @@ export function SignupForm({ refCode }: { refCode: string | null }) {
     <Card className="border-border/50 bg-card">
       <CardHeader className="pb-2 text-center">
         <div className="mb-2 text-2xl font-bold tracking-tight">
-          Sell<span className="text-primary">Wise</span>
+          Sell<span className="text-primary">Wise</span><span className="text-[0.55em] align-super">™</span>
         </div>
         {refCode ? (
           <div className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm">

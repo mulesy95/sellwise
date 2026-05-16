@@ -115,7 +115,7 @@ export default function StatusPage() {
         {/* Header */}
         <div className="mb-10 text-center">
           <a href="/" className="inline-block mb-6 text-2xl font-bold tracking-tight">
-            Sell<span className="text-primary">Wise</span>
+            Sell<span className="text-primary">Wise</span><span className="text-[0.55em] align-super">™</span>
           </a>
           <h1 className="text-3xl font-bold tracking-tight">System Status</h1>
           <p className="mt-2 text-muted-foreground">

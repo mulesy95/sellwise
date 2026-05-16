@@ -20,7 +20,7 @@ No social proof section (none available yet). No platform badges.
 
 ### 2. Hero (centred)
 - No platform badge
-- Headline: "Write listings that buyers actually find."
+- Headline: "Post listings that buyers actually find."
 - Subhead: "Tell us what you sell. We'll write the listing."
 - Primary CTA: "Try free for 7 days" → /signup
 - Secondary text: "No card needed"
@@ -36,6 +36,7 @@ Centred, max-width ~520px, shows a sample optimised Etsy listing:
 - Static/hardcoded content — not a live API call
 
 ### 3. Features (id="features")
+Section heading above the three columns: "Everything you need to rank"
 Three columns, icon + title + 1-line description:
 - Keyword Research — "Find 15 keywords buyers actually search for, with volume, competition and trend signals."
 - Competitor Peek — "Paste any marketplace listing URL. See their SEO and get a version that outranks it."
@@ -46,17 +47,21 @@ Three columns, icon + title + 1-line description:
 - Subhead: "Start free. Upgrade when you are ready."
 - Four plan cards: Free ($0), Starter ($19/mo), Growth ($39/mo, Popular badge), Studio ($79/mo)
 - Each card: name, price, one-line description
+  - Free: "1 optimisation per month"
+  - Starter: "50 optimisations + keywords, audits, competitor"
+  - Growth: "Unlimited optimisations + all features"
+  - Studio: "Unlimited + multi-shop"
 - Below cards: "7-day free trial on all paid plans. No card required to start."
 - "See full pricing" link → /pricing
 
 ### 5. Final CTA banner
 - Heading: "Get your first listing in 30 seconds."
-- Subhead: "No setup, no card needed. Just paste your product and go."
+- Subhead: "No setup, no card needed. Just describe your product and go."
 - Button: "Start for free" → /signup
 
 ### 6. Footer
 - Left: "SellWise" wordmark
-- Right links: Pricing | Sign in | Privacy | Terms
+- Right links: Pricing | Sign in (Privacy and Terms removed until those pages exist)
 - Bottom: "© 2026 SellWise"
 
 ---

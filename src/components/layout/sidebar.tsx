@@ -56,7 +56,7 @@ export function Sidebar({
       {/* Logo */}
       <div className="flex h-14 items-center border-b border-sidebar-border px-4">
         <span className="text-lg font-bold tracking-tight">
-          Sell<span className="text-primary">Wise</span>
+          Sell<span className="text-primary">Wise</span><span className="text-[0.55em] align-super">™</span>
         </span>
       </div>
 
