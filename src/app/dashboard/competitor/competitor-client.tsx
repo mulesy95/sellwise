@@ -5,6 +5,7 @@ import { Eye, Copy, Check, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Card,
   CardContent,
@@ -160,7 +161,7 @@ export function CompetitorClient() {
               </div>
               <Button type="submit" disabled={loading || !detectedPlatform} className="shrink-0">
                 {loading ? (
-                  <span className="size-4 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />
+                  <Spinner size="md" />
                 ) : (
                   <>
                     <Eye className="size-3.5" />
@@ -179,7 +180,7 @@ export function CompetitorClient() {
       {loading && (
         <Card className="flex min-h-48 items-center justify-center border-border/30">
           <CardContent className="text-center">
-            <div className="mx-auto mb-3 size-8 animate-spin rounded-full border-2 border-primary/20 border-t-primary" />
+            <Spinner size="lg" className="mx-auto mb-3" />
             <p className="text-sm text-muted-foreground">
               Fetching and analysing listing…
             </p>
@@ -318,7 +319,7 @@ export function CompetitorClient() {
                       className="rounded p-0.5 text-muted-foreground hover:text-foreground transition-colors"
                     >
                       {copied === "opt-title" ? (
-                        <Check className="size-3 text-green-500" />
+                        <Check className="size-3 text-primary" />
                       ) : (
                         <Copy className="size-3" />
                       )}
@@ -347,7 +348,7 @@ export function CompetitorClient() {
                           className="rounded p-0.5 text-muted-foreground hover:text-foreground transition-colors"
                         >
                           {copied === "opt-tags" ? (
-                            <Check className="size-3 text-green-500" />
+                            <Check className="size-3 text-primary" />
                           ) : (
                             <Copy className="size-3" />
                           )}
@@ -387,7 +388,7 @@ export function CompetitorClient() {
                             className="rounded p-0.5 text-muted-foreground hover:text-foreground transition-colors"
                           >
                             {copied === "opt-bullets" ? (
-                              <Check className="size-3 text-green-500" />
+                              <Check className="size-3 text-primary" />
                             ) : (
                               <Copy className="size-3" />
                             )}
@@ -417,7 +418,7 @@ export function CompetitorClient() {
                       className="rounded p-0.5 text-muted-foreground hover:text-foreground transition-colors"
                     >
                       {copied === "opt-desc" ? (
-                        <Check className="size-3 text-green-500" />
+                        <Check className="size-3 text-primary" />
                       ) : (
                         <Copy className="size-3" />
                       )}
@@ -438,7 +439,10 @@ export function CompetitorClient() {
           <CardContent className="text-center">
             <Eye className="mx-auto mb-3 size-8 text-muted-foreground/40" />
             <p className="text-sm text-muted-foreground">
-              Paste a listing URL above to get started.
+              Paste a Shopify listing URL and click <span className="font-medium text-foreground">Analyse</span>.
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground/70">
+              You'll see their listing alongside an AI-improved version.
             </p>
           </CardContent>
         </Card>

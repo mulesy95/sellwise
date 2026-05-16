@@ -6,6 +6,7 @@ import { Turnstile } from "@marsidev/react-turnstile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { signIn } from "@/lib/supabase/actions";
 
@@ -69,7 +70,7 @@ export function LoginForm({
           <Button type="submit" className="w-full" disabled={pending}>
             {pending ? (
               <>
-                <span className="mr-2 inline-block size-3.5 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />
+                <Spinner size="sm" className="mr-2" />
                 Signing in…
               </>
             ) : (

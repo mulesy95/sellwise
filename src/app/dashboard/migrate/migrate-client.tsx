@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Copy, Check, Sparkles, AlertCircle, ArrowLeftRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -260,7 +261,7 @@ export function MigrateClient() {
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? (
                   <>
-                    <span className="mr-2 inline-block size-3.5 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />
+                    <Spinner size="sm" className="mr-2" />
                     Migrating…
                   </>
                 ) : (
@@ -294,7 +295,7 @@ export function MigrateClient() {
           {loading && (
             <Card className="flex min-h-64 items-center justify-center border-border/30">
               <CardContent className="text-center">
-                <div className="mx-auto mb-3 size-8 animate-spin rounded-full border-2 border-primary/20 border-t-primary" />
+                <Spinner size="lg" className="mx-auto mb-3" />
                 <p className="text-sm text-muted-foreground">Reformatting for {PLATFORM_LABELS[target]}…</p>
               </CardContent>
             </Card>
@@ -348,7 +349,7 @@ export function MigrateClient() {
                           className="rounded p-0.5 text-muted-foreground hover:text-foreground transition-colors"
                         >
                           {copied === field.key ? (
-                            <Check className="size-3 text-green-500" />
+                            <Check className="size-3 text-primary" />
                           ) : (
                             <Copy className="size-3" />
                           )}

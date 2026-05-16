@@ -124,7 +124,7 @@ export default async function DashboardPage() {
       {/* Quick actions */}
       <div>
         <h2 className="mb-3 text-sm font-medium text-muted-foreground">
-          QUICK ACTIONS
+          Quick actions
         </h2>
         <div className="grid gap-3 sm:grid-cols-2">
           {quickActions.map((action) => (

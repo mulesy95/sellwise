@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { joinWaitlist, type WaitlistState } from "@/app/actions/waitlist";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 
 export function ComingSoon() {
   const [state, action, pending] = useActionState<WaitlistState, FormData>(
@@ -47,7 +48,7 @@ export function ComingSoon() {
           />
           <Button type="submit" disabled={pending} className="shrink-0">
             {pending ? (
-              <span className="size-4 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />
+              <Spinner size="md" />
             ) : (
               "Notify me"
             )}

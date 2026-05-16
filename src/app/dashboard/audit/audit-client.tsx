@@ -5,6 +5,7 @@ import { BarChart3, Sparkles, AlertCircle, Link2, PenLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Card,
   CardContent,
@@ -126,15 +127,15 @@ const PLATFORM_DESCRIPTIONS: Record<Platform, string> = {
 
 function scoreColour(score: number, max: number) {
   const pct = (score / max) * 100;
-  if (pct >= 70) return "text-green-500";
-  if (pct >= 40) return "text-amber-500";
-  return "text-red-400";
+  if (pct >= 70) return "text-emerald-600 dark:text-emerald-400";
+  if (pct >= 40) return "text-amber-600 dark:text-amber-400";
+  return "text-red-600 dark:text-red-400";
 }
 
 function overallColour(score: number) {
-  if (score >= 70) return "text-green-500";
-  if (score >= 40) return "text-amber-500";
-  return "text-red-400";
+  if (score >= 70) return "text-emerald-600 dark:text-emerald-400";
+  if (score >= 40) return "text-amber-600 dark:text-amber-400";
+  return "text-red-600 dark:text-red-400";
 }
 
 function overallLabel(score: number) {
@@ -309,7 +310,7 @@ export function AuditClient() {
                 </div>
                 <Button type="submit" className="w-full" disabled={loading || !detectedPlatform}>
                   {loading ? (
-                    <><span className="mr-2 inline-block size-3.5 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />Auditing…</>
+                    <><Spinner size="sm" className="mr-2" />Auditing…</>
                   ) : (
                     <><Sparkles className="size-3.5" />Audit this listing</>
                   )}
@@ -346,7 +347,7 @@ export function AuditClient() {
                   ))}
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? (
-                      <><span className="mr-2 inline-block size-3.5 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />Auditing…</>
+                      <><Spinner size="sm" className="mr-2" />Auditing…</>
                     ) : (
                       <><Sparkles className="size-3.5" />Run audit</>
                     )}
@@ -376,7 +377,12 @@ export function AuditClient() {
               <CardContent className="text-center">
                 <BarChart3 className="mx-auto mb-3 size-8 text-muted-foreground/40" />
                 <p className="text-sm text-muted-foreground">
-                  Your audit results will appear here.
+                  {mode === "url"
+                    ? "Paste a Shopify URL and click Audit this listing."
+                    : "Enter your listing content and click Run audit."}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground/70">
+                  You'll get a score out of 100 with specific improvements.
                 </p>
               </CardContent>
             </Card>
@@ -385,8 +391,8 @@ export function AuditClient() {
           {loading && (
             <Card className="flex min-h-64 items-center justify-center border-border/30">
               <CardContent className="text-center">
-                <div className="mx-auto mb-3 size-8 animate-spin rounded-full border-2 border-primary/20 border-t-primary" />
-                <p className="text-sm text-muted-foreground">
+                <Spinner size="lg" className="mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground" aria-live="polite">
                   Analysing your listing…
                 </p>
               </CardContent>

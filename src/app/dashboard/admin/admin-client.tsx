@@ -6,6 +6,7 @@ import { Plus, Send, Copy, Check, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Spinner } from "@/components/ui/spinner";
 
 interface BetaCode {
   id: string;
@@ -112,7 +113,7 @@ export function AdminClient({ initialCodes }: { initialCodes: BetaCode[] }) {
           />
           <Button onClick={createCode} disabled={creating || !newLabel.trim()} className="shrink-0">
             {creating ? (
-              <span className="size-4 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />
+              <Spinner size="md" />
             ) : (
               <><Plus className="size-4 mr-1.5" />Create</>
             )}
@@ -157,7 +158,7 @@ export function AdminClient({ initialCodes }: { initialCodes: BetaCode[] }) {
           <div className="flex items-center gap-3">
             <Button onClick={sendInvite} disabled={sending || !inviteEmail || !inviteCode} className="shrink-0">
               {sending ? (
-                <span className="size-4 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />
+                <Spinner size="md" />
               ) : (
                 <><Send className="size-4 mr-1.5" />Send magic link</>
               )}

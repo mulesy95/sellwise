@@ -11,7 +11,7 @@ interface FeatureGateProps {
 
 export function FeatureGate({ title, description, bullets }: FeatureGateProps) {
   return (
-    <div className="flex min-h-[420px] items-center justify-center">
+    <div className="flex min-h-96 items-center justify-center">
       <Card className="w-full max-w-md border-border/50">
         <CardContent className="flex flex-col items-center py-10 text-center">
           <div className="mb-4 flex size-14 items-center justify-center rounded-full bg-muted">

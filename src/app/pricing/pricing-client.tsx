@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Check, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -216,7 +217,7 @@ export function PricingClient() {
                     )}
                   >
                     {loading === plan.id ? (
-                      <span className="size-3.5 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />
+                      <Spinner size="sm" />
                     ) : (
                       `Get ${plan.name}`
                     )}
