@@ -117,12 +117,6 @@ const FORM_CONFIGS: Record<Platform, FieldConfig[]> = {
   ],
 };
 
-const PLATFORM_DESCRIPTIONS: Record<Platform, string> = {
-  etsy: "Score your Etsy listing 0–100 with a breakdown by title, tags, and description.",
-  amazon: "Score your Amazon listing 0–100 across title, bullet points, and backend keywords.",
-  shopify: "Score your Shopify product 0–100 across meta title, meta description, and product copy.",
-  ebay: "Score your eBay listing 0–100 across title and item description.",
-};
 
 function scoreColour(score: number, max: number) {
   const pct = (score / max) * 100;
@@ -241,7 +235,7 @@ export function AuditClient() {
           Listing Audit
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          {PLATFORM_DESCRIPTIONS[platform]}
+          Score your listing 0–100 with platform-specific criteria and a list of quick wins.
         </p>
       </div>
 
