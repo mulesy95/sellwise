@@ -147,7 +147,7 @@ export function CompetitorClient() {
                     id="url"
                     name="url"
                     type="url"
-                    placeholder="Paste a listing URL…"
+                    placeholder="Paste a Shopify product URL…"
                     required
                     onChange={handleUrlChange}
                     className={detectedPlatform ? "pr-24" : ""}
@@ -223,12 +223,12 @@ export function CompetitorClient() {
             {/* Original */}
             <Card className="border-border/50">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm text-muted-foreground">
-                  Their listing
-                  <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm">Their listing</CardTitle>
+                  <Badge variant="secondary" className="text-xs">
                     {PLATFORM_LABELS[result.platform]}
-                  </span>
-                </CardTitle>
+                  </Badge>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -302,9 +302,12 @@ export function CompetitorClient() {
             {/* Optimised */}
             <Card className="border-primary/30 bg-primary/5">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm text-primary">
-                  Optimised version
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm">AI-optimised</CardTitle>
+                  <Badge variant="outline" className="h-5 text-[10px] px-1.5 text-primary border-primary/30">
+                    Ready to use
+                  </Badge>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -316,12 +319,12 @@ export function CompetitorClient() {
                       onClick={() =>
                         copy(result.optimised.title, "opt-title")
                       }
-                      className="rounded p-0.5 text-muted-foreground hover:text-foreground transition-colors"
+                      className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
                     >
                       {copied === "opt-title" ? (
-                        <Check className="size-3 text-primary" />
+                        <Check className="size-3.5 text-primary" />
                       ) : (
-                        <Copy className="size-3" />
+                        <Copy className="size-3.5" />
                       )}
                     </button>
                   </div>
@@ -345,7 +348,7 @@ export function CompetitorClient() {
                           onClick={() =>
                             copy(result.optimised.tags!.join(", "), "opt-tags")
                           }
-                          className="rounded p-0.5 text-muted-foreground hover:text-foreground transition-colors"
+                          className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
                         >
                           {copied === "opt-tags" ? (
                             <Check className="size-3 text-primary" />
@@ -385,7 +388,7 @@ export function CompetitorClient() {
                                 "opt-bullets"
                               )
                             }
-                            className="rounded p-0.5 text-muted-foreground hover:text-foreground transition-colors"
+                            className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
                           >
                             {copied === "opt-bullets" ? (
                               <Check className="size-3 text-primary" />
@@ -415,12 +418,12 @@ export function CompetitorClient() {
                       onClick={() =>
                         copy(result.optimised.description, "opt-desc")
                       }
-                      className="rounded p-0.5 text-muted-foreground hover:text-foreground transition-colors"
+                      className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
                     >
                       {copied === "opt-desc" ? (
-                        <Check className="size-3 text-primary" />
+                        <Check className="size-3.5 text-primary" />
                       ) : (
-                        <Copy className="size-3" />
+                        <Copy className="size-3.5" />
                       )}
                     </button>
                   </div>

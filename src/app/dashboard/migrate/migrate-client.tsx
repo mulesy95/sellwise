@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
   CardContent,
@@ -18,7 +19,6 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import { PlatformSelector } from "@/components/platform-selector";
-import { cn } from "@/lib/utils";
 import { PLATFORM_LABELS, type Platform } from "@/lib/platforms";
 
 // ─── Source field configs ─────────────────────────────────────────────────────
@@ -238,16 +238,11 @@ export function MigrateClient() {
                 <div key={field.name} className="space-y-1.5">
                   <Label htmlFor={field.name}>{field.label}</Label>
                   {field.type === "textarea" ? (
-                    <textarea
+                    <Textarea
                       id={field.name}
                       name={field.name}
                       rows={4}
                       placeholder={field.placeholder}
-                      className={cn(
-                        "flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs",
-                        "placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
-                        "disabled:cursor-not-allowed disabled:opacity-50 resize-none"
-                      )}
                     />
                   ) : (
                     <Input id={field.name} name={field.name} placeholder={field.placeholder} />
@@ -306,7 +301,10 @@ export function MigrateClient() {
               <CardContent className="text-center">
                 <ArrowLeftRight className="mx-auto mb-3 size-8 text-muted-foreground/40" />
                 <p className="text-sm text-muted-foreground">
-                  Your {PLATFORM_LABELS[target]}-ready listing will appear here.
+                  Paste your listing and click <span className="font-medium text-foreground">Migrate to {PLATFORM_LABELS[target]}</span>.
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground/70">
+                  AI will reformat every field for the new platform's requirements.
                 </p>
               </CardContent>
             </Card>

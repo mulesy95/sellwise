@@ -217,13 +217,16 @@ export function KeywordsClient() {
       {keywords.length > 0 && !loading && (
         <Card className="border-border/50">
           <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="text-base">
-              {keywords.length} keywords found
-            </CardTitle>
+            <div>
+              <CardTitle className="text-base">{keywords.length} keywords found</CardTitle>
+              <p className="mt-0.5 text-[11px] text-muted-foreground/70">
+                Vol = search volume · Comp = how many competitors · ↑↓ = trend
+              </p>
+            </div>
             <Button
               variant="outline"
               size="sm"
-              className="h-7 text-xs"
+              className="h-7 text-xs shrink-0"
               onClick={copyAll}
             >
               <Copy className="size-3" />
@@ -235,7 +238,7 @@ export function KeywordsClient() {
               {keywords.map((kw) => (
                 <div
                   key={kw.keyword}
-                  className="flex items-center gap-3 px-6 py-2.5 hover:bg-muted/30 transition-colors"
+                  className="flex items-center gap-3 px-6 py-3 hover:bg-muted/30 transition-colors"
                 >
                   <span className="flex-1 text-sm font-medium">
                     {kw.keyword}
@@ -243,13 +246,13 @@ export function KeywordsClient() {
                   <div className="flex items-center gap-1.5">
                     <Badge
                       variant="outline"
-                      className={`text-[10px] h-5 px-1.5 ${volumeConfig[kw.volume].className}`}
+                      className={`text-xs h-5 px-1.5 ${volumeConfig[kw.volume].className}`}
                     >
                       {volumeConfig[kw.volume].label}
                     </Badge>
                     <Badge
                       variant="outline"
-                      className={`text-[10px] h-5 px-1.5 ${competitionConfig[kw.competition].className}`}
+                      className={`text-xs h-5 px-1.5 ${competitionConfig[kw.competition].className}`}
                     >
                       {competitionConfig[kw.competition].label}
                     </Badge>

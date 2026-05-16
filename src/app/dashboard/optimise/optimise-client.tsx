@@ -441,11 +441,12 @@ export function OptimiseClient({ plan }: { plan: string }) {
                 <CardTitle className="text-base">Optimised listing</CardTitle>
                 <Button
                   variant="ghost"
-                  size="icon-sm"
+                  size="sm"
                   onClick={() => setResult(null)}
-                  title="Start over"
+                  className="h-7 gap-1.5 text-xs text-muted-foreground"
                 >
-                  <RotateCcw className="size-3.5" />
+                  <RotateCcw className="size-3" />
+                  New listing
                 </Button>
               </CardHeader>
               <CardContent>

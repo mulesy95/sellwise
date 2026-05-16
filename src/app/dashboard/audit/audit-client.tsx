@@ -5,6 +5,7 @@ import { BarChart3, Sparkles, AlertCircle, Link2, PenLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Spinner } from "@/components/ui/spinner";
 import {
   Card,
@@ -14,6 +15,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import { PlatformSelector } from "@/components/platform-selector";
@@ -298,9 +300,9 @@ export function AuditClient() {
                     autoComplete="off"
                   />
                   {detectedPlatform && (
-                    <p className="text-[11px] text-primary">
+                    <Badge variant="outline" className="w-fit h-5 px-1.5 text-[10px] text-primary border-primary/30">
                       Detected: {detectedPlatform.charAt(0).toUpperCase() + detectedPlatform.slice(1)}
-                    </p>
+                    </Badge>
                   )}
                   {urlValue && !detectedPlatform && (
                     <p className="text-[11px] text-muted-foreground">
@@ -326,16 +328,11 @@ export function AuditClient() {
                     <div key={field.name} className="space-y-1.5">
                       <Label htmlFor={field.name}>{field.label}</Label>
                       {field.type === "textarea" ? (
-                        <textarea
+                        <Textarea
                           id={field.name}
                           name={field.name}
                           rows={4}
                           placeholder={field.placeholder}
-                          className={cn(
-                            "flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs",
-                            "placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
-                            "disabled:cursor-not-allowed disabled:opacity-50 resize-none"
-                          )}
                         />
                       ) : (
                         <Input id={field.name} name={field.name} placeholder={field.placeholder} />
