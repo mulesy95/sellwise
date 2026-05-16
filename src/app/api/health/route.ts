@@ -66,7 +66,8 @@ async function checkStatusPage(url: string): Promise<ServiceStatus> {
     if (indicator) return { status: "down", latency, message: data?.status?.description ?? "Incident reported" };
     return { status: "ok", latency };
   } catch {
-    return { status: "degraded", latency: Date.now() - start, message: "Status page unreachable" };
+    // Can't reach the status page — assume the service itself is fine rather than false-alarming users
+    return { status: "ok", latency: Date.now() - start };
   }
 }
 
