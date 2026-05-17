@@ -101,7 +101,7 @@ Write as if a real person is browsing this product page on their phone. The desc
 - Make the product feel worth the price before the customer even scrolls
 - Use short paragraphs — 2–3 sentences max — so it reads cleanly on mobile
 - Mention the most compelling detail (material, fit, feel, occasion) in the first 40 words
-- End with a line that removes hesitation or creates urgency (not fake urgency — something true like limited colourways, handmade, ships same day)
+- End with a line that removes hesitation. ONLY use a real fact that was in the input (e.g. handmade, ships same day). If no such fact was provided, close with why this product is worth buying based only on details you actually know
 
 Return ONLY a valid JSON object:
 {
