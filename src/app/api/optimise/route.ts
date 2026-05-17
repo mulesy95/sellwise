@@ -116,7 +116,7 @@ Return ONLY a valid JSON object:
 {
   "metaTitle": "max 60 chars strictly — start with the exact product name as given, then add the most distinctive visual detail if space allows (e.g. 'The Multi-location Snowboard | Pixel Art Base')",
   "metaDescription": "max 160 chars strictly — primary keyword included, factual description of what the product is, ends with a short call to action. No value judgements or lifestyle claims.",
-  "productTitle": "use the exact product name as given — do not rephrase, expand, or add descriptive words to it",
+  "productTitle": "if a real product name was provided, use it exactly with no changes. If the product name is a placeholder or generic identifier (e.g. 'Product 1', 'New Item'), generate a clean 4–8 word storefront title from confirmed product details only",
   "description": "200–300 words, desire-first opening, short benefit-led paragraphs, covers materials/fit/feel, ends with a line that closes the sale"
 }
 
