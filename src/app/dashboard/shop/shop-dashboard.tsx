@@ -352,6 +352,8 @@ function OptimisePanel({
           platform,
           productName: product.title,
           existingContent: existingText.slice(0, 800),
+          productId: product.id,
+          shopId,
           ...(uploadedImage
             ? { imageBase64: uploadedImage.base64, imageMediaType: uploadedImage.mediaType }
             : imageUrl

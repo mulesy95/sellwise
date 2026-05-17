@@ -22,6 +22,8 @@ const requestSchema = z.object({
   imageMediaType: z.enum(["image/jpeg", "image/png", "image/gif", "image/webp"]).optional(),
   imageUrl: z.string().url().refine((u) => u.startsWith("https://"), "imageUrl must use HTTPS").optional(),
   existingContent: z.string().max(1000).optional().default(""),
+  productId: z.string().optional(),
+  shopId: z.string().optional(),
 });
 
 const WRITING_RULES = `Writing rules:
@@ -185,7 +187,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { platform, productName, materials, style, targetBuyer, keywords, imageBase64, imageMediaType, imageUrl, existingContent } =
+  const { platform, productName, materials, style, targetBuyer, keywords, imageBase64, imageMediaType, imageUrl, existingContent, productId, shopId } =
     parsed.data;
 
   const hasImage = !!(imageUrl || (imageBase64 && imageMediaType));
@@ -236,16 +238,18 @@ export async function POST(request: NextRequest) {
       listing = JSON.parse(match[0]);
     }
 
-    // Save to history — fire and forget
-    void supabase.from("optimisations").insert({
-      user_id: user.id,
-      platform,
-      input: { productName, materials, style, targetBuyer, keywords },
-      output: listing,
-    });
-
     try {
-      await incrementUsage(user.id, "optimisations");
+      await Promise.all([
+        incrementUsage(user.id, "optimisations"),
+        supabase.from("optimisations").insert({
+          user_id: user.id,
+          platform,
+          product_id: productId ?? null,
+          shop_id: shopId ?? null,
+          input: { productName, materials, style, targetBuyer, keywords },
+          output: listing,
+        }),
+      ]);
       revalidatePath("/dashboard", "layout");
 
       // Stamp first optimisation time — cron sends email after 2 hours

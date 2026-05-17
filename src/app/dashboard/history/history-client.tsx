@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { History, ChevronDown, ChevronUp, Copy, Check, ExternalLink, Loader2 } from "lucide-react";
+import { History, ChevronDown, ChevronUp, Copy, Check, ExternalLink, Loader2, Archive, ArchiveRestore } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,6 +24,7 @@ interface Optimisation {
   output: Record<string, unknown>;
   score: number | null;
   created_at: string;
+  is_archived: boolean;
 }
 
 const PLATFORM_CONFIG: Record<Platform, { label: string; className: string }> = {
@@ -172,8 +173,27 @@ function InputSummary({ input }: { input: Optimisation["input"] }) {
   );
 }
 
-function OptimisationCard({ opt }: { opt: Optimisation }) {
+function OptimisationCard({ opt, onArchiveToggle }: { opt: Optimisation; onArchiveToggle: (id: string) => void }) {
   const [expanded, setExpanded] = useState(false);
+  const [archiving, setArchiving] = useState(false);
+
+  async function handleArchive(e: React.MouseEvent) {
+    e.stopPropagation();
+    setArchiving(true);
+    try {
+      const res = await fetch("/api/optimisations/archive", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: opt.id, archived: !opt.is_archived }),
+      });
+      if (!res.ok) throw new Error();
+      onArchiveToggle(opt.id);
+    } catch {
+      toast.error("Failed to update");
+    } finally {
+      setArchiving(false);
+    }
+  }
   const platformCfg = PLATFORM_CONFIG[opt.platform];
   const productName = opt.input?.productName ?? "Untitled product";
   const outputTitle = (() => {
@@ -229,13 +249,23 @@ function OptimisationCard({ opt }: { opt: Optimisation }) {
         <div className="border-t border-border/50 px-5 py-5">
           <div className="mb-4 flex items-center justify-between">
             <span className="text-xs text-muted-foreground">{formatDate(opt.created_at)} · {new Date(opt.created_at).toLocaleTimeString("en-AU", { hour: "2-digit", minute: "2-digit" })}</span>
-            <a
-              href={reoptimiseHref}
-              className="flex items-center gap-1.5 text-xs text-primary hover:underline"
-            >
-              <ExternalLink className="size-3" />
-              Re-optimise
-            </a>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleArchive}
+                disabled={archiving}
+                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+              >
+                {archiving ? <Loader2 className="size-3 animate-spin" /> : opt.is_archived ? <ArchiveRestore className="size-3" /> : <Archive className="size-3" />}
+                {opt.is_archived ? "Restore" : "Archive"}
+              </button>
+              <a
+                href={reoptimiseHref}
+                className="flex items-center gap-1.5 text-xs text-primary hover:underline"
+              >
+                <ExternalLink className="size-3" />
+                Re-optimise
+              </a>
+            </div>
           </div>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div>
@@ -269,13 +299,15 @@ export function HistoryClient() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [platform, setPlatform] = useState<Platform | "all">("all");
+  const [showArchived, setShowArchived] = useState(false);
 
-  const fetchPage = useCallback(async (pg: number, plat: Platform | "all", replace: boolean) => {
+  const fetchPage = useCallback(async (pg: number, plat: Platform | "all", replace: boolean, archived: boolean) => {
     const setter = replace ? setLoading : setLoadingMore;
     setter(true);
     try {
       const params = new URLSearchParams({ page: String(pg) });
       if (plat !== "all") params.set("platform", plat);
+      if (archived) params.set("archived", "1");
       const res = await fetch(`/api/optimisations?${params}`);
       if (!res.ok) throw new Error("Failed to load history");
       const data = await res.json();
@@ -291,8 +323,13 @@ export function HistoryClient() {
   }, []);
 
   useEffect(() => {
-    fetchPage(0, platform, true);
-  }, [platform, fetchPage]);
+    fetchPage(0, platform, true, showArchived);
+  }, [platform, fetchPage, showArchived]);
+
+  function handleArchiveToggle(id: string) {
+    setOptimisations((prev) => prev.filter((o) => o.id !== id));
+    setTotal((t) => Math.max(0, t - 1));
+  }
 
   return (
     <div className="space-y-6">
@@ -311,8 +348,8 @@ export function HistoryClient() {
         )}
       </div>
 
-      {/* Platform filter */}
-      <div className="flex flex-wrap gap-2">
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-2">
         {PLATFORMS.map((p) => (
           <button
             key={p.value}
@@ -327,6 +364,20 @@ export function HistoryClient() {
             {p.label}
           </button>
         ))}
+        <div className="ml-auto">
+          <button
+            onClick={() => setShowArchived((v) => !v)}
+            className={cn(
+              "flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors",
+              showArchived
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border text-muted-foreground hover:text-foreground hover:border-border/80"
+            )}
+          >
+            <Archive className="size-3" />
+            {showArchived ? "Viewing archived" : "Archived"}
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -342,11 +393,17 @@ export function HistoryClient() {
             <History className="mx-auto mb-3 size-8 text-muted-foreground/40" />
             <p className="text-sm text-muted-foreground font-medium">No optimisations yet</p>
             <p className="mt-1 text-xs text-muted-foreground/70">
-              {platform !== "all"
-                ? `No ${PLATFORM_CONFIG[platform as Platform].label} optimisations found.`
-                : "Run the Listing Optimiser and your results will appear here."}
+              {showArchived
+                ? "No archived optimisations."
+                : platform !== "all"
+                  ? `No ${PLATFORM_CONFIG[platform as Platform].label} optimisations found.`
+                  : "Run the Listing Optimiser and your results will appear here."}
             </p>
-            {platform !== "all" ? (
+            {showArchived ? (
+              <button onClick={() => setShowArchived(false)} className="mt-3 text-xs text-primary hover:underline">
+                Back to active
+              </button>
+            ) : platform !== "all" ? (
               <button onClick={() => setPlatform("all")} className="mt-3 text-xs text-primary hover:underline">
                 Show all platforms
               </button>
@@ -361,7 +418,7 @@ export function HistoryClient() {
         <>
           <div className="space-y-2">
             {optimisations.map((opt) => (
-              <OptimisationCard key={opt.id} opt={opt} />
+              <OptimisationCard key={opt.id} opt={opt} onArchiveToggle={handleArchiveToggle} />
             ))}
           </div>
 
@@ -370,7 +427,7 @@ export function HistoryClient() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => fetchPage(page + 1, platform, false)}
+                onClick={() => fetchPage(page + 1, platform, false, showArchived)}
                 disabled={loadingMore}
               >
                 {loadingMore ? <><Loader2 className="size-3.5 animate-spin" /> Loading…</> : "Load more"}

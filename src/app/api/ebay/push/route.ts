@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
   }
 
   async function saveHistory() {
-    void admin.from("optimisations").insert({
+    await admin.from("optimisations").insert({
       user_id: userId,
       platform: "ebay",
       product_id: itemId,
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
 
   try {
     await tryRevise(token);
-    void saveHistory();
+    await saveHistory();
     return NextResponse.json({ ok: true });
   } catch {
     if (shop.refresh_token) {
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
           refresh_token: refreshed.refresh_token,
         }).eq("id", shop.id);
         await tryRevise(token);
-        void saveHistory();
+        await saveHistory();
         return NextResponse.json({ ok: true });
       } catch (e) {
         console.error("[ebay push]", e);

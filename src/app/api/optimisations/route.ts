@@ -10,11 +10,13 @@ export async function GET(req: NextRequest) {
 
   const page = Math.max(0, Number(req.nextUrl.searchParams.get("page") ?? "0"));
   const platform = req.nextUrl.searchParams.get("platform");
+  const showArchived = req.nextUrl.searchParams.get("archived") === "1";
 
   let query = supabase
     .from("optimisations")
-    .select("id, platform, input, output, score, created_at", { count: "exact" })
+    .select("id, platform, input, output, score, created_at, is_archived", { count: "exact" })
     .eq("user_id", user.id)
+    .eq("is_archived", showArchived)
     .order("created_at", { ascending: false })
     .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
 

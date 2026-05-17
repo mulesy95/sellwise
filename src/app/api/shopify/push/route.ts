@@ -47,8 +47,7 @@ export async function POST(req: NextRequest) {
       body_html: parsed.data.body_html,
     });
 
-    // Record history — fire and forget
-    void admin.from("optimisations").insert({
+    await admin.from("optimisations").insert({
       user_id: user.id,
       platform: "shopify",
       product_id: parsed.data.productId,
