@@ -296,10 +296,11 @@ STRIPE_STUDIO_PRICE_ID=
 SHOPIFY_CLIENT_ID=
 SHOPIFY_CLIENT_SECRET=
 
-# eBay (to add when building eBay integration)
+# eBay (Trading API OAuth — requires developer.ebay.com registration)
 EBAY_APP_ID=
 EBAY_CLIENT_ID=
 EBAY_CLIENT_SECRET=
+EBAY_RU_NAME=
 
 # App
 NEXT_PUBLIC_APP_URL=https://sellwise.au
@@ -390,86 +391,46 @@ shipping and returns mentioned). Respond in valid JSON only.`,
 - [ ] Production deploy + domain
 - [ ] Launch posts drafted
 
-### Phase 5 — eBay Integration (NEXT)
-Priority: eBay is easiest platform to integrate legitimately (~1 day approval).
+### Phase 5 — eBay Integration (COMPLETE 2026-05-17)
 
-**Competitor research (no auth needed):**
-- [ ] Register for eBay Developer Program (free, ~1 day approval) — get AppID
-- [ ] Replace eBay URL scraping with Shopping API `GetSingleItem` — extract item ID from URL, call official API, return listing data
-- [ ] eBay Browse API — search competitor listings by keyword
+**Competitor research:**
+- [x] eBay Shopping API `GetSingleItem` — extracts item ID from URL, fetches listing data legitimately
+- [x] eBay Browse API — keyword competitor search (app token, no user auth)
 
 **Store connect (Trading API):**
-- [ ] eBay OAuth flow — connect seller account (similar pattern to Shopify)
-- [ ] Read seller's active listings via `GetSellerList`
-- [ ] Optimise panel per listing (pre-filled with current content)
-- [ ] Push updated title/description back via `ReviseFixedPriceItem` — Studio only
-
-**Kickoff prompt:**
-```
-Read CLAUDE.md for full project context, especially the Platform Compliance Rules section.
-
-Build Phase 5 — eBay integration using official APIs only (no scraping):
-
-1. eBay Developer Program
-   - Register at developer.ebay.com (free). Get AppID + ClientID + ClientSecret.
-   - Add EBAY_APP_ID, EBAY_CLIENT_ID, EBAY_CLIENT_SECRET to .env.local + Vercel.
-
-2. Competitor research via Shopping API
-   - In /api/competitor: when platform is "ebay", extract item ID from URL and call:
-     GET https://open.api.ebay.com/shopping?callname=GetSingleItem&ItemID={id}&appid={EBAY_APP_ID}&version=967&IncludeSelector=Description,Details,ItemSpecifics
-   - Remove the "coming soon" block, replace with real API call.
-   - In competitor-client.tsx: eBay URLs now work properly — show detected platform.
-
-3. eBay store connect
-   - OAuth flow similar to Shopify: /api/ebay/connect + /api/ebay/callback
-   - Store token in shops table (platform: 'ebay')
-   - Add eBay tab to /dashboard/shop alongside Shopify
-   - Trading API: GetSellerList to read listings, ReviseFixedPriceItem to push back
-
-eBay API docs: https://developer.ebay.com/api-docs/buy/browse/overview.html
-Shopping API: https://developer.ebay.com/devzone/shopping/docs/callref/index.html
-Trading API: https://developer.ebay.com/api-docs/user-guides/static/trading-user-guide-landing.html
-```
+- [x] `src/lib/ebay.ts` — full eBay library (Shopping, Browse, Trading APIs + OAuth, no new npm deps)
+- [x] `/api/ebay/connect` + `/api/ebay/callback` — OAuth flow
+- [x] `/api/ebay/listings` — fetch seller's active listings via Trading API
+- [x] `/api/ebay/push` — revise listing via `ReviseFixedPriceItem` (Studio only)
+- [x] `/api/ebay/disconnect` — remove eBay shop record
+- [x] My Shop: eBay tab in ConnectForm, platform-aware product panel + optimise panel
+- [x] Token auto-refresh on all seller API routes
+- [x] `supabase/migrations/20260517110854_add_refresh_token_to_shops.sql`
+- Note: Requires `EBAY_APP_ID`, `EBAY_CLIENT_ID`, `EBAY_CLIENT_SECRET`, `EBAY_RU_NAME` in env
 
 ### Phase 6 — Shopify Enhancements
-- [ ] Replace competitor HTML scraping with `/products.json` endpoint
-- [ ] Migrate Shopify Admin API from REST to GraphQL (REST deprecated April 2025)
-- [ ] SEO metafield push — write `title_tag` + `description_tag` directly to Shopify products via GraphQL (Studio differentiator)
-- [ ] Bulk product optimisation — GraphQL bulk mutations for all products at once
 
-**Kickoff prompt:**
-```
-Read CLAUDE.md for full project context, especially the Platform Compliance Rules section.
+- [x] Shopify Admin API — already GraphQL from day one (`src/lib/shopify.ts`, API version 2026-01)
+- [x] Competitor route — already uses `/products/${handle}.json` (not HTML scraping); cheerio used only to strip HTML tags from body_html JSON field
+- [ ] **SEO metafield push (Studio only)** — write AI-generated meta title + meta description to Shopify's `title_tag` + `description_tag` metafields via GraphQL `metafieldsSet` mutation. No copy-paste. This is the genuine Studio differentiator.
+  - Add `pushShopifyMetafields()` to `src/lib/shopify.ts`
+  - New route `/api/shopify/seo` — Studio only
+  - "Push SEO" button in `OptimisePanel` (Shopify + Studio only, separate from content push)
+- [ ] Bulk product optimisation — GraphQL bulk mutations for all products at once (lower priority)
 
-Build Phase 6 — Shopify enhancements:
+### Phase 7 — Product Quality + Retention (HIGH PRIORITY)
+These directly improve customer experience and retention — prioritise over new features.
 
-1. Replace competitor HTML scraping with /products.json
-   - In /api/competitor when platform is "shopify": fetch {storeUrl}/products.json
-   - Parse the JSON response for title, body_html (description)
-   - Remove cheerio dependency from Shopify path
+- [ ] **Results history + before/after tracking** — store SEO score at time of optimisation, show score improvement over time. Users need proof the tool worked or they don't renew. Show "Your listing went from Poor → Good on 14 May."
+- [ ] **Keyword → optimiser integration** — when optimising a product, let the user select from their saved keyword lists (matching platform). Saved keywords feed directly into the AI prompt as a signal. Makes both tools feel like one coherent product.
+- [ ] **AI output quality audit** — run real products through the tool (live eBay listings, real Shopify products) before launch and honestly assess output quality. Fix prompt gaps found.
+- [ ] **Agency tier on pricing page** — add visible "Agency" tier ($199–249/mo, "Contact us" button, no self-serve checkout yet). Lists: unlimited shops, higher daily cap, team seats coming soon. Captures agency leads before features are built.
 
-2. Migrate Shopify Admin API to GraphQL
-   - Current REST-based /api/shopify/listings and /api/shopify/push use deprecated REST
-   - Rewrite to use GraphQL Admin API (2026-01 version)
-   - Products query: fetch id, title, descriptionHtml, status, variants, images, onlineStoreUrl
-   - Product update mutation: update title and descriptionHtml
-
-3. SEO metafield push (Studio only)
-   - After optimising a Shopify product, offer "Push SEO" button (Studio only)
-   - GraphQL mutation: set title_tag metafield (meta title, max 60 chars)
-   - GraphQL mutation: set description_tag metafield (meta description, max 160 chars)
-   - This writes directly to the product's SEO settings in Shopify — no copy-paste
-
-Shopify GraphQL docs: https://shopify.dev/docs/api/admin-graphql/latest
-SEO metafields: https://shopify.dev/docs/apps/build/marketing-analytics/optimize-storefront-seo
-```
-
-### Phase 7 — New Features (No API Access Required)
+### Phase 8 — New Features (No API Access Required)
 - [ ] Platform Migration Tool — paste Etsy listing → select target platform → AI reformats for Amazon/Shopify/eBay. Pure AI, no API needed. High value.
 - [ ] Bulk Listing Optimiser — CSV upload → AI optimises all listings → download results. Growth/Studio.
-- [ ] Saved results history — track audits over time, show SEO score improvements
 
-### Phase 8 — Amazon SP-API (Future, High Complexity)
+### Phase 9 — Amazon SP-API (Future, High Complexity)
 - [ ] Amazon Seller Central OAuth via Login with Amazon (LWA)
 - [ ] SP-API Listings API — read seller's own ASINs and listing content
 - [ ] Bulk audit across all ASINs
@@ -528,3 +489,8 @@ SEO metafields: https://shopify.dev/docs/apps/build/marketing-analytics/optimize
 | 2026-05-16 | Full platform compliance audit — Amazon + eBay URL scraping blocked (ToS violation). Shopify URL mode only. Competitor tool now Shopify-only for URL analysis. |
 | 2026-05-16 | Platform API research complete — eBay Shopping/Browse/Trading APIs all legitimate and easy to access. Shopify /products.json + GraphQL is the clean path. Amazon SP-API deferred. |
 | 2026-05-16 | CLAUDE.md rewritten with compliance rules, revised roadmap, new feature opportunities, and updated kickoff prompts. |
+| 2026-05-16 | My Shop redesign — multi-store tabs, SEO score badges sorted worst-first, slide-out optimise panel, image upload + AI visual analysis + Shopify push, My Shop widget on main dashboard |
+| 2026-05-16 | Daily optimisation caps — Growth: 100/day, Studio: 250/day. Atomic SQL reset in RPC. |
+| 2026-05-16 | Prompt quality uplift — Shopify (desire-first, mobile-first), Etsy (emotion-first), eBay (scannable, condition-upfront) |
+| 2026-05-17 | Phase 5 complete — full eBay integration: Shopping API competitor research, Trading API store connect (OAuth, listings, push-back), /api/ebay/* routes, platform-aware My Shop |
+| 2026-05-17 | My Shop platform-aware fixes — eBay result maps title correctly, meta fields hidden for eBay, disconnect routes correctly, all hardcoded Shopify strings removed |
