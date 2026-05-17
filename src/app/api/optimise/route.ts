@@ -120,14 +120,13 @@ ${context}
 The description must:
 - Lead with the single most important spec or selling point (brand, model, condition, key feature)
 - Use short lines — eBay descriptions are scanned, not read
-- State condition clearly and honestly (New, Like New, Used — Good Condition, etc.)
-- Include anything that removes buyer hesitation: warranty, return policy, fast shipping, authenticity
-- End with a clear line on postage or pickup options
+- State condition clearly and honestly (New, Like New, Used — Good Condition, etc.) — only use condition details that were actually provided, do not invent claims about colour brightness, fade, or wear that were not stated
+- End with a returns and postage section using these exact placeholders — never invent specific timeframes or policies: [Your return policy, e.g. 30-day returns if not as described] and [Postage — e.g. tracked, dispatched within X business days, combined postage available]
 
 Return ONLY a valid JSON object:
 {
   "title": "max 80 chars — keyword-rich from the start, include brand/model/size/condition if known, no ALL CAPS, be specific",
-  "description": "150–300 words, most important spec first, short scannable lines, condition stated clearly, ends with shipping and returns note"
+  "description": "150–300 words, most important spec first, short scannable lines, condition stated clearly, ends with return and postage placeholders"
 }
 
 ${WRITING_RULES}
