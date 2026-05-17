@@ -29,6 +29,8 @@ const WRITING_RULES = `Writing rules:
 - NEVER invent lifestyle or aesthetic claims — do not say a product "looks great on a wall", "makes a statement", "starts a conversation", or any other made-up social/lifestyle context that wasn't in the input.
 - NEVER invent value judgements about graphics, designs, or colourways you haven't seen — do not say "the graphic alone makes it worth owning" or similar unless the image was provided and you can actually see it.
 - If a detail would strengthen the copy but isn't known, write around it rather than guessing (e.g. "comes in your choice of size" not "available in S, M, L").
+- NEVER include the platform name in any output field — do not write "Shopify", "eBay", "Etsy", or "Amazon" in any title, description, or meta field.
+- Use the exact product name as given. Do not paraphrase, shorten, or reinterpret it.
 - NEVER use em dashes (—), en dashes (–), or ellipses (…)
 - Write like a real person: short sentences, plain punctuation (commas, full stops, exclamation marks only)
 - No buzzwords: unique, stunning, beautiful, perfect, seamlessly, elevate, enhance`;
