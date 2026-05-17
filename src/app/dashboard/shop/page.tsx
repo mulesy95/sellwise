@@ -8,7 +8,7 @@ export const metadata = { title: "My Shop" };
 export default async function ShopPage({
   searchParams,
 }: {
-  searchParams: Promise<{ connected?: string; error?: string }>;
+  searchParams: Promise<{ connected?: string; error?: string; productId?: string; shopId?: string }>;
 }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -33,6 +33,8 @@ export default async function ShopPage({
       shops={shops ?? []}
       connected={params.connected === "true"}
       error={params.error}
+      autoProductId={params.productId}
+      autoShopId={params.shopId}
     />
   );
 }

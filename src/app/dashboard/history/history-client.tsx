@@ -14,6 +14,8 @@ type Platform = "etsy" | "amazon" | "shopify" | "ebay";
 interface Optimisation {
   id: string;
   platform: Platform;
+  product_id?: string | null;
+  shop_id?: string | null;
   input: {
     productName?: string;
     materials?: string;
@@ -203,7 +205,11 @@ function OptimisationCard({ opt, onArchiveToggle }: { opt: Optimisation; onArchi
       : null;
   })();
 
+  const isShopEntry = !!(opt.product_id && opt.shop_id);
   const reoptimiseHref = (() => {
+    if (isShopEntry) {
+      return `/dashboard/shop?productId=${encodeURIComponent(opt.product_id!)}&shopId=${encodeURIComponent(opt.shop_id!)}`;
+    }
     const p = new URLSearchParams({ platform: opt.platform });
     if (opt.input.productName) p.set("productName", opt.input.productName);
     if (opt.input.materials) p.set("materials", opt.input.materials);
@@ -263,7 +269,7 @@ function OptimisationCard({ opt, onArchiveToggle }: { opt: Optimisation; onArchi
                 className="flex items-center gap-1.5 text-xs text-primary hover:underline"
               >
                 <ExternalLink className="size-3" />
-                Re-optimise
+                {isShopEntry ? "Re-optimise in My Shop" : "Re-optimise"}
               </a>
             </div>
           </div>

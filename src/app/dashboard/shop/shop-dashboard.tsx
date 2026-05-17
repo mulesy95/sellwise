@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import {
   Store, Sparkles, ExternalLink, RefreshCw, ArrowRight,
   Lock, AlertCircle, Unplug, X, Copy, Check, Plus, ChevronRight, ImagePlus,
@@ -1008,12 +1008,14 @@ function ShopProductsPanel({
   platform,
   canOptimise,
   onUpgrade,
+  autoProductId,
 }: {
   shopId: string;
   plan: string;
   platform: string;
   canOptimise: boolean;
   onUpgrade: () => void;
+  autoProductId?: string;
 }) {
   const [products, setProducts] = useState<ShopifyProduct[]>([]);
   const [nextCursor, setNextCursor] = useState<string | undefined>();
@@ -1022,6 +1024,7 @@ function ShopProductsPanel({
   const [selectedProduct, setSelectedProduct] = useState<ShopifyProduct | null>(null);
   const [historyProduct, setHistoryProduct] = useState<ShopifyProduct | null>(null);
   const [history, setHistory] = useState<Record<string, string>>({});
+  const autoOpened = useRef(false);
 
   const fetchProducts = useCallback(async (cursor?: string) => {
     setLoading(true);
@@ -1059,6 +1062,15 @@ function ShopProductsPanel({
       })
       .catch(() => {});
   }, [fetchProducts, shopId]);
+
+  useEffect(() => {
+    if (!autoProductId || autoOpened.current || products.length === 0) return;
+    const match = products.find((p) => p.id === autoProductId);
+    if (match) {
+      setSelectedProduct(match);
+      autoOpened.current = true;
+    }
+  }, [products, autoProductId]);
 
   const sorted = products; // already sorted on fetch
 
@@ -1235,11 +1247,15 @@ export function ShopDashboard({
   shops,
   connected,
   error,
+  autoProductId,
+  autoShopId,
 }: {
   plan: string;
   shops: Shop[];
   connected: boolean;
   error?: string;
+  autoProductId?: string;
+  autoShopId?: string;
 }) {
   const canAccess = plan === "growth" || plan === "studio";
   const isStudio = plan === "studio";
@@ -1247,7 +1263,12 @@ export function ShopDashboard({
   const canAddMore = isStudio || shops.length < maxShops;
   const canOptimise = canAccess;
 
-  const [activeShopId, setActiveShopId] = useState<string>(shops[0]?.id ?? "");
+  const initialShopId = useMemo(() => {
+    if (autoShopId && shops.find((s) => s.id === autoShopId)) return autoShopId;
+    return shops[0]?.id ?? "";
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const [activeShopId, setActiveShopId] = useState<string>(initialShopId);
   const [showConnect, setShowConnect] = useState(shops.length === 0 && canAccess);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
 
@@ -1354,6 +1375,7 @@ export function ShopDashboard({
               platform={activeShop.platform}
               canOptimise={canOptimise}
               onUpgrade={() => setUpgradeOpen(true)}
+              autoProductId={activeShop.id === (autoShopId ?? activeShop.id) ? autoProductId : undefined}
             />
           ) : null}
         </div>
