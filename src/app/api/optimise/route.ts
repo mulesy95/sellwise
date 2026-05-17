@@ -29,7 +29,7 @@ const requestSchema = z.object({
 const WRITING_RULES = `Writing rules:
 - NEVER invent product details that were not provided. Only use details from the seller's input or visually confirmed in the product image (if one was supplied). No made-up dimensions, colours, materials, features, or condition claims.
 - NEVER invent lifestyle or aesthetic claims — do not say a product "looks great on a wall", "makes a statement", "starts a conversation", or any other made-up social/lifestyle context that wasn't in the input.
-- NEVER make editorial verdicts or value judgements — do not say a product is "worth buying", "worth picking over", "makes it worth owning", "zero filler", or any other claim that tells the buyer what to think. Describe; do not judge.
+- NEVER make editorial verdicts or value judgements — do not say a product "earns a second look", "rewards a close look", "delivers in full", "is worth buying", "worth picking over", or any other claim that tells the buyer what to think. Every sentence must describe the product, not evaluate it.
 - NEVER infer product quantities, set sizes, or bundle compositions from an image — if the photo shows two boards, do not write "two boards" or imply it is a set. Describe the product individually as listed.
 - If a detail would strengthen the copy but isn't known, write around it rather than guessing (e.g. "comes in your choice of size" not "available in S, M, L").
 - NEVER include the platform name in any output field — do not write "Shopify", "eBay", "Etsy", or "Amazon" in any title, description, or meta field.
@@ -104,11 +104,10 @@ Return only the JSON object, no markdown.`;
 ${context}${existingContent ? `\nExisting description (improve this, keep accurate product details):\n${existingContent}` : ""}
 
 Write as if a real person is browsing this product page on their phone. The description must:
-- Open with a sentence that creates desire, not just states facts
-- Make the product feel worth the price before the customer even scrolls
+- Open with the most specific, striking detail about this product — something only true of this product, not a generic opener
 - Use short paragraphs — 2–3 sentences max — so it reads cleanly on mobile
-- Mention the most compelling detail (material, fit, feel, occasion) in the first 40 words
-- End with a line that removes hesitation. ONLY use a real fact that was in the input (e.g. handmade, ships same day). If no such fact was provided, close with why this product is worth buying based only on details you actually know
+- Mention the most visually or functionally distinct detail in the first 40 words
+- End with a specific factual detail that supports the purchase — a real attribute of the product. If no clear closing fact exists, end on the most distinctive visual or functional detail from the description. Do NOT close with a verdict, recommendation, or opinion about whether the product is worth buying
 
 Return ONLY a valid JSON object:
 {
