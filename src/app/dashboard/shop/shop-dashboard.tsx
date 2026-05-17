@@ -260,11 +260,13 @@ function OptimisePanel({
   product,
   plan,
   shopId,
+  platform,
   onClose,
 }: {
   product: ShopifyProduct;
   plan: string;
   shopId: string;
+  platform: string;
   onClose: () => void;
 }) {
   const [loading, setLoading] = useState(false);
@@ -283,6 +285,7 @@ function OptimisePanel({
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isStudio = plan === "studio";
+  const isShopify = platform === "shopify";
 
   const existingText = product.body_html?.replace(/<[^>]+>/g, "").trim() ?? "";
   const imageUrl = product.images?.[0]?.src;
@@ -320,10 +323,9 @@ function OptimisePanel({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          platform: "shopify",
+          platform,
           productName: product.title,
           existingContent: existingText.slice(0, 800),
-          // Uploaded image takes precedence over existing Shopify image URL
           ...(uploadedImage
             ? { imageBase64: uploadedImage.base64, imageMediaType: uploadedImage.mediaType }
             : imageUrl
@@ -350,15 +352,19 @@ function OptimisePanel({
     if (!result) return;
     setPushing(true);
     try {
+      const pushBody = isShopify
+        ? { productId: product.id, shopId, title: result.productTitle, body_html: result.description }
+        : { itemId: product.id, shopId, title: result.productTitle, description: result.description };
+
       const requests: Promise<Response>[] = [
-        fetch("/api/shopify/push", {
+        fetch(isShopify ? "/api/shopify/push" : "/api/ebay/push", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ productId: product.id, shopId, title: result.productTitle, body_html: result.description }),
+          body: JSON.stringify(pushBody),
         }),
       ];
 
-      if (uploadedImage) {
+      if (uploadedImage && isShopify) {
         requests.push(
           fetch("/api/shopify/media", {
             method: "POST",
@@ -382,7 +388,11 @@ function OptimisePanel({
         }
       }
 
-      toast.success(uploadedImage ? "Content and image pushed to Shopify" : "Product updated in Shopify");
+      toast.success(
+        isShopify
+          ? uploadedImage ? "Content and image pushed to Shopify" : "Product updated in Shopify"
+          : "Listing updated on eBay"
+      );
       onClose();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to push");
@@ -452,7 +462,7 @@ function OptimisePanel({
                   <p className="text-xs text-muted-foreground mb-1">Title</p>
                   <p className="text-sm bg-muted/30 rounded-md px-3 py-2">{product.title}</p>
                 </div>
-                <div>
+                {isShopify && <div>
                   <p className="text-xs text-muted-foreground mb-1">Images</p>
                   <input
                     ref={fileInputRef}
@@ -499,7 +509,7 @@ function OptimisePanel({
                       </Button>
                     </div>
                   )}
-                </div>
+                </div>}
 
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">Description</p>
@@ -597,9 +607,11 @@ function OptimisePanel({
               <Button size="sm" onClick={handlePush} disabled={pushing}>
                 {pushing
                   ? <><Spinner size="sm" className="mr-1.5" />Applying…</>
-                  : uploadedImage
+                  : isShopify && uploadedImage
                   ? "Apply content + image"
-                  : "Apply to Shopify"}
+                  : isShopify
+                  ? "Apply to Shopify"
+                  : "Apply to eBay"}
               </Button>
             ) : (
               <a href="/pricing" className={cn(buttonVariants({ size: "sm" }), "text-xs")}>
@@ -617,38 +629,74 @@ function OptimisePanel({
 // ─── Connect form ─────────────────────────────────────────────────────────────
 
 function ConnectForm() {
+  const [tab, setTab] = useState<"shopify" | "ebay">("shopify");
   const [shopUrl, setShopUrl] = useState("");
   const [connecting, setConnecting] = useState(false);
 
-  function handleConnect() {
+  function handleShopify() {
     if (!shopUrl.trim()) return;
     setConnecting(true);
     window.location.href = `/api/shopify/connect?shop=${encodeURIComponent(shopUrl.trim())}`;
   }
 
+  function handleEbay() {
+    setConnecting(true);
+    window.location.href = "/api/ebay/connect";
+  }
+
   return (
-    <div className="rounded-xl border border-border/50 bg-card p-8 text-center space-y-4 max-w-md mx-auto">
-      <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-primary/10">
-        <Store className="size-5 text-primary" />
+    <div className="rounded-xl border border-border/50 bg-card p-8 space-y-5 max-w-md mx-auto">
+      <div className="flex items-center gap-3">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+          <Store className="size-4 text-primary" />
+        </div>
+        <div>
+          <h2 className="font-semibold">Connect a store</h2>
+          <p className="text-xs text-muted-foreground">Choose your platform to get started.</p>
+        </div>
       </div>
-      <div className="space-y-1">
-        <h2 className="font-semibold">Connect a Shopify store</h2>
-        <p className="text-sm text-muted-foreground">
-          Enter your store URL to connect. We&apos;ll read your products and let you optimise them with AI.
-        </p>
+
+      <div className="flex rounded-lg border border-border/60 p-1 gap-1">
+        {(["shopify", "ebay"] as const).map((p) => (
+          <button
+            key={p}
+            onClick={() => setTab(p)}
+            className={cn(
+              "flex-1 rounded-md py-1.5 text-sm font-medium transition-colors capitalize",
+              tab === p ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            {p === "shopify" ? "Shopify" : "eBay"}
+          </button>
+        ))}
       </div>
-      <div className="flex gap-2">
-        <Input
-          placeholder="yourstore.myshopify.com"
-          value={shopUrl}
-          onChange={(e) => setShopUrl(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") handleConnect(); }}
-          disabled={connecting}
-        />
-        <Button onClick={handleConnect} disabled={!shopUrl.trim() || connecting}>
-          {connecting ? <Spinner size="md" /> : "Connect"}
-        </Button>
-      </div>
+
+      {tab === "shopify" ? (
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">Enter your store URL to connect via OAuth.</p>
+          <div className="flex gap-2">
+            <Input
+              placeholder="yourstore.myshopify.com"
+              value={shopUrl}
+              onChange={(e) => setShopUrl(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") handleShopify(); }}
+              disabled={connecting}
+            />
+            <Button onClick={handleShopify} disabled={!shopUrl.trim() || connecting}>
+              {connecting ? <Spinner size="md" /> : "Connect"}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Connect your eBay seller account via OAuth. You&apos;ll be redirected to eBay to authorise access.
+          </p>
+          <Button className="w-full" onClick={handleEbay} disabled={connecting}>
+            {connecting ? <Spinner size="md" /> : "Connect eBay account"}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
@@ -720,11 +768,13 @@ function StoreTabs({
 function ShopProductsPanel({
   shopId,
   plan,
+  platform,
   canOptimise,
   onUpgrade,
 }: {
   shopId: string;
   plan: string;
+  platform: string;
   canOptimise: boolean;
   onUpgrade: () => void;
 }) {
@@ -740,13 +790,16 @@ function ShopProductsPanel({
     try {
       const params = new URLSearchParams({ shopId });
       if (cursor) params.set("cursor", cursor);
-      const res = await fetch(`/api/shopify/listings?${params}`);
+      const endpoint = platform === "ebay" ? "/api/ebay/listings" : "/api/shopify/listings";
+      const res = await fetch(`${endpoint}?${params}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Failed to load products");
+      // eBay returns { listings }, Shopify returns { products }
+      const items: ShopifyProduct[] = data.listings ?? data.products ?? [];
       if (cursor) {
-        setProducts((p) => [...p, ...data.products]);
+        setProducts((p) => [...p, ...items]);
       } else {
-        setProducts(sortByScore(data.products ?? []));
+        setProducts(sortByScore(items));
       }
       setNextCursor(data.nextCursor);
     } catch (err) {
@@ -754,7 +807,7 @@ function ShopProductsPanel({
     } finally {
       setLoading(false);
     }
-  }, [shopId]);
+  }, [shopId, platform]);
 
   useEffect(() => {
     fetchProducts();
@@ -769,6 +822,7 @@ function ShopProductsPanel({
           product={selectedProduct}
           plan={plan}
           shopId={shopId}
+          platform={platform}
           onClose={() => setSelectedProduct(null)}
         />
       )}
@@ -1038,6 +1092,7 @@ export function ShopDashboard({
             <ShopProductsPanel
               shopId={activeShop.id}
               plan={plan}
+              platform={activeShop.platform}
               canOptimise={canOptimise}
               onUpgrade={() => setUpgradeOpen(true)}
             />

@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getUsageData, incrementUsage } from "@/lib/usage";
 import { detectPlatformFromUrl, type Platform } from "@/lib/platforms";
 import { fetchShopifyProduct } from "@/lib/listing-scraper";
+import { extractEbayItemId, getEbayItem } from "@/lib/ebay";
 
 const client = new Anthropic();
 
@@ -185,11 +186,10 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (platform === "etsy" || platform === "amazon" || platform === "ebay") {
+  if (platform === "etsy" || platform === "amazon") {
     const messages: Record<string, string> = {
       etsy: "Etsy URLs are not supported. Copy the listing content and use the Listing Audit tool with manual entry instead.",
       amazon: "Amazon URL analysis is coming soon via the official SP-API. For now, copy the listing content and paste it into the Listing Audit tool.",
-      ebay: "eBay URL analysis is coming soon via the official eBay API. For now, copy the listing content and paste it into the Listing Audit tool.",
     };
     return NextResponse.json(
       { error: messages[platform], code: "UNSUPPORTED_PLATFORM" },
@@ -198,17 +198,49 @@ export async function POST(request: NextRequest) {
   }
 
   let extracted: Omit<ListingData, "platform">;
-  try {
-    extracted = await fetchShopifyProduct(url);
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : "Unknown error";
-    return NextResponse.json(
-      {
-        error: `Could not fetch this listing. ${msg.startsWith("HTTP") ? `The site returned ${msg}.` : "The store may not have a public products API or the URL is incorrect."} Try copying the listing content and using the Listing Audit tool instead.`,
-        code: "FETCH_FAILED",
-      },
-      { status: 422 }
-    );
+
+  if (platform === "ebay") {
+    const itemId = extractEbayItemId(url);
+    if (!itemId) {
+      return NextResponse.json(
+        { error: "Could not extract an item ID from this eBay URL. Make sure it contains /itm/ followed by the item number.", code: "FETCH_FAILED" },
+        { status: 422 }
+      );
+    }
+    try {
+      const item = await getEbayItem(itemId);
+      const specificsText = Object.entries(item.itemSpecifics)
+        .slice(0, 8)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join(", ");
+      extracted = {
+        title: item.title,
+        description: [
+          item.condition ? `Condition: ${item.condition}` : "",
+          item.description,
+          specificsText ? `Details: ${specificsText}` : "",
+        ].filter(Boolean).join("\n\n"),
+      };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      return NextResponse.json(
+        { error: `Could not fetch this eBay listing. ${msg} Make sure the item is active and the URL is correct.`, code: "FETCH_FAILED" },
+        { status: 422 }
+      );
+    }
+  } else {
+    try {
+      extracted = await fetchShopifyProduct(url);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      return NextResponse.json(
+        {
+          error: `Could not fetch this listing. ${msg.startsWith("HTTP") ? `The site returned ${msg}.` : "The store may not have a public products API or the URL is incorrect."} Try copying the listing content and using the Listing Audit tool instead.`,
+          code: "FETCH_FAILED",
+        },
+        { status: 422 }
+      );
+    }
   }
 
   const original: ListingData = { platform, ...extracted };
