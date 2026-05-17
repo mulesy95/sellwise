@@ -26,6 +26,8 @@ const requestSchema = z.object({
 
 const WRITING_RULES = `Writing rules:
 - NEVER invent product details that were not provided. Only use details from the seller's input or visually confirmed in the product image (if one was supplied). No made-up dimensions, colours, materials, features, or condition claims.
+- NEVER invent lifestyle or aesthetic claims — do not say a product "looks great on a wall", "makes a statement", "starts a conversation", or any other made-up social/lifestyle context that wasn't in the input.
+- NEVER invent value judgements about graphics, designs, or colourways you haven't seen — do not say "the graphic alone makes it worth owning" or similar unless the image was provided and you can actually see it.
 - If a detail would strengthen the copy but isn't known, write around it rather than guessing (e.g. "comes in your choice of size" not "available in S, M, L").
 - NEVER use em dashes (—), en dashes (–), or ellipses (…)
 - Write like a real person: short sentences, plain punctuation (commas, full stops, exclamation marks only)
@@ -203,7 +205,7 @@ export async function POST(request: NextRequest) {
   try {
     const message = await client.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 1024,
+      max_tokens: 2048,
       messages: [{
         role: "user",
         content: imageSource
