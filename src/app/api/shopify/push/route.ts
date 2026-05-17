@@ -42,6 +42,17 @@ export async function POST(req: NextRequest) {
       title: parsed.data.title,
       body_html: parsed.data.body_html,
     });
+
+    // Record history — fire and forget
+    void admin.from("optimisations").insert({
+      user_id: user.id,
+      platform: "shopify",
+      product_id: parsed.data.productId,
+      shop_id: parsed.data.shopId ?? null,
+      input: {},
+      output: { title: parsed.data.title, body_html: parsed.data.body_html },
+    });
+
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[shopify push]", err);

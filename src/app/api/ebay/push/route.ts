@@ -15,6 +15,7 @@ export async function POST(req: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
+  const userId = user.id;
 
   const admin = createAdminClient();
   const { data: profile } = await admin.from("profiles").select("plan").eq("id", user.id).single();
@@ -43,8 +44,20 @@ export async function POST(req: NextRequest) {
     await reviseEbayItem(t, itemId, { title, description });
   }
 
+  async function saveHistory() {
+    void admin.from("optimisations").insert({
+      user_id: userId,
+      platform: "ebay",
+      product_id: itemId,
+      shop_id: shopId ?? null,
+      input: {},
+      output: { title, description },
+    });
+  }
+
   try {
     await tryRevise(token);
+    void saveHistory();
     return NextResponse.json({ ok: true });
   } catch {
     if (shop.refresh_token) {
@@ -56,6 +69,7 @@ export async function POST(req: NextRequest) {
           refresh_token: refreshed.refresh_token,
         }).eq("id", shop.id);
         await tryRevise(token);
+        void saveHistory();
         return NextResponse.json({ ok: true });
       } catch (e) {
         console.error("[ebay push]", e);

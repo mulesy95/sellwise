@@ -136,6 +136,12 @@ function useLoadingStep(loading: boolean, platform: Platform) {
 
 type ImageMediaType = "image/jpeg" | "image/png" | "image/gif" | "image/webp";
 
+interface KeywordList {
+  id: string;
+  name: string;
+  keywords: string[];
+}
+
 export function OptimiseClient({ plan }: { plan: string }) {
   const [platform, setPlatform] = useState<Platform>("etsy");
   const [loading, setLoading] = useState(false);
@@ -146,6 +152,9 @@ export function OptimiseClient({ plan }: { plan: string }) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [imageMediaType, setImageMediaType] = useState<ImageMediaType>("image/jpeg");
+  const [keywordLists, setKeywordLists] = useState<KeywordList[]>([]);
+  const [keywordsValue, setKeywordsValue] = useState("");
+  const [showListPicker, setShowListPicker] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const loadingStep = useLoadingStep(loading, platform);
 
@@ -154,7 +163,16 @@ export function OptimiseClient({ plan }: { plan: string }) {
   function handlePlatformChange(p: Platform) {
     setPlatform(p);
     setResult(null);
+    setKeywordsValue("");
+    setShowListPicker(false);
   }
+
+  useEffect(() => {
+    fetch(`/api/keyword-lists?platform=${platform}`)
+      .then((r) => r.json())
+      .then((d) => setKeywordLists(d.lists ?? []))
+      .catch(() => setKeywordLists([]));
+  }, [platform]);
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -316,10 +334,43 @@ export function OptimiseClient({ plan }: { plan: string }) {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="keywords">Keywords to include (optional)</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="keywords">Keywords to include (optional)</Label>
+                  {keywordLists.length > 0 && (
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setShowListPicker((v) => !v)}
+                        className="text-[11px] text-primary hover:underline"
+                      >
+                        Use saved list
+                      </button>
+                      {showListPicker && (
+                        <div className="absolute right-0 top-5 z-10 min-w-[180px] rounded-lg border border-border bg-card shadow-lg py-1">
+                          {keywordLists.map((list) => (
+                            <button
+                              key={list.id}
+                              type="button"
+                              onClick={() => {
+                                setKeywordsValue(list.keywords.slice(0, 10).join(", "));
+                                setShowListPicker(false);
+                              }}
+                              className="w-full px-3 py-1.5 text-left text-xs hover:bg-muted transition-colors"
+                            >
+                              <span className="font-medium">{list.name}</span>
+                              <span className="text-muted-foreground ml-1">({list.keywords.length})</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
                 <Input
                   id="keywords"
                   name="keywords"
+                  value={keywordsValue}
+                  onChange={(e) => setKeywordsValue(e.target.value)}
                   placeholder="e.g. unique mug, pottery gift, handmade gift"
                 />
               </div>

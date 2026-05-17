@@ -232,6 +232,39 @@ export async function pushShopifyImage(
   if (mediaErrors.length) throw new Error(mediaErrors[0].message);
 }
 
+// ─── Push SEO metafields ──────────────────────────────────────────────────────
+
+const SEO_METAFIELDS_MUTATION = `
+  mutation metafieldsSet($metafields: [MetafieldsSetInput!]!) {
+    metafieldsSet(metafields: $metafields) {
+      metafields { id key value }
+      userErrors { field message }
+    }
+  }
+`;
+
+export async function pushShopifyMetafields(
+  shop: string,
+  accessToken: string,
+  productId: string,
+  metaTitle: string,
+  metaDescription: string
+): Promise<void> {
+  const data = await shopifyGraphQL<{
+    metafieldsSet: {
+      metafields: { id: string; key: string; value: string }[];
+      userErrors: { field: string[]; message: string }[];
+    };
+  }>(shop, accessToken, SEO_METAFIELDS_MUTATION, {
+    metafields: [
+      { ownerId: productId, namespace: "seo", key: "title", value: metaTitle, type: "single_line_text_field" },
+      { ownerId: productId, namespace: "seo", key: "description", value: metaDescription, type: "multi_line_text_field" },
+    ],
+  });
+  const errors = data.metafieldsSet.userErrors;
+  if (errors.length) throw new Error(errors[0].message);
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface ShopifyProduct {

@@ -12,7 +12,8 @@ const features = {
   free:    ["1 optimisation / month", "All platforms (manual entry)", "Basic listing optimiser"],
   starter: ["50 optimisations / month", "Keyword Research", "Listing Audit", "Competitor Peek", "Platform Migration", "Email support"],
   growth:  ["Unlimited optimisations", "Unlimited keywords", "Unlimited audits", "Unlimited competitor analyses", "Priority support", "Optimisation history"],
-  studio:  ["Everything in Growth", "Connect your Shopify store", "Push edits back to your shop", "Multi-shop management", "Dedicated support"],
+  studio:  ["Everything in Growth", "Connect your Shopify + eBay store", "Push edits back to your shop", "SEO metafield push (Shopify)", "Multi-shop management", "Dedicated support"],
+  agency:  ["Everything in Studio", "Up to 10 connected stores", "500 optimisations / day", "Team seats (coming soon)", "White-label output (coming soon)", "Dedicated account manager"],
 };
 
 const plans = [
@@ -48,6 +49,14 @@ const plans = [
     annual: 790,
     description: "Multi-platform + shop API",
     comingSoon: true,
+  },
+  {
+    id: "agency" as const,
+    name: "Agency",
+    monthly: 249,
+    annual: 2490,
+    description: "For agencies & power sellers",
+    comingSoon: false,
   },
 ];
 
@@ -133,7 +142,7 @@ export function PricingClient() {
 
       {/* Plan cards */}
       <div className="mx-auto max-w-5xl px-6 pb-20">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           {plans.map((plan) => {
             const price = billing === "annual" ? plan.annual : plan.monthly;
             const monthlyEquiv =
@@ -178,7 +187,7 @@ export function PricingClient() {
                 </div>
 
                 <ul className="flex-1 space-y-2 mb-6">
-                  {features[plan.id].map((f) => (
+                  {features[plan.id as keyof typeof features].map((f) => (
                     <li key={f} className="flex items-start gap-2 text-xs">
                       <Check className="size-3.5 shrink-0 mt-0.5 text-primary" />
                       {f}
@@ -192,6 +201,13 @@ export function PricingClient() {
                     className={buttonVariants({ variant: "outline", size: "sm", className: "w-full text-xs" })}
                   >
                     Get started free
+                  </a>
+                ) : plan.id === "agency" ? (
+                  <a
+                    href="mailto:brad@sellwise.au?subject=Agency plan enquiry"
+                    className={buttonVariants({ size: "sm", className: "w-full text-xs" })}
+                  >
+                    Contact us
                   </a>
                 ) : plan.comingSoon ? (
                   <button

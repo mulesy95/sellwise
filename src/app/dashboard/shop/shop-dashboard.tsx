@@ -208,16 +208,22 @@ function ProductRow({
   canOptimise,
   onOptimise,
   onLocked,
+  lastOptimisedAt,
 }: {
   product: ShopifyProduct;
   canOptimise: boolean;
   onOptimise: (p: ShopifyProduct) => void;
   onLocked: () => void;
+  lastOptimisedAt?: string;
 }) {
   const image = product.images?.[0]?.src;
   const price = product.variants?.[0]?.price;
   const score = calcSeoScore(product);
   const { label, dot, badge } = SCORE_CONFIG[score];
+
+  const optimisedLabel = lastOptimisedAt
+    ? `Optimised ${new Date(lastOptimisedAt).toLocaleDateString("en-AU", { day: "numeric", month: "short" })}`
+    : null;
 
   return (
     <div className="flex items-center gap-3 py-3 border-b border-border/40 last:border-0">
@@ -236,6 +242,9 @@ function ProductRow({
             <span className={cn("size-1.5 rounded-full", dot)} />
             {label}
           </span>
+          {optimisedLabel && (
+            <span className="text-[10px] text-emerald-600 dark:text-emerald-400">{optimisedLabel}</span>
+          )}
         </div>
       </div>
       <Button
@@ -364,6 +373,21 @@ function OptimisePanel({
         }),
       ];
 
+      if (isShopify && isStudio && result.metaTitle && result.metaDescription) {
+        requests.push(
+          fetch("/api/shopify/seo", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              productId: product.id,
+              shopId,
+              metaTitle: result.metaTitle,
+              metaDescription: result.metaDescription,
+            }),
+          })
+        );
+      }
+
       if (uploadedImage && isShopify) {
         requests.push(
           fetch("/api/shopify/media", {
@@ -390,7 +414,11 @@ function OptimisePanel({
 
       toast.success(
         isShopify
-          ? uploadedImage ? "Content and image pushed to Shopify" : "Product updated in Shopify"
+          ? uploadedImage
+            ? "Content, SEO and image pushed to Shopify"
+            : isStudio
+            ? "Content and SEO pushed to Shopify"
+            : "Product updated in Shopify"
           : "Listing updated on eBay"
       );
       onClose();
@@ -793,6 +821,7 @@ function ShopProductsPanel({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<ShopifyProduct | null>(null);
+  const [history, setHistory] = useState<Record<string, string>>({});
 
   const fetchProducts = useCallback(async (cursor?: string) => {
     setLoading(true);
@@ -821,7 +850,15 @@ function ShopProductsPanel({
 
   useEffect(() => {
     fetchProducts();
-  }, [fetchProducts]);
+    fetch(`/api/optimisations/history?shopId=${shopId}`)
+      .then((r) => r.json())
+      .then((d) => {
+        const map: Record<string, string> = {};
+        for (const h of d.history ?? []) map[h.productId] = h.optimisedAt;
+        setHistory(map);
+      })
+      .catch(() => {});
+  }, [fetchProducts, shopId]);
 
   const sorted = products; // already sorted on fetch
 
@@ -896,6 +933,7 @@ function ShopProductsPanel({
                     canOptimise={canOptimise}
                     onOptimise={setSelectedProduct}
                     onLocked={onUpgrade}
+                    lastOptimisedAt={history[p.id]}
                   />
                 ))}
                 {nextCursor && (

@@ -9,6 +9,7 @@ import {
   Copy,
   Check,
   AlertCircle,
+  BookmarkPlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -98,10 +99,36 @@ export function KeywordsClient() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveListName, setSaveListName] = useState("");
+  const [showSaveInput, setShowSaveInput] = useState(false);
 
   function handlePlatformChange(p: Platform) {
     setPlatform(p);
     setKeywords([]);
+    setShowSaveInput(false);
+    setSaveListName("");
+  }
+
+  async function handleSaveList() {
+    const name = saveListName.trim();
+    if (!name || keywords.length === 0) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/keyword-lists", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, platform, keywords }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error ?? "Failed to save");
+      toast.success(`"${name}" saved to your keyword lists`);
+      setShowSaveInput(false);
+      setSaveListName("");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to save list");
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -216,22 +243,56 @@ export function KeywordsClient() {
 
       {keywords.length > 0 && !loading && (
         <Card className="border-border/50">
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <div>
-              <CardTitle className="text-base">{keywords.length} keywords found</CardTitle>
-              <p className="mt-0.5 text-[11px] text-muted-foreground/70">
-                Vol = search volume · Comp = how many competitors · ↑↓ = trend
-              </p>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base">{keywords.length} keywords found</CardTitle>
+                <p className="mt-0.5 text-[11px] text-muted-foreground/70">
+                  Vol = search volume · Comp = how many competitors · ↑↓ = trend
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={copyAll}
+                >
+                  <Copy className="size-3" />
+                  Copy all
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={() => setShowSaveInput((v) => !v)}
+                >
+                  <BookmarkPlus className="size-3" />
+                  Save list
+                </Button>
+              </div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-7 text-xs shrink-0"
-              onClick={copyAll}
-            >
-              <Copy className="size-3" />
-              Copy all
-            </Button>
+            {showSaveInput && (
+              <div className="mt-3 flex gap-2">
+                <input
+                  autoFocus
+                  type="text"
+                  placeholder="List name, e.g. Vintage cameras"
+                  value={saveListName}
+                  onChange={(e) => setSaveListName(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") handleSaveList(); if (e.key === "Escape") setShowSaveInput(false); }}
+                  className="flex-1 rounded-md border border-border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+                <Button
+                  size="sm"
+                  className="h-8 text-xs"
+                  onClick={handleSaveList}
+                  disabled={saving || !saveListName.trim()}
+                >
+                  {saving ? <Spinner size="sm" /> : "Save"}
+                </Button>
+              </div>
+            )}
           </CardHeader>
           <CardContent className="p-0">
             <div className="divide-y divide-border/50">
