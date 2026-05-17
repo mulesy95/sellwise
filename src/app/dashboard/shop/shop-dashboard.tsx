@@ -338,7 +338,7 @@ function OptimisePanel({
       setResult({
         metaTitle: data.metaTitle ?? "",
         metaDescription: data.metaDescription ?? "",
-        productTitle: data.productTitle ?? "",
+        productTitle: (data.productTitle ?? data.title ?? "") as string,
         description: data.description ?? "",
       });
     } catch (err) {
@@ -403,13 +403,18 @@ function OptimisePanel({
 
   async function copyAll() {
     if (!result) return;
-    const text = [
-      `META TITLE:\n${result.metaTitle}`,
-      `META DESCRIPTION:\n${result.metaDescription}`,
-      `PRODUCT TITLE:\n${result.productTitle}`,
-      `DESCRIPTION:\n${result.description}`,
-    ].join("\n\n");
-    await navigator.clipboard.writeText(text);
+    const lines = isShopify
+      ? [
+          `META TITLE:\n${result.metaTitle}`,
+          `META DESCRIPTION:\n${result.metaDescription}`,
+          `PRODUCT TITLE:\n${result.productTitle}`,
+          `DESCRIPTION:\n${result.description}`,
+        ]
+      : [
+          `TITLE:\n${result.productTitle}`,
+          `DESCRIPTION:\n${result.description}`,
+        ];
+    await navigator.clipboard.writeText(lines.join("\n\n"));
     toast.success("All fields copied");
   }
 
@@ -439,7 +444,7 @@ function OptimisePanel({
               <h2 id="optimise-panel-title" className="text-sm font-semibold truncate">
                 {product.title}
               </h2>
-              <p className="text-xs text-muted-foreground">Shopify listing optimiser</p>
+              <p className="text-xs text-muted-foreground">{platform === "shopify" ? "Shopify" : "eBay"} listing optimiser</p>
             </div>
           </div>
           <button
@@ -563,22 +568,27 @@ function OptimisePanel({
 
               {result && (
                 <div className="space-y-4">
+                  {isShopify && (
+                    <>
+                      <ResultField
+                        label="Meta title"
+                        value={result.metaTitle}
+                        onChange={(v) => setResult((r) => r && { ...r, metaTitle: v })}
+                        maxLen={60}
+                      />
+                      <ResultField
+                        label="Meta description"
+                        value={result.metaDescription}
+                        onChange={(v) => setResult((r) => r && { ...r, metaDescription: v })}
+                        maxLen={160}
+                      />
+                    </>
+                  )}
                   <ResultField
-                    label="Meta title"
-                    value={result.metaTitle}
-                    onChange={(v) => setResult((r) => r && { ...r, metaTitle: v })}
-                    maxLen={60}
-                  />
-                  <ResultField
-                    label="Meta description"
-                    value={result.metaDescription}
-                    onChange={(v) => setResult((r) => r && { ...r, metaDescription: v })}
-                    maxLen={160}
-                  />
-                  <ResultField
-                    label="Product title"
+                    label={isShopify ? "Product title" : "Title"}
                     value={result.productTitle}
                     onChange={(v) => setResult((r) => r && { ...r, productTitle: v })}
+                    maxLen={isShopify ? undefined : 80}
                   />
                   <ResultField
                     label="Description"
@@ -907,7 +917,7 @@ function ShopProductsPanel({
           <Card className="border-border/50">
             <CardContent className="flex items-center justify-between py-4 gap-4">
               <div>
-                <p className="text-sm font-medium">Apply changes directly to Shopify</p>
+                <p className="text-sm font-medium">Apply changes directly to {platform === "shopify" ? "Shopify" : "eBay"}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   No copy-paste. Optimise and push with one click. Studio plan only.
                 </p>
@@ -933,9 +943,9 @@ function LockedState() {
           <Store className="size-5 text-primary" />
         </div>
         <div>
-          <h2 className="font-semibold text-lg">Connect your Shopify store</h2>
+          <h2 className="font-semibold text-lg">Connect your store</h2>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            See every product&apos;s SEO health at a glance. Fix underperforming listings in seconds — not hours.
+            See every product&apos;s SEO health at a glance. Fix underperforming listings in seconds, not hours.
           </p>
         </div>
         <ul className="space-y-2.5 text-left text-sm">
@@ -944,7 +954,7 @@ function LockedState() {
             { text: "Sorted by urgency — worst performers always at the top" },
             { text: "One-click optimise — AI rewrites using your existing description as context" },
             { text: "Side-by-side comparison — current vs optimised before you commit" },
-            { text: "Push directly to Shopify with no copy-paste (Studio)" },
+            { text: "Push directly to Shopify or eBay with no copy-paste (Studio)" },
           ].map(({ text, strong }) => (
             <li key={text} className="flex items-start gap-2.5">
               <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-primary" />
@@ -994,7 +1004,7 @@ export function ShopDashboard({
   const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   useEffect(() => {
-    if (connected) toast.success("Shopify store connected!");
+    if (connected) toast.success("Store connected!");
     if (error === "connection_failed") toast.error("Connection failed. Please try again.");
     if (error === "upgrade_required") toast.error("Upgrade to Growth or Studio to connect a shop.");
   }, [connected, error]);
@@ -1012,7 +1022,8 @@ export function ShopDashboard({
   async function handleDisconnect(shop: Shop) {
     if (!confirm(`Disconnect ${shop.shop_name}? You can reconnect at any time.`)) return;
     try {
-      const res = await fetch("/api/shopify/disconnect", {
+      const endpoint = shop.platform === "ebay" ? "/api/ebay/disconnect" : "/api/shopify/disconnect";
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ shopId: shop.id }),
