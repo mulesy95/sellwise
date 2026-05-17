@@ -25,6 +25,8 @@ const requestSchema = z.object({
 });
 
 const WRITING_RULES = `Writing rules:
+- NEVER invent product details that were not stated in the input — no dimensions, colours, materials, features, condition, or claims the seller did not provide. Only describe what you know.
+- If a detail would help the copy but wasn't provided, write around it (e.g. "available in your choice of size") — never make it up.
 - NEVER use em dashes (—), en dashes (–), or ellipses (…)
 - Write like a real person: short sentences, plain punctuation (commas, full stops, exclamation marks only)
 - No buzzwords: unique, stunning, beautiful, perfect, seamlessly, elevate, enhance`;
@@ -229,6 +231,14 @@ export async function POST(request: NextRequest) {
       }
       listing = JSON.parse(match[0]);
     }
+
+    // Save to history — fire and forget
+    void supabase.from("optimisations").insert({
+      user_id: user.id,
+      platform,
+      input: { productName, materials, style, targetBuyer, keywords },
+      output: listing,
+    });
 
     try {
       await incrementUsage(user.id, "optimisations");

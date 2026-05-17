@@ -1,0 +1,384 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import { History, ChevronDown, ChevronUp, Copy, Check, ExternalLink, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+
+type Platform = "etsy" | "amazon" | "shopify" | "ebay";
+
+interface Optimisation {
+  id: string;
+  platform: Platform;
+  input: {
+    productName?: string;
+    materials?: string;
+    style?: string;
+    targetBuyer?: string;
+    keywords?: string;
+  };
+  output: Record<string, unknown>;
+  score: number | null;
+  created_at: string;
+}
+
+const PLATFORM_CONFIG: Record<Platform, { label: string; className: string }> = {
+  etsy:     { label: "Etsy",     className: "bg-orange-500/15 text-orange-700 dark:text-orange-400 border-orange-500/25" },
+  amazon:   { label: "Amazon",   className: "bg-yellow-500/15 text-yellow-700 dark:text-yellow-400 border-yellow-500/25" },
+  shopify:  { label: "Shopify",  className: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/25" },
+  ebay:     { label: "eBay",     className: "bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/25" },
+};
+
+const SCORE_CONFIG = (score: number) =>
+  score >= 70 ? { label: `${score}`, className: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/25" }
+  : score >= 40 ? { label: `${score}`, className: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/25" }
+  : { label: `${score}`, className: "bg-red-500/15 text-red-700 dark:text-red-400 border-red-500/25" };
+
+function formatDate(iso: string) {
+  const d = new Date(iso);
+  const now = new Date();
+  const diffMs = now.getTime() - d.getTime();
+  const diffDays = Math.floor(diffMs / 86400000);
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays} days ago`;
+  return d.toLocaleDateString("en-AU", { day: "numeric", month: "short", year: diffDays > 365 ? "numeric" : undefined });
+}
+
+function CopyButton({ value, label }: { value: string; label?: string }) {
+  const [copied, setCopied] = useState(false);
+  async function handleCopy() {
+    await navigator.clipboard.writeText(value);
+    setCopied(true);
+    toast.success(label ? `${label} copied` : "Copied");
+    setTimeout(() => setCopied(false), 2000);
+  }
+  return (
+    <button
+      onClick={handleCopy}
+      className="ml-1 rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors shrink-0"
+      title="Copy"
+    >
+      {copied ? <Check className="size-3 text-primary" /> : <Copy className="size-3" />}
+    </button>
+  );
+}
+
+function OutputField({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between">
+        <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{label}</span>
+        <CopyButton value={value} label={label} />
+      </div>
+      <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{value}</p>
+    </div>
+  );
+}
+
+function PlatformOutput({ platform, output }: { platform: Platform; output: Record<string, unknown> }) {
+  const str = (v: unknown) => (typeof v === "string" ? v : "");
+  const arr = (v: unknown): string[] => (Array.isArray(v) ? v.map(String) : []);
+
+  if (platform === "etsy") {
+    return (
+      <div className="space-y-4">
+        <OutputField label="Title" value={str(output.title)} />
+        {arr(output.tags).length > 0 && (
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Tags</span>
+              <CopyButton value={arr(output.tags).join(", ")} label="Tags" />
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {arr(output.tags).map((t) => (
+                <span key={t} className="rounded border border-border bg-muted px-2 py-0.5 text-xs">{t}</span>
+              ))}
+            </div>
+          </div>
+        )}
+        <OutputField label="Description" value={str(output.description)} />
+      </div>
+    );
+  }
+
+  if (platform === "amazon") {
+    return (
+      <div className="space-y-4">
+        <OutputField label="Title" value={str(output.title)} />
+        {arr(output.bullets).length > 0 && (
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Bullet Points</span>
+              <CopyButton value={arr(output.bullets).join("\n")} label="Bullets" />
+            </div>
+            <ul className="space-y-1.5">
+              {arr(output.bullets).map((b, i) => (
+                <li key={i} className="text-sm leading-relaxed pl-3 border-l-2 border-border">{b}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {str(output.backendKeywords) && <OutputField label="Backend Keywords" value={str(output.backendKeywords)} />}
+        <OutputField label="Description" value={str(output.description)} />
+      </div>
+    );
+  }
+
+  if (platform === "shopify") {
+    return (
+      <div className="space-y-4">
+        <OutputField label="Product Title" value={str(output.productTitle)} />
+        <OutputField label="Meta Title" value={str(output.metaTitle)} />
+        <OutputField label="Meta Description" value={str(output.metaDescription)} />
+        <OutputField label="Description" value={str(output.description)} />
+      </div>
+    );
+  }
+
+  // eBay
+  return (
+    <div className="space-y-4">
+      <OutputField label="Title" value={str(output.title)} />
+      <OutputField label="Description" value={str(output.description)} />
+    </div>
+  );
+}
+
+function InputSummary({ input }: { input: Optimisation["input"] }) {
+  const fields = [
+    input.productName && { label: "Product", value: input.productName },
+    input.materials && { label: "Materials", value: input.materials },
+    input.style && { label: "Style", value: input.style },
+    input.targetBuyer && { label: "Target buyer", value: input.targetBuyer },
+    input.keywords && { label: "Keywords", value: input.keywords },
+  ].filter(Boolean) as { label: string; value: string }[];
+
+  if (fields.length === 0) return <p className="text-sm text-muted-foreground italic">No input recorded</p>;
+
+  return (
+    <div className="space-y-3">
+      {fields.map((f) => (
+        <div key={f.label} className="space-y-0.5">
+          <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{f.label}</span>
+          <p className="text-sm text-foreground">{f.value}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function OptimisationCard({ opt }: { opt: Optimisation }) {
+  const [expanded, setExpanded] = useState(false);
+  const platformCfg = PLATFORM_CONFIG[opt.platform];
+  const productName = opt.input?.productName ?? "Untitled product";
+  const outputTitle = (() => {
+    const o = opt.output;
+    return typeof o?.title === "string" ? o.title
+      : typeof o?.productTitle === "string" ? o.productTitle
+      : null;
+  })();
+
+  const reoptimiseHref = (() => {
+    const p = new URLSearchParams({ platform: opt.platform });
+    if (opt.input.productName) p.set("productName", opt.input.productName);
+    if (opt.input.materials) p.set("materials", opt.input.materials);
+    if (opt.input.style) p.set("style", opt.input.style);
+    if (opt.input.targetBuyer) p.set("targetBuyer", opt.input.targetBuyer);
+    if (opt.input.keywords) p.set("keywords", opt.input.keywords);
+    return `/dashboard/optimise?${p.toString()}`;
+  })();
+
+  return (
+    <Card className={cn("border-border/50 transition-all", expanded && "border-border")}>
+      <button
+        className="w-full text-left"
+        onClick={() => setExpanded((v) => !v)}
+      >
+        <div className="flex items-center gap-3 px-5 py-4">
+          <Badge variant="outline" className={cn("text-xs h-5 px-1.5 shrink-0", platformCfg.className)}>
+            {platformCfg.label}
+          </Badge>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium truncate">{productName}</p>
+            {outputTitle && (
+              <p className="text-xs text-muted-foreground truncate mt-0.5">{outputTitle}</p>
+            )}
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            {opt.score != null && (
+              <Badge variant="outline" className={cn("text-xs h-5 px-1.5", SCORE_CONFIG(opt.score).className)}>
+                {SCORE_CONFIG(opt.score).label}
+              </Badge>
+            )}
+            <span className="text-xs text-muted-foreground hidden sm:block">{formatDate(opt.created_at)}</span>
+            {expanded ? (
+              <ChevronUp className="size-4 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="size-4 text-muted-foreground" />
+            )}
+          </div>
+        </div>
+      </button>
+
+      {expanded && (
+        <div className="border-t border-border/50 px-5 py-5">
+          <div className="mb-4 flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">{formatDate(opt.created_at)} · {new Date(opt.created_at).toLocaleTimeString("en-AU", { hour: "2-digit", minute: "2-digit" })}</span>
+            <a
+              href={reoptimiseHref}
+              className="flex items-center gap-1.5 text-xs text-primary hover:underline"
+            >
+              <ExternalLink className="size-3" />
+              Re-optimise
+            </a>
+          </div>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <div>
+              <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Original input</h4>
+              <InputSummary input={opt.input} />
+            </div>
+            <div>
+              <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">AI output</h4>
+              <PlatformOutput platform={opt.platform} output={opt.output} />
+            </div>
+          </div>
+        </div>
+      )}
+    </Card>
+  );
+}
+
+const PLATFORMS: { value: Platform | "all"; label: string }[] = [
+  { value: "all", label: "All platforms" },
+  { value: "etsy", label: "Etsy" },
+  { value: "amazon", label: "Amazon" },
+  { value: "shopify", label: "Shopify" },
+  { value: "ebay", label: "eBay" },
+];
+
+export function HistoryClient() {
+  const [optimisations, setOptimisations] = useState<Optimisation[]>([]);
+  const [total, setTotal] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [page, setPage] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [platform, setPlatform] = useState<Platform | "all">("all");
+
+  const fetchPage = useCallback(async (pg: number, plat: Platform | "all", replace: boolean) => {
+    const setter = replace ? setLoading : setLoadingMore;
+    setter(true);
+    try {
+      const params = new URLSearchParams({ page: String(pg) });
+      if (plat !== "all") params.set("platform", plat);
+      const res = await fetch(`/api/optimisations?${params}`);
+      if (!res.ok) throw new Error("Failed to load history");
+      const data = await res.json();
+      setOptimisations((prev) => replace ? data.optimisations : [...prev, ...data.optimisations]);
+      setTotal(data.total);
+      setHasMore(data.hasMore);
+      setPage(pg);
+    } catch {
+      toast.error("Could not load history");
+    } finally {
+      setter(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchPage(0, platform, true);
+  }, [platform, fetchPage]);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
+            <History className="size-5 text-primary" />
+            Optimisation History
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Every listing you have optimised, with the original input and AI output side by side.
+          </p>
+        </div>
+        {total > 0 && (
+          <span className="text-sm text-muted-foreground shrink-0 pt-1">{total} total</span>
+        )}
+      </div>
+
+      {/* Platform filter */}
+      <div className="flex flex-wrap gap-2">
+        {PLATFORMS.map((p) => (
+          <button
+            key={p.value}
+            onClick={() => setPlatform(p.value)}
+            className={cn(
+              "rounded-md border px-3 py-1.5 text-xs font-medium transition-colors",
+              platform === p.value
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border text-muted-foreground hover:text-foreground hover:border-border/80"
+            )}
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <Card className="flex min-h-64 items-center justify-center border-border/30">
+          <CardContent className="text-center py-12">
+            <Spinner size="lg" className="mx-auto mb-3" />
+            <p className="text-sm text-muted-foreground">Loading history…</p>
+          </CardContent>
+        </Card>
+      ) : optimisations.length === 0 ? (
+        <Card className="flex min-h-64 items-center justify-center border-border/30 border-dashed">
+          <CardContent className="text-center py-12">
+            <History className="mx-auto mb-3 size-8 text-muted-foreground/40" />
+            <p className="text-sm text-muted-foreground font-medium">No optimisations yet</p>
+            <p className="mt-1 text-xs text-muted-foreground/70">
+              {platform !== "all"
+                ? `No ${PLATFORM_CONFIG[platform as Platform].label} optimisations found.`
+                : "Run the Listing Optimiser and your results will appear here."}
+            </p>
+            {platform !== "all" ? (
+              <button onClick={() => setPlatform("all")} className="mt-3 text-xs text-primary hover:underline">
+                Show all platforms
+              </button>
+            ) : (
+              <a href="/dashboard/optimise" className="mt-3 inline-block text-xs text-primary hover:underline">
+                Go to Optimiser
+              </a>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          <div className="space-y-2">
+            {optimisations.map((opt) => (
+              <OptimisationCard key={opt.id} opt={opt} />
+            ))}
+          </div>
+
+          {hasMore && (
+            <div className="flex justify-center pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fetchPage(page + 1, platform, false)}
+                disabled={loadingMore}
+              >
+                {loadingMore ? <><Loader2 className="size-3.5 animate-spin" /> Loading…</> : "Load more"}
+              </Button>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}

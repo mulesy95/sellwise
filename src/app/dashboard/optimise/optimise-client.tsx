@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { Sparkles, Copy, Check, RotateCcw, ImagePlus, X, Lock, AlertCircle } from "lucide-react";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import { Spinner } from "@/components/ui/spinner";
@@ -143,7 +144,11 @@ interface KeywordList {
 }
 
 export function OptimiseClient({ plan }: { plan: string }) {
-  const [platform, setPlatform] = useState<Platform>("etsy");
+  const searchParams = useSearchParams();
+  const initPlatform = (searchParams.get("platform") ?? "etsy") as Platform;
+  const initKeywords = searchParams.get("keywords") ?? "";
+
+  const [platform, setPlatform] = useState<Platform>(initPlatform);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<OptimisedListing | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
@@ -153,7 +158,7 @@ export function OptimiseClient({ plan }: { plan: string }) {
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [imageMediaType, setImageMediaType] = useState<ImageMediaType>("image/jpeg");
   const [keywordLists, setKeywordLists] = useState<KeywordList[]>([]);
-  const [keywordsValue, setKeywordsValue] = useState("");
+  const [keywordsValue, setKeywordsValue] = useState(initKeywords);
   const [showListPicker, setShowListPicker] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const loadingStep = useLoadingStep(loading, platform);
@@ -306,6 +311,7 @@ export function OptimiseClient({ plan }: { plan: string }) {
                   id="productName"
                   name="productName"
                   placeholder="e.g. Handmade ceramic coffee mug"
+                  defaultValue={searchParams.get("productName") ?? ""}
                   required
                 />
               </div>
@@ -315,6 +321,7 @@ export function OptimiseClient({ plan }: { plan: string }) {
                   id="materials"
                   name="materials"
                   placeholder="e.g. Stoneware clay, hand-thrown, food-safe glaze"
+                  defaultValue={searchParams.get("materials") ?? ""}
                 />
               </div>
               <div className="space-y-1.5">
@@ -323,6 +330,7 @@ export function OptimiseClient({ plan }: { plan: string }) {
                   id="style"
                   name="style"
                   placeholder="e.g. Minimalist, rustic, boho, cottagecore"
+                  defaultValue={searchParams.get("style") ?? ""}
                 />
               </div>
               <div className="space-y-1.5">
@@ -331,6 +339,7 @@ export function OptimiseClient({ plan }: { plan: string }) {
                   id="targetBuyer"
                   name="targetBuyer"
                   placeholder="e.g. Coffee lovers, housewarming gift, office decor"
+                  defaultValue={searchParams.get("targetBuyer") ?? ""}
                 />
               </div>
               <div className="space-y-1.5">
