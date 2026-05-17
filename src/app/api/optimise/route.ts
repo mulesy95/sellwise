@@ -25,8 +25,8 @@ const requestSchema = z.object({
 });
 
 const WRITING_RULES = `Writing rules:
-- NEVER invent product details that were not stated in the input — no dimensions, colours, materials, features, condition, or claims the seller did not provide. Only describe what you know.
-- If a detail would help the copy but wasn't provided, write around it (e.g. "available in your choice of size") — never make it up.
+- NEVER invent product details that were not provided. Only use details from the seller's input or visually confirmed in the product image (if one was supplied). No made-up dimensions, colours, materials, features, or condition claims.
+- If a detail would strengthen the copy but isn't known, write around it rather than guessing (e.g. "comes in your choice of size" not "available in S, M, L").
 - NEVER use em dashes (—), en dashes (–), or ellipses (…)
 - Write like a real person: short sentences, plain punctuation (commas, full stops, exclamation marks only)
 - No buzzwords: unique, stunning, beautiful, perfect, seamlessly, elevate, enhance`;
