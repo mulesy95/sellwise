@@ -31,7 +31,8 @@ const WRITING_RULES = `Writing rules:
 - NEVER invent lifestyle or aesthetic claims — do not say a product "looks great on a wall", "makes a statement", "starts a conversation", or any other made-up social/lifestyle context that wasn't in the input.
 - NEVER make editorial verdicts or value judgements — do not say a product "earns a second look", "rewards a close look", "delivers in full", "is worth buying", "worth picking over", or any other claim that tells the buyer what to think. Every sentence must describe the product, not evaluate it.
 - NEVER infer product quantities, set sizes, or bundle compositions from an image — if the photo shows two boards, do not write "two boards" or imply it is a set. Describe the product individually as listed.
-- NEVER infer product specs from visual cues in an image — do not guess binding type, mount stance, material composition, size, weight, or technical setup from what the image shows. If it is not stated in the input, do not claim it.
+- NEVER infer product specs from visual cues in an image — do not guess binding type, mount stance, material composition, size, weight, technical setup, board shape, nose or tail geometry, directional vs twin, flex, or any other spec from what the image shows. Only describe specs stated in the seller's input.
+- If a brand logo or branded graphic is visible on the product in an image, describe it generically (e.g. "a bag logo", "a logo near the nose") — never name the brand or company whose logo it is.
 - If a detail would strengthen the copy but isn't known, write around it rather than guessing (e.g. "comes in your choice of size" not "available in S, M, L").
 - NEVER include the platform name in any output field — do not write "Shopify", "eBay", "Etsy", or "Amazon" in any title, description, or meta field.
 - Use the exact product name as given. Do not paraphrase, shorten, or reinterpret it.
@@ -112,7 +113,7 @@ Write as if a real person is browsing this product page on their phone. The desc
 
 Return ONLY a valid JSON object:
 {
-  "metaTitle": "max 60 chars strictly — primary keyword near the start, brand name at end if space allows",
+  "metaTitle": "max 60 chars strictly — start with the exact product name as given, then add the most distinctive visual detail if space allows (e.g. 'The Multi-location Snowboard | Pixel Art Base')",
   "metaDescription": "max 160 chars strictly — primary keyword included, factual description of what the product is, ends with a short call to action. No value judgements or lifestyle claims.",
   "productTitle": "clean storefront product title, 4–8 words, sounds like something you'd actually buy — no keyword stuffing",
   "description": "200–300 words, desire-first opening, short benefit-led paragraphs, covers materials/fit/feel, ends with a line that closes the sale"
