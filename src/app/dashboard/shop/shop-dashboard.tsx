@@ -564,7 +564,7 @@ function OptimisePanel({
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">Description</p>
                   {existingText ? (
-                    <p className="text-sm bg-muted/30 rounded-md px-3 py-2 line-clamp-6 leading-relaxed">
+                    <p className="text-sm bg-muted/30 rounded-md px-3 py-2 leading-relaxed whitespace-pre-wrap">
                       {existingText}
                     </p>
                   ) : (
