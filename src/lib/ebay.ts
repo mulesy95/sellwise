@@ -284,6 +284,27 @@ export async function getEbayListings(
   }).filter((l) => l.id && l.title);
 }
 
+export async function getEbayCurrentItem(
+  userToken: string,
+  itemId: string
+): Promise<{ title: string; description: string } | null> {
+  try {
+    const xml = await tradingCall(
+      "GetItem",
+      `<ItemID>${itemId}</ItemID><DetailLevel>ReturnAll</DetailLevel>`,
+      userToken
+    );
+    const ack = xmlValue(xml, "Ack");
+    if (ack === "Failure") return null;
+    return {
+      title: xmlValue(xml, "Title"),
+      description: xmlValue(xml, "Description"),
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function reviseEbayItem(
   userToken: string,
   itemId: string,

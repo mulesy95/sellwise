@@ -132,6 +132,39 @@ export async function getShopifyProducts(
   return { products, nextCursor };
 }
 
+// ─── Fetch current product content (for before-snapshot before push) ─────────
+
+const PRODUCT_CONTENT_QUERY = `
+  query GetProductContent($id: ID!) {
+    product(id: $id) {
+      title
+      descriptionHtml
+      seo { title description }
+    }
+  }
+`;
+
+export async function getShopifyCurrentContent(
+  shop: string,
+  accessToken: string,
+  productId: string
+): Promise<{ title: string; body_html: string; metaTitle: string; metaDescription: string } | null> {
+  try {
+    const data = await shopifyGraphQL<{
+      product: { title: string; descriptionHtml: string; seo: { title: string; description: string } } | null;
+    }>(shop, accessToken, PRODUCT_CONTENT_QUERY, { id: productId });
+    if (!data.product) return null;
+    return {
+      title: data.product.title,
+      body_html: data.product.descriptionHtml,
+      metaTitle: data.product.seo.title,
+      metaDescription: data.product.seo.description,
+    };
+  } catch {
+    return null;
+  }
+}
+
 // ─── Push product update ──────────────────────────────────────────────────────
 
 const PRODUCT_UPDATE_MUTATION = `

@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   ArrowLeftRight,
   History,
+  Files,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +28,7 @@ const navItems = [
   { label: "Competitor", href: "/dashboard/competitor", icon: Eye },
   { label: "Audit", href: "/dashboard/audit", icon: BarChart3 },
   { label: "Migrate", href: "/dashboard/migrate", icon: ArrowLeftRight },
+  { label: "Bulk", href: "/dashboard/bulk", icon: Files },
   { label: "History", href: "/dashboard/history", icon: History },
   { label: "My Shop", href: "/dashboard/shop", icon: Store },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },

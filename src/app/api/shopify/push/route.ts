@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { pushShopifyProduct } from "@/lib/shopify";
+import { pushShopifyProduct, getShopifyCurrentContent } from "@/lib/shopify";
 import { z } from "zod";
 
 const schema = z.object({
@@ -38,6 +38,10 @@ export async function POST(req: NextRequest) {
   if (!shop) return NextResponse.json({ error: "No Shopify shop connected" }, { status: 404 });
 
   try {
+    const previousContent = await getShopifyCurrentContent(
+      shop.shop_url, shop.access_token, parsed.data.productId
+    );
+
     await pushShopifyProduct(shop.shop_url, shop.access_token, parsed.data.productId, {
       title: parsed.data.title,
       body_html: parsed.data.body_html,
@@ -51,6 +55,7 @@ export async function POST(req: NextRequest) {
       shop_id: parsed.data.shopId ?? null,
       input: {},
       output: { title: parsed.data.title, body_html: parsed.data.body_html },
+      previous_content: previousContent ?? null,
     });
 
     return NextResponse.json({ ok: true });

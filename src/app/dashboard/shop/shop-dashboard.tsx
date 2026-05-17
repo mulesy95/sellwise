@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Store, Sparkles, ExternalLink, RefreshCw, ArrowRight,
   Lock, AlertCircle, Unplug, X, Copy, Check, Plus, ChevronRight, ImagePlus,
+  History, RotateCcw,
 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -28,6 +29,14 @@ interface ShopifyResult {
   metaDescription?: string;
   productTitle?: string;
   description?: string;
+}
+
+interface HistoryEntry {
+  id: string;
+  created_at: string;
+  output: Record<string, string>;
+  previous_content: Record<string, string> | null;
+  platform: string;
 }
 
 // ─── SEO score ────────────────────────────────────────────────────────────────
@@ -208,12 +217,14 @@ function ProductRow({
   canOptimise,
   onOptimise,
   onLocked,
+  onViewHistory,
   lastOptimisedAt,
 }: {
   product: ShopifyProduct;
   canOptimise: boolean;
   onOptimise: (p: ShopifyProduct) => void;
   onLocked: () => void;
+  onViewHistory?: (p: ShopifyProduct) => void;
   lastOptimisedAt?: string;
 }) {
   const image = product.images?.[0]?.src;
@@ -243,7 +254,13 @@ function ProductRow({
             {label}
           </span>
           {optimisedLabel && (
-            <span className="text-[10px] text-emerald-600 dark:text-emerald-400">{optimisedLabel}</span>
+            <button
+              onClick={() => onViewHistory?.(product)}
+              className="flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400 hover:underline underline-offset-2"
+            >
+              <History className="size-2.5" />
+              {optimisedLabel}
+            </button>
           )}
         </div>
       </div>
@@ -664,6 +681,186 @@ function OptimisePanel({
   );
 }
 
+// ─── History slide-out panel ──────────────────────────────────────────────────
+
+function HistoryPanel({
+  product,
+  shopId,
+  plan,
+  platform,
+  onClose,
+}: {
+  product: ShopifyProduct;
+  shopId: string;
+  plan: string;
+  platform: string;
+  onClose: () => void;
+}) {
+  const [entries, setEntries] = useState<HistoryEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [reverting, setReverting] = useState<string | null>(null);
+  const isStudio = plan === "studio";
+
+  useEffect(() => {
+    fetch(
+      `/api/optimisations/product?productId=${encodeURIComponent(product.id)}&shopId=${encodeURIComponent(shopId)}`
+    )
+      .then((r) => r.json())
+      .then((d) => setEntries(d.history ?? []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [product.id, shopId]);
+
+  async function handleRevert(entry: HistoryEntry) {
+    if (!confirm("Revert this listing to its original content before the optimisation?")) return;
+    setReverting(entry.id);
+    try {
+      const endpoint = platform === "ebay" ? "/api/ebay/revert" : "/api/shopify/revert";
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ optimisationId: entry.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed to revert");
+      toast.success("Listing reverted to original");
+      onClose();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to revert");
+    } finally {
+      setReverting(null);
+    }
+  }
+
+  const imageUrl = product.images?.[0]?.src;
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 bg-black/40" onClick={onClose} aria-hidden="true" />
+      <div
+        className="fixed inset-y-0 right-0 z-50 flex w-full max-w-lg flex-col bg-card border-l border-border shadow-2xl"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="history-panel-title"
+      >
+        <div className="flex items-center justify-between border-b border-border px-6 py-4 shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            {imageUrl && (
+              <img src={imageUrl} alt="" className="size-8 rounded-md object-cover shrink-0" />
+            )}
+            <div className="min-w-0">
+              <h2 id="history-panel-title" className="text-sm font-semibold truncate">
+                {product.title}
+              </h2>
+              <p className="text-xs text-muted-foreground">Optimisation history</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="ml-4 shrink-0 rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-12 space-y-3">
+              <Spinner size="lg" />
+              <p className="text-sm text-muted-foreground">Loading history…</p>
+            </div>
+          ) : entries.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center space-y-3">
+              <div className="flex size-10 items-center justify-center rounded-full bg-muted">
+                <History className="size-5 text-muted-foreground/50" />
+              </div>
+              <p className="text-sm font-medium">No push history yet</p>
+              <p className="text-xs text-muted-foreground/70">
+                Once you optimise and push this listing, each version is saved here so you can revert any time.
+              </p>
+            </div>
+          ) : (
+            entries.map((entry) => {
+              const isEbay = platform === "ebay";
+              const title = entry.output?.title ?? "";
+              const body = isEbay ? entry.output?.description : entry.output?.body_html;
+              const canRevert = !!entry.previous_content;
+              const date = new Date(entry.created_at).toLocaleString("en-AU", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              });
+
+              return (
+                <div key={entry.id} className="rounded-xl border border-border/40 bg-muted/10 p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-xs text-muted-foreground pt-0.5">{date}</p>
+                    {isStudio ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-xs h-7 shrink-0"
+                        disabled={!canRevert || reverting === entry.id}
+                        onClick={() => canRevert && void handleRevert(entry)}
+                        title={
+                          canRevert
+                            ? "Revert to the content before this optimisation"
+                            : "No snapshot available for this entry"
+                        }
+                      >
+                        {reverting === entry.id ? (
+                          <Spinner size="sm" />
+                        ) : (
+                          <><RotateCcw className="size-3" />Revert</>
+                        )}
+                      </Button>
+                    ) : (
+                      <a
+                        href="/pricing"
+                        className={cn(buttonVariants({ size: "sm", variant: "outline" }), "text-xs h-7 shrink-0")}
+                      >
+                        <Lock className="size-3" />Studio to revert
+                      </a>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <div>
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">
+                        Title pushed
+                      </p>
+                      <p className="text-xs bg-background/60 rounded-md px-2.5 py-2 line-clamp-2">
+                        {title || "—"}
+                      </p>
+                    </div>
+                    {body && (
+                      <div>
+                        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">
+                          Description pushed
+                        </p>
+                        <p className="text-xs bg-background/60 rounded-md px-2.5 py-2 line-clamp-3 leading-relaxed">
+                          {body.replace(/<[^>]+>/g, "").trim()}
+                        </p>
+                      </div>
+                    )}
+                    {!canRevert && (
+                      <p className="text-[10px] text-muted-foreground/60 italic">
+                        No snapshot for this entry — revert unavailable.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
 // ─── Connect form ─────────────────────────────────────────────────────────────
 
 function ConnectForm() {
@@ -821,6 +1018,7 @@ function ShopProductsPanel({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<ShopifyProduct | null>(null);
+  const [historyProduct, setHistoryProduct] = useState<ShopifyProduct | null>(null);
   const [history, setHistory] = useState<Record<string, string>>({});
 
   const fetchProducts = useCallback(async (cursor?: string) => {
@@ -871,6 +1069,15 @@ function ShopProductsPanel({
           shopId={shopId}
           platform={platform}
           onClose={() => setSelectedProduct(null)}
+        />
+      )}
+      {historyProduct && (
+        <HistoryPanel
+          product={historyProduct}
+          shopId={shopId}
+          plan={plan}
+          platform={platform}
+          onClose={() => setHistoryProduct(null)}
         />
       )}
 
@@ -933,6 +1140,7 @@ function ShopProductsPanel({
                     canOptimise={canOptimise}
                     onOptimise={setSelectedProduct}
                     onLocked={onUpgrade}
+                    onViewHistory={setHistoryProduct}
                     lastOptimisedAt={history[p.id]}
                   />
                 ))}

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { reviseEbayItem, refreshEbayToken } from "@/lib/ebay";
+import { reviseEbayItem, refreshEbayToken, getEbayCurrentItem } from "@/lib/ebay";
 import { z } from "zod";
 
 const schema = z.object({
@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
   if (!shop) return NextResponse.json({ error: "No eBay account connected" }, { status: 404 });
 
   let token = shop.access_token;
+  const previousContent = await getEbayCurrentItem(token, itemId);
 
   async function tryRevise(t: string) {
     await reviseEbayItem(t, itemId, { title, description });
@@ -52,6 +53,7 @@ export async function POST(req: NextRequest) {
       shop_id: shopId ?? null,
       input: {},
       output: { title, description },
+      previous_content: previousContent ?? null,
     });
   }
 
