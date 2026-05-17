@@ -408,27 +408,23 @@ shipping and returns mentioned). Respond in valid JSON only.`,
 - [x] `supabase/migrations/20260517110854_add_refresh_token_to_shops.sql`
 - Note: Requires `EBAY_APP_ID`, `EBAY_CLIENT_ID`, `EBAY_CLIENT_SECRET`, `EBAY_RU_NAME` in env
 
-### Phase 6 — Shopify Enhancements
+### Phase 6 — Shopify Enhancements (COMPLETE 2026-05-17)
 
 - [x] Shopify Admin API — already GraphQL from day one (`src/lib/shopify.ts`, API version 2026-01)
 - [x] Competitor route — already uses `/products/${handle}.json` (not HTML scraping); cheerio used only to strip HTML tags from body_html JSON field
-- [ ] **SEO metafield push (Studio only)** — write AI-generated meta title + meta description to Shopify's `title_tag` + `description_tag` metafields via GraphQL `metafieldsSet` mutation. No copy-paste. This is the genuine Studio differentiator.
-  - Add `pushShopifyMetafields()` to `src/lib/shopify.ts`
-  - New route `/api/shopify/seo` — Studio only
-  - "Push SEO" button in `OptimisePanel` (Shopify + Studio only, separate from content push)
+- [x] **SEO metafield push (Studio only)** — `pushShopifyMetafields()` in `src/lib/shopify.ts`, `/api/shopify/seo` route, pushed in parallel with content from shop dashboard
 - [ ] Bulk product optimisation — GraphQL bulk mutations for all products at once (lower priority)
 
-### Phase 7 — Product Quality + Retention (HIGH PRIORITY)
-These directly improve customer experience and retention — prioritise over new features.
+### Phase 7 — Product Quality + Retention (MOSTLY COMPLETE 2026-05-17)
 
-- [ ] **Results history + before/after tracking** — store SEO score at time of optimisation, show score improvement over time. Users need proof the tool worked or they don't renew. Show "Your listing went from Poor → Good on 14 May."
-- [ ] **Keyword → optimiser integration** — when optimising a product, let the user select from their saved keyword lists (matching platform). Saved keywords feed directly into the AI prompt as a signal. Makes both tools feel like one coherent product.
-- [ ] **AI output quality audit** — run real products through the tool (live eBay listings, real Shopify products) before launch and honestly assess output quality. Fix prompt gaps found.
-- [ ] **Agency tier on pricing page** — add visible "Agency" tier ($199–249/mo, "Contact us" button, no self-serve checkout yet). Lists: unlimited shops, higher daily cap, team seats coming soon. Captures agency leads before features are built.
+- [x] **Results history page** — `/dashboard/history`, full before/after panels per platform, platform filter, paginated. Every `/api/optimise` call saves to `optimisations` table. Re-optimise link pre-fills form.
+- [x] **Keyword → optimiser integration** — saved list picker in optimiser pre-populates keywords input, fetches from `/api/keyword-lists`
+- [x] **Agency tier on pricing page** — $249/mo, "Contact us" mailto CTA, 5-card grid (`xl:grid-cols-5`)
+- [ ] **AI output quality audit** — run real products through all 4 platforms, assess and fix prompts. Do before launch.
 
-### Phase 8 — New Features (No API Access Required)
-- [ ] Platform Migration Tool — paste Etsy listing → select target platform → AI reformats for Amazon/Shopify/eBay. Pure AI, no API needed. High value.
-- [ ] Bulk Listing Optimiser — CSV upload → AI optimises all listings → download results. Growth/Studio.
+### Phase 8 — New Features
+- [x] Platform Migration Tool — `/dashboard/migrate` — already built
+- [ ] Bulk Listing Optimiser — CSV upload → AI optimises all listings → download results (Growth/Studio)
 
 ### Phase 9 — Amazon SP-API (Future, High Complexity)
 - [ ] Amazon Seller Central OAuth via Login with Amazon (LWA)
@@ -494,3 +490,7 @@ These directly improve customer experience and retention — prioritise over new
 | 2026-05-16 | Prompt quality uplift — Shopify (desire-first, mobile-first), Etsy (emotion-first), eBay (scannable, condition-upfront) |
 | 2026-05-17 | Phase 5 complete — full eBay integration: Shopping API competitor research, Trading API store connect (OAuth, listings, push-back), /api/ebay/* routes, platform-aware My Shop |
 | 2026-05-17 | My Shop platform-aware fixes — eBay result maps title correctly, meta fields hidden for eBay, disconnect routes correctly, all hardcoded Shopify strings removed |
+| 2026-05-17 | Phase 6 complete — Shopify SEO metafield push (pushShopifyMetafields, /api/shopify/seo, parallel push in shop dashboard) |
+| 2026-05-17 | Phase 7 mostly complete — optimisation history page (/dashboard/history), keyword→optimiser integration, agency tier on pricing page, optimisations + keyword_lists Supabase tables created |
+| 2026-05-17 | Prompt hardening — WRITING_RULES: never invent product details not in input or visible in image; write around missing info |
+| 2026-05-17 | History page: before/after panels, platform filter, paginated, Re-optimise link pre-fills optimiser form via URL params |
