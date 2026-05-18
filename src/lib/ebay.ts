@@ -1,3 +1,5 @@
+import { fetchWithRetry } from "@/lib/fetch-with-retry";
+
 const CLIENT_ID = process.env.EBAY_CLIENT_ID!;
 const CLIENT_SECRET = process.env.EBAY_CLIENT_SECRET!;
 const APP_ID = process.env.EBAY_APP_ID!;
@@ -5,6 +7,7 @@ const RU_NAME = process.env.EBAY_RU_NAME!;
 const SITE_ID = process.env.EBAY_SITE_ID ?? "0"; // 0=US, 15=AU
 const API_COMPAT = "967";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://sellwise.au";
+const USER_AGENT = "SellWise/1.0 (+https://sellwise.au)";
 export const EBAY_CALLBACK_URI = `${APP_URL}/api/ebay/callback`;
 
 const SCOPES = [
@@ -34,6 +37,7 @@ export async function exchangeEbayCode(
     headers: {
       Authorization: `Basic ${Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString("base64")}`,
       "Content-Type": "application/x-www-form-urlencoded",
+      "User-Agent": USER_AGENT,
     },
     body: new URLSearchParams({
       grant_type: "authorization_code",
@@ -56,6 +60,7 @@ export async function refreshEbayToken(
     headers: {
       Authorization: `Basic ${Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString("base64")}`,
       "Content-Type": "application/x-www-form-urlencoded",
+      "User-Agent": USER_AGENT,
     },
     body: new URLSearchParams({
       grant_type: "refresh_token",
@@ -80,6 +85,7 @@ async function getAppToken(): Promise<string> {
     headers: {
       Authorization: `Basic ${Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString("base64")}`,
       "Content-Type": "application/x-www-form-urlencoded",
+      "User-Agent": USER_AGENT,
     },
     body: new URLSearchParams({
       grant_type: "client_credentials",
@@ -119,7 +125,9 @@ export async function getEbayItem(itemId: string): Promise<EbayShoppingItem> {
     responseencoding: "JSON",
   });
 
-  const res = await fetch(`https://open.api.ebay.com/shopping?${params}`);
+  const res = await fetchWithRetry(`https://open.api.ebay.com/shopping?${params}`, {
+    headers: { "User-Agent": USER_AGENT },
+  });
   if (!res.ok) throw new Error(`eBay Shopping API error: ${res.status}`);
 
   const data = await res.json();
@@ -170,8 +178,12 @@ export async function searchEbayItems(
 ): Promise<EbaySearchResult[]> {
   const token = await getAppToken();
   const params = new URLSearchParams({ q: keyword, limit: String(limit) });
-  const res = await fetch(`https://api.ebay.com/buy/browse/v1/item_summary/search?${params}`, {
-    headers: { Authorization: `Bearer ${token}`, "X-EBAY-C-MARKETPLACE-ID": "EBAY_US" },
+  const res = await fetchWithRetry(`https://api.ebay.com/buy/browse/v1/item_summary/search?${params}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "X-EBAY-C-MARKETPLACE-ID": "EBAY_US",
+      "User-Agent": USER_AGENT,
+    },
   });
   if (!res.ok) throw new Error(`eBay Browse API error: ${res.status}`);
   const data = await res.json();
@@ -231,7 +243,7 @@ async function tradingCall(callName: string, body: string, userToken: string): P
   ${body}
 </${callName}Request>`;
 
-  const res = await fetch("https://api.ebay.com/ws/api.dll", {
+  const res = await fetchWithRetry("https://api.ebay.com/ws/api.dll", {
     method: "POST",
     headers: {
       "X-EBAY-API-SITEID": SITE_ID,
@@ -239,6 +251,7 @@ async function tradingCall(callName: string, body: string, userToken: string): P
       "X-EBAY-API-CALL-NAME": callName,
       "X-EBAY-API-IAF-TOKEN": userToken,
       "Content-Type": "text/xml",
+      "User-Agent": USER_AGENT,
     },
     body: xml,
   });

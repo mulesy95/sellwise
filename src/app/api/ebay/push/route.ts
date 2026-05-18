@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { reviseEbayItem, refreshEbayToken, getEbayCurrentItem } from "@/lib/ebay";
+import { writeAuditLog } from "@/lib/audit";
 import { z } from "zod";
 
 const schema = z.object({
@@ -59,7 +60,16 @@ export async function POST(req: NextRequest) {
 
   try {
     await tryRevise(token);
-    await saveHistory();
+    await Promise.all([
+      saveHistory(),
+      writeAuditLog({
+        user_id: userId,
+        action: "ebay.push",
+        platform: "ebay",
+        resource_id: itemId,
+        result: "success",
+      }),
+    ]);
     return NextResponse.json({ ok: true });
   } catch {
     if (shop.refresh_token) {
@@ -71,10 +81,27 @@ export async function POST(req: NextRequest) {
           refresh_token: refreshed.refresh_token,
         }).eq("id", shop.id);
         await tryRevise(token);
-        await saveHistory();
+        await Promise.all([
+          saveHistory(),
+          writeAuditLog({
+            user_id: userId,
+            action: "ebay.push",
+            platform: "ebay",
+            resource_id: itemId,
+            result: "success",
+          }),
+        ]);
         return NextResponse.json({ ok: true });
       } catch (e) {
         console.error("[ebay push]", e);
+        await writeAuditLog({
+          user_id: userId,
+          action: "ebay.push",
+          platform: "ebay",
+          resource_id: itemId,
+          result: "error",
+          detail: { error: String(e) },
+        });
       }
     }
     return NextResponse.json({ error: "Failed to update eBay listing" }, { status: 500 });

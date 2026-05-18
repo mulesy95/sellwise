@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { pushShopifyProduct, getShopifyCurrentContent } from "@/lib/shopify";
+import { writeAuditLog } from "@/lib/audit";
 import { z } from "zod";
 
 const schema = z.object({
@@ -47,19 +48,36 @@ export async function POST(req: NextRequest) {
       body_html: parsed.data.body_html,
     });
 
-    await admin.from("optimisations").insert({
-      user_id: user.id,
-      platform: "shopify",
-      product_id: parsed.data.productId,
-      shop_id: parsed.data.shopId ?? null,
-      input: {},
-      output: { title: parsed.data.title, body_html: parsed.data.body_html },
-      previous_content: previousContent ?? null,
-    });
+    await Promise.all([
+      admin.from("optimisations").insert({
+        user_id: user.id,
+        platform: "shopify",
+        product_id: parsed.data.productId,
+        shop_id: parsed.data.shopId ?? null,
+        input: {},
+        output: { title: parsed.data.title, body_html: parsed.data.body_html },
+        previous_content: previousContent ?? null,
+      }),
+      writeAuditLog({
+        user_id: user.id,
+        action: "shopify.push",
+        platform: "shopify",
+        resource_id: parsed.data.productId,
+        result: "success",
+      }),
+    ]);
 
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[shopify push]", err);
+    await writeAuditLog({
+      user_id: user.id,
+      action: "shopify.push",
+      platform: "shopify",
+      resource_id: parsed.data.productId,
+      result: "error",
+      detail: { error: String(err) },
+    });
     return NextResponse.json({ error: "Failed to update product" }, { status: 500 });
   }
 }

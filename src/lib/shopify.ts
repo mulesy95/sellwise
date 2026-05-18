@@ -1,9 +1,12 @@
+import { fetchWithRetry } from "@/lib/fetch-with-retry";
+
 const CLIENT_ID = process.env.SHOPIFY_CLIENT_ID!;
 const CLIENT_SECRET = process.env.SHOPIFY_CLIENT_SECRET!;
 const SCOPES = "read_products,write_products,read_inventory,read_orders";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://sellwise.au";
 const REDIRECT_URI = `${APP_URL}/api/shopify/callback`;
 const API_VERSION = "2026-01";
+const USER_AGENT = "SellWise/1.0 (+https://sellwise.au)";
 
 export function getShopifyAuthUrl(shop: string, state: string): string {
   const params = new URLSearchParams({
@@ -21,7 +24,7 @@ export async function exchangeShopifyCode(
 ): Promise<{ access_token: string; scope: string }> {
   const res = await fetch(`https://${shop}/admin/oauth/access_token`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "User-Agent": USER_AGENT },
     body: JSON.stringify({ client_id: CLIENT_ID, client_secret: CLIENT_SECRET, code }),
   });
   if (!res.ok) throw new Error(`Shopify token exchange failed: ${res.status}`);
@@ -36,11 +39,12 @@ async function shopifyGraphQL<T>(
   query: string,
   variables?: Record<string, unknown>
 ): Promise<T> {
-  const res = await fetch(`https://${shop}/admin/api/${API_VERSION}/graphql.json`, {
+  const res = await fetchWithRetry(`https://${shop}/admin/api/${API_VERSION}/graphql.json`, {
     method: "POST",
     headers: {
       "X-Shopify-Access-Token": accessToken,
       "Content-Type": "application/json",
+      "User-Agent": USER_AGENT,
     },
     body: JSON.stringify({ query, variables }),
   });
