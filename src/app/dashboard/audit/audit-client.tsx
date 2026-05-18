@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BarChart3, Sparkles, AlertCircle, Link2, PenLine, Share2 } from "lucide-react";
+import { BarChart3, Sparkles, AlertCircle, Link2, PenLine, Share2, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -156,6 +156,8 @@ export function AuditClient() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AuditResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [urlHint, setUrlHint] = useState<string | null>(null);
+  const [lastPayload, setLastPayload] = useState<Record<string, string> | null>(null);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   function handlePlatformChange(p: Platform) {
@@ -166,19 +168,21 @@ export function AuditClient() {
   function handleUrlChange(e: React.ChangeEvent<HTMLInputElement>) {
     const val = e.target.value;
     setUrlValue(val);
+    setResult(null);
+    setError(null);
     const detected = detectPlatformFromUrl(val);
     if (detected === "etsy") {
       setDetectedPlatform(null);
-      setError("Etsy URLs aren't supported. Switch to manual entry and paste your title, tags, and description.");
+      setUrlHint("Etsy URLs aren't supported. Switch to manual entry and paste your title, tags, and description.");
     } else if (detected === "amazon") {
       setDetectedPlatform(null);
-      setError("Amazon URL auditing is coming soon. Switch to manual entry and paste your listing content.");
+      setUrlHint("Amazon URL auditing is coming soon. Switch to manual entry and paste your listing content.");
     } else if (detected === "ebay") {
       setDetectedPlatform(null);
-      setError("eBay URL auditing is coming soon. Switch to manual entry and paste your listing content.");
+      setUrlHint("eBay URL auditing is coming soon. Switch to manual entry and paste your listing content.");
     } else {
       setDetectedPlatform(detected);
-      setError(null);
+      setUrlHint(val && !detected ? "URL mode supports Shopify stores. Use manual entry for Etsy, Amazon, and eBay." : null);
     }
   }
 
@@ -186,6 +190,7 @@ export function AuditClient() {
     setLoading(true);
     setResult(null);
     setError(null);
+    setLastPayload(payload);
     try {
       const res = await fetch("/api/audit", {
         method: "POST",
@@ -317,10 +322,8 @@ export function AuditClient() {
                       Detected: {detectedPlatform.charAt(0).toUpperCase() + detectedPlatform.slice(1)}
                     </Badge>
                   )}
-                  {urlValue && !detectedPlatform && (
-                    <p className="text-[11px] text-muted-foreground">
-                      URL mode supports Shopify stores. Use manual entry for Etsy, Amazon, and eBay.
-                    </p>
+                  {urlHint && (
+                    <p className="text-[11px] text-muted-foreground">{urlHint}</p>
                   )}
                 </div>
                 <Button type="submit" className="w-full" disabled={loading || !detectedPlatform}>
@@ -377,7 +380,18 @@ export function AuditClient() {
                   <p className="text-sm font-medium text-destructive">Audit failed</p>
                   <p className="text-xs text-muted-foreground">{error}</p>
                 </div>
-                <button onClick={() => setError(null)} className="text-xs text-muted-foreground hover:text-foreground">Dismiss</button>
+                <div className="flex items-center gap-2 shrink-0">
+                  {lastPayload && (
+                    <button
+                      onClick={() => runAudit(lastPayload)}
+                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      <RotateCcw className="size-3" />
+                      Retry
+                    </button>
+                  )}
+                  <button onClick={() => setError(null)} className="text-xs text-muted-foreground hover:text-foreground">Dismiss</button>
+                </div>
               </CardContent>
             </Card>
           )}
@@ -497,6 +511,17 @@ export function AuditClient() {
                   </CardContent>
                 </Card>
               )}
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => { setResult(null); setError(null); setLastPayload(null); }}
+              >
+                <RotateCcw className="size-3.5" />
+                Audit another listing
+              </Button>
             </div>
           )}
         </div>
