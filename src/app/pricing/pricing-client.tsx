@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Zap } from "lucide-react";
+import { Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -97,10 +97,7 @@ export function PricingClient() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="mx-auto max-w-5xl px-6 pt-16 pb-12 text-center">
-        <div className="mb-4 flex items-center justify-center gap-2">
-          <div className="flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <Zap className="size-4" />
-          </div>
+        <div className="mb-4 flex items-center justify-center">
           <a href="/" className="font-bold tracking-tight text-xl">
             Sell<span className="text-primary">Wise</span>
           </a>
