@@ -41,33 +41,10 @@ const WRITING_RULES = `Writing rules:
 - Write like a real person: short sentences, plain punctuation (commas, full stops, exclamation marks only)
 - No buzzwords: unique, stunning, beautiful, perfect, seamlessly, elevate, enhance`;
 
-function buildPrompt(
-  platform: Platform,
-  inputs: {
-    productName: string;
-    materials: string;
-    style: string;
-    targetBuyer: string;
-    keywords: string;
-    existingContent?: string;
-  }
-): string {
-  const { productName, materials, style, targetBuyer, keywords, existingContent } = inputs;
-  const context = [
-    `Product: ${productName}`,
-    materials && `Materials/techniques: ${materials}`,
-    style && `Style/aesthetic: ${style}`,
-    targetBuyer && `Target buyer/occasion: ${targetBuyer}`,
-    keywords && `Keywords to include: ${keywords}`,
-  ]
-    .filter(Boolean)
-    .join("\n");
-
+function buildSystemPrompt(platform: Platform): string {
   switch (platform) {
     case "etsy":
       return `You are an expert Etsy SEO specialist and conversion copywriter. Etsy buyers are emotional — they are buying a feeling, a gift, a story. Your listing must rank AND make someone stop scrolling.
-
-${context}
 
 The description must:
 - Open with the emotional reason someone buys this — the occasion, the feeling, the recipient — before any product details
@@ -88,8 +65,6 @@ Return only the JSON object, no markdown.`;
     case "amazon":
       return `You are an expert Amazon FBA listing specialist. Generate an optimised Amazon product listing.
 
-${context}
-
 Return ONLY a valid JSON object:
 {
   "title": "max 200 chars — lead with brand or product type, include primary keyword, colour/size if relevant",
@@ -103,8 +78,6 @@ Return only the JSON object, no markdown.`;
 
     case "shopify":
       return `You are an expert Shopify SEO and conversion copywriter. Your goal is twofold: rank in Google and make a real customer want to buy the moment they land on the product page.
-
-${context}${existingContent ? `\nExisting description (improve this, keep accurate product details):\n${existingContent}` : ""}
 
 Write as if a real person is browsing this product page on their phone. The description must:
 - Open with the most specific, striking detail about this product — something only true of this product, not a generic opener
@@ -126,8 +99,6 @@ Return only the JSON object, no markdown.`;
     case "ebay":
       return `You are an expert eBay listing specialist. eBay buyers are comparison shoppers — they search by exact spec and scan listings fast. Your listing must match their search AND give them a reason to choose this listing over 20 identical ones.
 
-${context}
-
 The description must:
 - Lead with the single most important spec or selling point (brand, model, condition, key feature)
 - Use short lines — eBay descriptions are scanned, not read
@@ -144,6 +115,30 @@ ${WRITING_RULES}
 - eBay title: buyers search for exact model/spec terms — be specific, not generic
 Return only the JSON object, no markdown.`;
   }
+}
+
+function buildUserMessage(
+  platform: Platform,
+  inputs: {
+    productName: string;
+    materials: string;
+    style: string;
+    targetBuyer: string;
+    keywords: string;
+    existingContent?: string;
+  }
+): string {
+  const { productName, materials, style, targetBuyer, keywords, existingContent } = inputs;
+  return [
+    `Product: ${productName}`,
+    materials && `Materials/techniques: ${materials}`,
+    style && `Style/aesthetic: ${style}`,
+    targetBuyer && `Target buyer/occasion: ${targetBuyer}`,
+    keywords && `Keywords to include: ${keywords}`,
+    platform === "shopify" && existingContent && `Existing description (improve this, keep accurate product details):\n${existingContent}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 export async function POST(request: NextRequest) {
@@ -194,10 +189,11 @@ export async function POST(request: NextRequest) {
     parsed.data;
 
   const hasImage = !!(imageUrl || (imageBase64 && imageMediaType));
-  const basePrompt = buildPrompt(platform, { productName, materials, style, targetBuyer, keywords, existingContent });
-  const prompt = hasImage
-    ? `A photo of the product is included. Use what you can see — colour, material, texture, form, scale — to write accurate, specific copy.\n\n${basePrompt}`
-    : basePrompt;
+
+  const userText = buildUserMessage(platform, { productName, materials, style, targetBuyer, keywords, existingContent });
+  const userTextWithImageContext = hasImage
+    ? `A photo of the product is included. Use what you can see — colour, material, texture, form, scale — to write accurate, specific copy.\n\n${userText}`
+    : userText;
 
   type ImageSource =
     | { type: "url"; url: string }
@@ -213,14 +209,21 @@ export async function POST(request: NextRequest) {
     const message = await client.messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: 2048,
+      system: [
+        {
+          type: "text" as const,
+          text: buildSystemPrompt(platform),
+          cache_control: { type: "ephemeral" as const },
+        },
+      ],
       messages: [{
         role: "user",
         content: imageSource
           ? [
               { type: "image" as const, source: imageSource },
-              { type: "text" as const, text: prompt },
+              { type: "text" as const, text: userTextWithImageContext },
             ]
-          : prompt,
+          : userTextWithImageContext,
       }],
     });
 
