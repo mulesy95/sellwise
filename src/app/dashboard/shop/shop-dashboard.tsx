@@ -651,32 +651,42 @@ function OptimisePanel({
 
         {/* Footer actions */}
         {result && (
-          <div className="shrink-0 border-t border-border px-6 py-4 flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => setResult(null)} className="text-xs">
-              Regenerate
-            </Button>
-            <Button variant="ghost" size="sm" onClick={copyAll} className="text-xs">
-              <Copy className="size-3.5" />
-              Copy all
-            </Button>
-            <div className="flex-1" />
-            {isStudio ? (
-              <Button size="sm" onClick={handlePush} disabled={pushing}>
-                {pushing
-                  ? <><Spinner size="sm" className="mr-1.5" />Applying…</>
-                  : isShopify && uploadedImage
-                  ? "Apply content + image"
-                  : isShopify
-                  ? "Apply to Shopify"
-                  : "Apply to eBay"}
-              </Button>
-            ) : (
-              <a href="/pricing" className={cn(buttonVariants({ size: "sm" }), "text-xs")}>
-                <Lock className="size-3.5" />
-                Studio to apply
-              </a>
+          <>
+            {!isStudio && (
+              <div className="shrink-0 border-t border-primary/20 bg-primary/5 px-6 py-3 flex items-center justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-foreground">Push live without copy-paste</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Studio applies this directly to {isShopify ? "Shopify" : "eBay"} — one click, done.
+                  </p>
+                </div>
+                <a href="/pricing" className={cn(buttonVariants({ size: "sm" }), "shrink-0 text-xs whitespace-nowrap")}>
+                  Upgrade to Studio <ArrowRight className="size-3.5" />
+                </a>
+              </div>
             )}
-          </div>
+            <div className="shrink-0 border-t border-border px-6 py-4 flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => setResult(null)} className="text-xs">
+                Regenerate
+              </Button>
+              <Button variant="ghost" size="sm" onClick={copyAll} className="text-xs">
+                <Copy className="size-3.5" />
+                Copy all
+              </Button>
+              <div className="flex-1" />
+              {isStudio && (
+                <Button size="sm" onClick={handlePush} disabled={pushing}>
+                  {pushing
+                    ? <><Spinner size="sm" className="mr-1.5" />Applying…</>
+                    : isShopify && uploadedImage
+                    ? "Apply content + image"
+                    : isShopify
+                    ? "Apply to Shopify"
+                    : "Apply to eBay"}
+                </Button>
+              )}
+            </div>
+          </>
         )}
       </div>
     </>
@@ -1174,15 +1184,15 @@ function ShopProductsPanel({
         </Card>
 
         {plan !== "studio" && (
-          <Card className="border-border/50">
+          <Card className="border-primary/20 bg-primary/5">
             <CardContent className="flex items-center justify-between py-4 gap-4">
               <div>
-                <p className="text-sm font-medium">Apply changes directly to {platform === "shopify" ? "Shopify" : "eBay"}</p>
+                <p className="text-sm font-medium">Stop copy-pasting. Push listings live from here.</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  No copy-paste. Optimise and push with one click. Studio plan only.
+                  Studio sends your optimised content directly to {platform === "shopify" ? "Shopify" : "eBay"} — one click, no tab switching.
                 </p>
               </div>
-              <a href="/pricing" className={cn(buttonVariants({ size: "sm" }), "shrink-0")}>
+              <a href="/pricing" className={cn(buttonVariants({ size: "sm" }), "shrink-0 whitespace-nowrap")}>
                 Upgrade to Studio <ArrowRight className="size-3.5" />
               </a>
             </CardContent>
