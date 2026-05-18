@@ -12,7 +12,7 @@ type Currency = "USD" | "AUD";
 
 const features = {
   free: [
-    "1 optimisation / month",
+    "3 optimisations / month",
     "All platforms via manual entry",
     "AI title, tags and description",
   ],
@@ -21,6 +21,7 @@ const features = {
     "Keyword research — 15 keywords per search",
     "Listing audit with score and fixes",
     "Platform migration — reformat for any marketplace",
+    "Optimisation history",
     "Email support",
   ],
   growth: [
@@ -28,15 +29,15 @@ const features = {
     "Unlimited keyword research",
     "Unlimited listing audits",
     "Bulk optimiser — upload CSV, download results",
-    "Optimisation history",
+    "Connect 1 store — view SEO scores and optimise",
     "Priority support",
   ],
   studio: [
     "Everything in Growth",
-    "Connect your Shopify, eBay and Amazon store",
+    "Connect unlimited Shopify and eBay stores",
     "Push optimised listings live — no copy-paste",
     "SEO metafields pushed to Shopify automatically",
-    "Multi-shop management",
+    "Revert any listing to its previous version",
     "Dedicated support",
   ],
   agency: [
