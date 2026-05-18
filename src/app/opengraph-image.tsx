@@ -21,47 +21,33 @@ export default function Image() {
           padding: "80px",
         }}
       >
-        {/* Logo */}
+        {/* Wordmark */}
         <div
           style={{
             display: "flex",
-            alignItems: "center",
-            gap: "16px",
+            fontSize: "56px",
+            fontWeight: "800",
             marginBottom: "32px",
+            letterSpacing: "-1px",
           }}
         >
-          <div
-            style={{
-              width: "56px",
-              height: "56px",
-              borderRadius: "14px",
-              background: "#7c3aed",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <div style={{ color: "white", fontSize: "28px" }}>✦</div>
-          </div>
-          <div style={{ display: "flex", fontSize: "48px", fontWeight: "700" }}>
-            <span style={{ color: "#fafafa" }}>Sell</span>
-            <span style={{ color: "#a78bfa" }}>Wise</span>
-          </div>
+          <span style={{ color: "#fafafa" }}>Sell</span>
+          <span style={{ color: "#f0873b" }}>Wise</span>
         </div>
 
         {/* Headline */}
         <div
           style={{
-            fontSize: "40px",
+            fontSize: "42px",
             fontWeight: "700",
             color: "#fafafa",
             textAlign: "center",
             lineHeight: "1.2",
-            maxWidth: "800px",
+            maxWidth: "820px",
             marginBottom: "20px",
           }}
         >
-          AI Listing Optimiser for Marketplace Sellers
+          Post listings that buyers actually find.
         </div>
 
         {/* Subline */}
@@ -70,30 +56,25 @@ export default function Image() {
             fontSize: "22px",
             color: "#a1a1aa",
             textAlign: "center",
-            maxWidth: "700px",
+            maxWidth: "680px",
+            marginBottom: "48px",
           }}
         >
-          Titles, tags &amp; descriptions that rank — in seconds.
-          Etsy, Amazon, Shopify &amp; eBay.
+          AI-optimised titles, tags and descriptions for Etsy, Amazon, Shopify and eBay.
         </div>
 
         {/* Platform pills */}
-        <div
-          style={{
-            display: "flex",
-            gap: "12px",
-            marginTop: "40px",
-          }}
-        >
+        <div style={{ display: "flex", gap: "12px" }}>
           {["Etsy", "Amazon", "Shopify", "eBay"].map((p) => (
             <div
               key={p}
               style={{
-                padding: "8px 20px",
+                padding: "10px 24px",
                 borderRadius: "999px",
-                border: "1px solid #3f3f46",
+                border: "1px solid #27272a",
+                background: "#18181b",
                 color: "#a1a1aa",
-                fontSize: "16px",
+                fontSize: "17px",
               }}
             >
               {p}
