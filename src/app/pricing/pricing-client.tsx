@@ -52,7 +52,7 @@ const features = {
 const USD_PLANS = [
   { id: "free" as const,    name: "Free",    monthly: 0,   annual: 0,    description: "Start optimising free" },
   { id: "starter" as const, name: "Starter", monthly: 19,  annual: 190,  description: "For part-time sellers" },
-  { id: "growth" as const,  name: "Growth",  monthly: 29,  annual: 290,  description: "For serious sellers",  popular: true },
+  { id: "growth" as const,  name: "Growth",  monthly: 29,  annual: 290,  description: "For serious sellers" },
   { id: "studio" as const,  name: "Studio",  monthly: 79,  annual: 790,  description: "Connect and automate" },
   { id: "agency" as const,  name: "Agency",  monthly: 249, annual: 2490, description: "For agencies and power sellers" },
 ];
@@ -60,7 +60,7 @@ const USD_PLANS = [
 const AUD_PLANS = [
   { id: "free" as const,    name: "Free",    monthly: 0,   annual: 0,    description: "Start optimising free" },
   { id: "starter" as const, name: "Starter", monthly: 32,  annual: 320,  description: "For part-time sellers" },
-  { id: "growth" as const,  name: "Growth",  monthly: 45,  annual: 450,  description: "For serious sellers",  popular: true },
+  { id: "growth" as const,  name: "Growth",  monthly: 45,  annual: 450,  description: "For serious sellers" },
   { id: "studio" as const,  name: "Studio",  monthly: 120, annual: 1200, description: "Connect and automate" },
   { id: "agency" as const,  name: "Agency",  monthly: 379, annual: 3790, description: "For agencies and power sellers" },
 ];
@@ -106,7 +106,7 @@ export function PricingClient({ currency = "USD" }: { currency?: Currency }) {
       {/* Header */}
       <div className="mx-auto max-w-5xl px-6 pt-16 pb-12 text-center">
         <div className="mb-4 flex items-center justify-center">
-          <a href="/" className="font-bold tracking-tight text-xl">
+          <a href="/" className="font-bold tracking-tight text-2xl">
             Sell<span className="text-primary">Wise</span>
           </a>
         </div>
@@ -139,7 +139,7 @@ export function PricingClient({ currency = "USD" }: { currency?: Currency }) {
           >
             Annual
             <Badge className="h-5 px-1.5 text-xs bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30">
-              Save 17%
+              2 months free
             </Badge>
           </button>
         </div>
@@ -158,19 +158,8 @@ export function PricingClient({ currency = "USD" }: { currency?: Currency }) {
             return (
               <div
                 key={plan.id}
-                className={cn(
-                  "relative rounded-xl border p-6 flex flex-col",
-                  plan.popular
-                    ? "border-primary shadow-md shadow-primary/10"
-                    : "border-border"
-                )}
+                className="relative rounded-xl border border-border p-6 flex flex-col"
               >
-                {plan.popular && (
-                  <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-xs">
-                    Most popular
-                  </Badge>
-                )}
-
                 <div className="mb-4">
                   <div className="text-sm font-semibold">{plan.name}</div>
                   <div className="text-xs text-muted-foreground mt-0.5 mb-3">
@@ -219,11 +208,7 @@ export function PricingClient({ currency = "USD" }: { currency?: Currency }) {
                     onClick={() => handleUpgrade(plan)}
                     disabled={loading === plan.id}
                     className={cn(
-                      buttonVariants({
-                        variant: plan.popular ? "default" : "outline",
-                        size: "sm",
-                        className: "w-full text-xs",
-                      }),
+                      buttonVariants({ variant: "outline", size: "sm", className: "w-full text-xs" }),
                       "disabled:opacity-60"
                     )}
                   >
