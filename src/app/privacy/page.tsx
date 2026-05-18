@@ -16,7 +16,7 @@ export default function PrivacyPage() {
             ← Back to SellWise
           </Link>
           <h1 className="mt-6 text-3xl font-bold tracking-tight">Privacy Policy</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Last updated: 15 May 2026</p>
+          <p className="mt-2 text-sm text-muted-foreground">Last updated: 18 May 2026</p>
         </div>
 
         <div className="prose prose-neutral dark:prose-invert max-w-none space-y-8 text-sm leading-relaxed text-foreground/80">
@@ -54,16 +54,19 @@ export default function PrivacyPage() {
 
             <h3 className="text-sm font-semibold text-foreground/90">Content you provide</h3>
             <p>
-              Product titles, descriptions, and other listing details you enter to generate optimised
-              content. This data is sent to the AI provider (Anthropic) to generate results and may be
-              stored in your optimisation history.
+              Product titles, descriptions, and other listing details you enter or that are fetched from
+              your connected store. This content is sent to Anthropic's Claude API to generate optimised
+              results. Successful optimisations are saved in your account history so you can review,
+              compare, and re-use them. You can delete individual entries or your entire history at any time.
             </p>
 
             <h3 className="text-sm font-semibold text-foreground/90">Shop integration data</h3>
             <p>
-              If you connect an Etsy or Shopify store, we store OAuth access tokens and basic shop
-              information (shop name, URL, shop ID) to enable listing access. We do not store full
-              product catalogues — listing data is fetched on demand and not persisted.
+              If you connect a Shopify or eBay store, we store OAuth access tokens and basic shop
+              information (shop name, URL, shop ID) to enable listing access. Product listings are
+              fetched on demand when you use a feature — we do not mirror or cache your full product
+              catalogue. Access tokens are stored encrypted and are only used to perform actions you
+              explicitly request.
             </p>
 
             <h3 className="text-sm font-semibold text-foreground/90">Payment information</h3>
@@ -91,13 +94,46 @@ export default function PrivacyPage() {
               <li>To comply with legal obligations</li>
             </ul>
             <p>
-              We do not sell your personal information. We do not use your listing content to train AI
-              models.
+              We do not sell your personal information.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-base font-semibold text-foreground">4. Third-party services</h2>
+            <h2 className="text-base font-semibold text-foreground">4. How AI content generation works</h2>
+            <p>
+              When you use SellWise to optimise a listing, your product information is sent to
+              Anthropic&apos;s Claude API — a third-party AI service — to generate the optimised result.
+              This is an inference call only: your data is processed in real time and used solely to
+              produce your result.
+            </p>
+            <p>
+              <strong>Anthropic does not retain API inputs or use them to train its models.</strong>{" "}
+              Under Anthropic&apos;s standard API usage policy, prompts and responses are not used for model
+              training. You can verify this at{" "}
+              <a
+                href="https://www.anthropic.com/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                anthropic.com/privacy
+              </a>
+              .
+            </p>
+            <p>
+              SellWise does not train, fine-tune, or otherwise improve any AI or machine learning system
+              using your listing content, your store data, or any other content you provide.
+            </p>
+            <p>
+              If you have connected a Shopify or eBay store, your listing data is accessed on your behalf
+              and sent to Anthropic only when you explicitly trigger an optimisation. It is not sent in
+              bulk, scanned in the background, or used for any purpose other than generating the result
+              you requested.
+            </p>
+          </section>
+
+          <section className="space-y-3">
+            <h2 className="text-base font-semibold text-foreground">5. Third-party services</h2>
             <p>We use the following third-party services to operate SellWise:</p>
             <div className="rounded-lg border border-border overflow-hidden">
               <table className="w-full text-xs">
@@ -115,8 +151,8 @@ export default function PrivacyPage() {
                     ["Resend", "Transactional email delivery"],
                     ["PostHog", "Product analytics"],
                     ["Vercel", "Hosting and infrastructure"],
-                    ["Etsy API", "Shop integration (if connected)"],
                     ["Shopify API", "Shop integration (if connected)"],
+                    ["eBay API", "Shop integration (if connected)"],
                   ].map(([service, purpose]) => (
                     <tr key={service}>
                       <td className="px-4 py-2 font-medium text-foreground/80">{service}</td>
@@ -133,7 +169,7 @@ export default function PrivacyPage() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-base font-semibold text-foreground">5. Data storage and security</h2>
+            <h2 className="text-base font-semibold text-foreground">6. Data storage and security</h2>
             <p>
               Your data is stored in Supabase (hosted on AWS ap-south-1, Mumbai). We use encryption in
               transit (HTTPS/TLS) and at rest. Access tokens for third-party integrations are stored
@@ -146,7 +182,7 @@ export default function PrivacyPage() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-base font-semibold text-foreground">6. Data retention</h2>
+            <h2 className="text-base font-semibold text-foreground">7. Data retention</h2>
             <p>
               We retain your account data for as long as your account is active. Usage counters are reset
               monthly. Optimisation history is retained until you delete it or close your account.
@@ -158,7 +194,7 @@ export default function PrivacyPage() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-base font-semibold text-foreground">7. Cookies</h2>
+            <h2 className="text-base font-semibold text-foreground">8. Cookies</h2>
             <p>
               We use strictly necessary cookies for authentication (session management). We do not use
               advertising cookies. PostHog analytics may set a cookie to identify returning sessions —
@@ -167,7 +203,7 @@ export default function PrivacyPage() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-base font-semibold text-foreground">8. Your rights</h2>
+            <h2 className="text-base font-semibold text-foreground">9. Your rights</h2>
             <p>You have the right to:</p>
             <ul className="list-disc space-y-1 pl-5">
               <li>Access the personal information we hold about you</li>
@@ -186,7 +222,7 @@ export default function PrivacyPage() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-base font-semibold text-foreground">9. Changes to this policy</h2>
+            <h2 className="text-base font-semibold text-foreground">10. Changes to this policy</h2>
             <p>
               We may update this policy from time to time. We will notify you of material changes by
               email or via the Service. The "last updated" date at the top of this page reflects the
@@ -195,7 +231,7 @@ export default function PrivacyPage() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-base font-semibold text-foreground">10. Contact</h2>
+            <h2 className="text-base font-semibold text-foreground">11. Contact</h2>
             <p>
               For any privacy-related questions or requests:{" "}
               <a href="mailto:support@sellwise.au" className="text-primary hover:underline">
