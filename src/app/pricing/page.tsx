@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { PricingClient } from "./pricing-client";
 
 export const metadata: Metadata = {
@@ -13,6 +14,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function PricingPage() {
-  return <PricingClient />;
+export default async function PricingPage() {
+  const h = await headers();
+  const country = h.get("x-vercel-ip-country") ?? "US";
+  const currency = country === "AU" ? "AUD" : "USD";
+  return <PricingClient currency={currency} />;
 }

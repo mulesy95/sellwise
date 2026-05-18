@@ -7,24 +7,23 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2026-04-22.dahlia",
 });
 
-const PRICE_IDS: Record<string, Record<string, string | undefined>> = {
-  starter: {
-    monthly: process.env.STRIPE_PRICE_STARTER,
-    annual:  process.env.STRIPE_PRICE_STARTER_ANNUAL,
+const PRICE_IDS: Record<string, Record<string, Record<string, string | undefined>>> = {
+  USD: {
+    starter: { monthly: process.env.STRIPE_PRICE_STARTER,         annual: process.env.STRIPE_PRICE_STARTER_ANNUAL },
+    growth:  { monthly: process.env.STRIPE_PRICE_GROWTH,           annual: process.env.STRIPE_PRICE_GROWTH_ANNUAL },
+    studio:  { monthly: process.env.STRIPE_PRICE_STUDIO,           annual: process.env.STRIPE_PRICE_STUDIO_ANNUAL },
   },
-  growth: {
-    monthly: process.env.STRIPE_PRICE_GROWTH,
-    annual:  process.env.STRIPE_PRICE_GROWTH_ANNUAL,
-  },
-  studio: {
-    monthly: process.env.STRIPE_PRICE_STUDIO,
-    annual:  process.env.STRIPE_PRICE_STUDIO_ANNUAL,
+  AUD: {
+    starter: { monthly: process.env.STRIPE_PRICE_STARTER_AUD,     annual: process.env.STRIPE_PRICE_STARTER_ANNUAL_AUD },
+    growth:  { monthly: process.env.STRIPE_PRICE_GROWTH_AUD,       annual: process.env.STRIPE_PRICE_GROWTH_ANNUAL_AUD },
+    studio:  { monthly: process.env.STRIPE_PRICE_STUDIO_AUD,       annual: process.env.STRIPE_PRICE_STUDIO_ANNUAL_AUD },
   },
 };
 
 const requestSchema = z.object({
   plan: z.enum(["starter", "growth", "studio"]),
   billing: z.enum(["monthly", "annual"]).default("monthly"),
+  currency: z.enum(["USD", "AUD"]).default("USD"),
 });
 
 export async function POST(request: NextRequest) {
@@ -49,8 +48,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
 
-  const { plan, billing } = parsed.data;
-  const priceId = PRICE_IDS[plan]?.[billing];
+  const { plan, billing, currency } = parsed.data;
+
+  // Try requested currency first, fall back to USD if AUD prices not yet configured
+  const priceId =
+    PRICE_IDS[currency]?.[plan]?.[billing] ??
+    PRICE_IDS["USD"]?.[plan]?.[billing];
 
   if (!priceId) {
     return NextResponse.json(

@@ -8,61 +8,69 @@ import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
+type Currency = "USD" | "AUD";
+
 const features = {
-  free:    ["1 optimisation / month", "All platforms (manual entry)", "Basic listing optimiser"],
-  starter: ["50 optimisations / month", "Keyword Research", "Listing Audit", "Platform Migration", "Email support"],
-  growth:  ["Unlimited optimisations", "Unlimited keywords", "Unlimited audits", "Priority support", "Optimisation history"],
-  studio:  ["Everything in Growth", "Connect your Shopify + eBay store", "Push edits back to your shop", "SEO metafield push (Shopify)", "Multi-shop management", "Dedicated support"],
-  agency:  ["Everything in Studio", "Up to 10 connected stores", "500 optimisations / day", "Team seats (coming soon)", "White-label output (coming soon)", "Dedicated account manager"],
+  free: [
+    "1 optimisation / month",
+    "All platforms via manual entry",
+    "AI title, tags and description",
+  ],
+  starter: [
+    "50 optimisations / month",
+    "Keyword research — 15 keywords per search",
+    "Listing audit with score and fixes",
+    "Platform migration — reformat for any marketplace",
+    "Email support",
+  ],
+  growth: [
+    "Unlimited optimisations",
+    "Unlimited keyword research",
+    "Unlimited listing audits",
+    "Bulk optimiser — upload CSV, download results",
+    "Optimisation history",
+    "Priority support",
+  ],
+  studio: [
+    "Everything in Growth",
+    "Connect your Shopify, eBay and Amazon store",
+    "Push optimised listings live — no copy-paste",
+    "SEO metafields pushed to Shopify automatically",
+    "Multi-shop management",
+    "Dedicated support",
+  ],
+  agency: [
+    "Everything in Studio",
+    "Up to 10 connected stores",
+    "500 optimisations / day",
+    "Custom onboarding",
+    "Dedicated account manager",
+    "Team seats (coming soon)",
+  ],
 };
 
-const plans = [
-  {
-    id: "free" as const,
-    name: "Free",
-    monthly: 0,
-    annual: 0,
-    description: "Try before you buy",
-    comingSoon: false,
-  },
-  {
-    id: "starter" as const,
-    name: "Starter",
-    monthly: 19,
-    annual: 190,
-    description: "For part-time sellers",
-    comingSoon: false,
-  },
-  {
-    id: "growth" as const,
-    name: "Growth",
-    monthly: 29,
-    annual: 290,
-    description: "For serious sellers",
-    popular: true,
-    comingSoon: false,
-  },
-  {
-    id: "studio" as const,
-    name: "Studio",
-    monthly: 79,
-    annual: 790,
-    description: "Multi-platform + shop API",
-    comingSoon: true,
-  },
-  {
-    id: "agency" as const,
-    name: "Agency",
-    monthly: 249,
-    annual: 2490,
-    description: "For agencies & power sellers",
-    comingSoon: false,
-  },
+const USD_PLANS = [
+  { id: "free" as const,    name: "Free",    monthly: 0,   annual: 0,    description: "Start optimising free" },
+  { id: "starter" as const, name: "Starter", monthly: 19,  annual: 190,  description: "For part-time sellers" },
+  { id: "growth" as const,  name: "Growth",  monthly: 29,  annual: 290,  description: "For serious sellers",  popular: true },
+  { id: "studio" as const,  name: "Studio",  monthly: 79,  annual: 790,  description: "Connect and automate" },
+  { id: "agency" as const,  name: "Agency",  monthly: 249, annual: 2490, description: "For agencies and power sellers" },
 ];
 
-export function PricingClient() {
+const AUD_PLANS = [
+  { id: "free" as const,    name: "Free",    monthly: 0,   annual: 0,    description: "Start optimising free" },
+  { id: "starter" as const, name: "Starter", monthly: 32,  annual: 320,  description: "For part-time sellers" },
+  { id: "growth" as const,  name: "Growth",  monthly: 45,  annual: 450,  description: "For serious sellers",  popular: true },
+  { id: "studio" as const,  name: "Studio",  monthly: 120, annual: 1200, description: "Connect and automate" },
+  { id: "agency" as const,  name: "Agency",  monthly: 379, annual: 3790, description: "For agencies and power sellers" },
+];
+
+export function PricingClient({ currency = "USD" }: { currency?: Currency }) {
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
   const [loading, setLoading] = useState<string | null>(null);
+
+  const plans = currency === "AUD" ? AUD_PLANS : USD_PLANS;
+  const symbol = currency === "AUD" ? "A$" : "$";
 
   async function handleUpgrade(plan: typeof plans[number]) {
     if (plan.id === "free") return;
@@ -72,7 +80,7 @@ export function PricingClient() {
       const res = await fetch("/api/stripe/create-checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: plan.id, billing }),
+        body: JSON.stringify({ plan: plan.id, billing, currency }),
       });
 
       const data = await res.json();
@@ -144,7 +152,7 @@ export function PricingClient() {
             const price = billing === "annual" ? plan.annual : plan.monthly;
             const monthlyEquiv =
               billing === "annual" && plan.annual > 0
-                ? Math.round((plan.annual / 12) * 100) / 100
+                ? Math.round((plan.annual / 12) * 10) / 10
                 : null;
 
             return (
@@ -170,7 +178,7 @@ export function PricingClient() {
                   </div>
                   <div className="flex items-baseline gap-1">
                     <span className="text-3xl font-bold">
-                      {price === 0 ? "Free" : `$${billing === "annual" ? monthlyEquiv : price}`}
+                      {price === 0 ? "Free" : `${symbol}${billing === "annual" ? monthlyEquiv : price}`}
                     </span>
                     {price > 0 && (
                       <span className="text-sm text-muted-foreground">/mo</span>
@@ -178,7 +186,7 @@ export function PricingClient() {
                   </div>
                   {billing === "annual" && plan.annual > 0 && (
                     <div className="text-xs text-muted-foreground mt-0.5">
-                      billed ${plan.annual}/year
+                      billed {symbol}{plan.annual}/year
                     </div>
                   )}
                 </div>
@@ -206,16 +214,6 @@ export function PricingClient() {
                   >
                     Contact us
                   </a>
-                ) : plan.comingSoon ? (
-                  <button
-                    disabled
-                    className={cn(
-                      buttonVariants({ variant: "outline", size: "sm", className: "w-full text-xs" }),
-                      "opacity-50 cursor-not-allowed"
-                    )}
-                  >
-                    Coming soon
-                  </button>
                 ) : (
                   <button
                     onClick={() => handleUpgrade(plan)}
@@ -243,6 +241,7 @@ export function PricingClient() {
 
         <p className="mt-8 text-center text-xs text-muted-foreground">
           All paid plans include a 7-day free trial. No credit card required to start free.
+          {currency === "AUD" && " Prices in AUD."}
         </p>
 
         <div className="mt-10 flex justify-center gap-5 text-xs text-muted-foreground/60">
