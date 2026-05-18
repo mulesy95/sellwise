@@ -13,8 +13,7 @@ const requestSchema = z.object({
   keyword: z.string().min(1).max(100),
 });
 
-function buildPrompt(platform: Platform, keyword: string): string {
-  const schema = `Return ONLY a valid JSON object:
+const KEYWORDS_SCHEMA = `Return ONLY a valid JSON object:
 {
   "keywords": [
     { "keyword": "the phrase", "volume": "high", "competition": "low", "trend": "up" }
@@ -28,13 +27,12 @@ Rules:
 - Return exactly 15 keywords
 Return only the JSON object, no markdown.`;
 
+function buildSystemPrompt(platform: Platform): string {
   switch (platform) {
     case "etsy":
       return `You are an Etsy SEO expert. Given a seed keyword, return 15 related keyword phrases that Etsy buyers actually search for.
 
-Seed keyword: ${keyword}
-
-${schema}
+${KEYWORDS_SCHEMA}
 
 Additional rules:
 - Include occasion-based variations (birthday gift, wedding, Christmas, Mother's Day)
@@ -45,9 +43,7 @@ Additional rules:
     case "amazon":
       return `You are an Amazon FBA SEO expert. Given a seed keyword, return 15 keyword phrases that Amazon shoppers actually search for.
 
-Seed keyword: ${keyword}
-
-${schema}
+${KEYWORDS_SCHEMA}
 
 Additional rules:
 - Focus on purchase-intent keywords (best, buy, top rated, cheap, review, under $X)
@@ -59,9 +55,7 @@ Additional rules:
     case "shopify":
       return `You are a Shopify and Google SEO expert. Given a seed keyword, return 15 keyword phrases shoppers search for on Google to find products like this.
 
-Seed keyword: ${keyword}
-
-${schema}
+${KEYWORDS_SCHEMA}
 
 Additional rules:
 - Focus on Google organic search intent, not marketplace search
@@ -73,9 +67,7 @@ Additional rules:
     case "ebay":
       return `You are an eBay SEO and selling expert. Given a seed keyword, return 15 keyword phrases that eBay buyers actually search for.
 
-Seed keyword: ${keyword}
-
-${schema}
+${KEYWORDS_SCHEMA}
 
 Additional rules:
 - eBay buyers search for specific brands, models, and conditions
@@ -142,13 +134,13 @@ export async function POST(request: NextRequest) {
   }
 
   const { platform, keyword } = parsed.data;
-  const prompt = buildPrompt(platform, keyword);
 
   try {
     const message = await client.messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: 1024,
-      messages: [{ role: "user", content: prompt }],
+      system: [{ type: "text" as const, text: buildSystemPrompt(platform), cache_control: { type: "ephemeral" as const } }],
+      messages: [{ role: "user", content: `Seed keyword: ${keyword}` }],
     });
 
     const text =

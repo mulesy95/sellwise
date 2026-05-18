@@ -25,23 +25,10 @@ const requestSchema = z.object({
   productCopy: z.string().max(5000).optional().default(""),
 });
 
-function buildPrompt(
-  platform: Platform,
-  data: z.infer<typeof requestSchema>
-): string {
+function buildSystemPrompt(platform: Platform): string {
   switch (platform) {
-    case "etsy": {
-      const listing = [
-        data.title ? `Title: ${data.title}` : "Title: (not provided)",
-        data.tags ? `Tags: ${data.tags}` : "Tags: (not provided)",
-        data.description
-          ? `Description: ${data.description}`
-          : "Description: (not provided)",
-      ].join("\n");
-
-      return `You are an expert Etsy SEO consultant. Audit this Etsy listing.
-
-${listing}
+    case "etsy":
+      return `You are an expert Etsy SEO consultant. Audit the listing provided.
 
 Score out of 100:
 - titleScore (0–40): keyword placement, starts with primary keyword, 100–140 chars, reads naturally, no ALL CAPS
@@ -57,31 +44,9 @@ Return ONLY valid JSON:
   "improvements": ["3 to 5 specific, actionable fixes"]
 }
 Return only the JSON, no markdown.`;
-    }
 
-    case "amazon": {
-      const bulletLines = data.bullets
-        ? data.bullets
-            .split("\n")
-            .filter(Boolean)
-            .map((b, i) => `Bullet ${i + 1}: ${b}`)
-            .join("\n")
-        : "Bullets: (not provided)";
-
-      const listing = [
-        data.title ? `Title: ${data.title}` : "Title: (not provided)",
-        bulletLines,
-        data.backendKeywords
-          ? `Backend keywords: ${data.backendKeywords}`
-          : "Backend keywords: (not provided)",
-        data.description ? `Description: ${data.description}` : "",
-      ]
-        .filter(Boolean)
-        .join("\n");
-
-      return `You are an expert Amazon FBA listing specialist. Audit this Amazon listing.
-
-${listing}
+    case "amazon":
+      return `You are an expert Amazon FBA listing specialist. Audit the listing provided.
 
 Score out of 100:
 - titleScore (0–30): brand/product type first, keyword-rich, max 200 chars, readable
@@ -97,24 +62,9 @@ Return ONLY valid JSON:
   "improvements": ["3 to 5 specific, actionable fixes"]
 }
 Return only the JSON, no markdown.`;
-    }
 
-    case "shopify": {
-      const listing = [
-        data.metaTitle
-          ? `Meta title: ${data.metaTitle}`
-          : "Meta title: (not provided)",
-        data.metaDescription
-          ? `Meta description: ${data.metaDescription}`
-          : "Meta description: (not provided)",
-        data.productCopy
-          ? `Product copy: ${data.productCopy}`
-          : "Product copy: (not provided)",
-      ].join("\n");
-
-      return `You are an expert Shopify SEO and conversion specialist. Audit this Shopify product listing.
-
-${listing}
+    case "shopify":
+      return `You are an expert Shopify SEO and conversion specialist. Audit the product listing provided.
 
 Score out of 100:
 - metaTitleScore (0–30): max 60 chars, primary keyword present, includes brand if space allows
@@ -130,19 +80,9 @@ Return ONLY valid JSON:
   "improvements": ["3 to 5 specific, actionable fixes"]
 }
 Return only the JSON, no markdown.`;
-    }
 
-    case "ebay": {
-      const listing = [
-        data.title ? `Title: ${data.title}` : "Title: (not provided)",
-        data.description
-          ? `Description: ${data.description}`
-          : "Description: (not provided)",
-      ].join("\n");
-
-      return `You are an expert eBay listing specialist. Audit this eBay listing.
-
-${listing}
+    case "ebay":
+      return `You are an expert eBay listing specialist. Audit the listing provided.
 
 Score out of 100:
 - titleScore (0–50): keyword-front-loaded, max 80 chars, specific product details (brand/model/size/condition), no ALL CAPS
@@ -156,7 +96,45 @@ Return ONLY valid JSON:
   "improvements": ["3 to 5 specific, actionable fixes"]
 }
 Return only the JSON, no markdown.`;
+  }
+}
+
+function buildUserMessage(
+  platform: Platform,
+  data: z.infer<typeof requestSchema>
+): string {
+  switch (platform) {
+    case "etsy":
+      return [
+        data.title ? `Title: ${data.title}` : "Title: (not provided)",
+        data.tags ? `Tags: ${data.tags}` : "Tags: (not provided)",
+        data.description ? `Description: ${data.description}` : "Description: (not provided)",
+      ].join("\n");
+
+    case "amazon": {
+      const bulletLines = data.bullets
+        ? data.bullets.split("\n").filter(Boolean).map((b, i) => `Bullet ${i + 1}: ${b}`).join("\n")
+        : "Bullets: (not provided)";
+      return [
+        data.title ? `Title: ${data.title}` : "Title: (not provided)",
+        bulletLines,
+        data.backendKeywords ? `Backend keywords: ${data.backendKeywords}` : "Backend keywords: (not provided)",
+        data.description ? `Description: ${data.description}` : "",
+      ].filter(Boolean).join("\n");
     }
+
+    case "shopify":
+      return [
+        data.metaTitle ? `Meta title: ${data.metaTitle}` : "Meta title: (not provided)",
+        data.metaDescription ? `Meta description: ${data.metaDescription}` : "Meta description: (not provided)",
+        data.productCopy ? `Product copy: ${data.productCopy}` : "Product copy: (not provided)",
+      ].join("\n");
+
+    case "ebay":
+      return [
+        data.title ? `Title: ${data.title}` : "Title: (not provided)",
+        data.description ? `Description: ${data.description}` : "Description: (not provided)",
+      ].join("\n");
   }
 }
 
@@ -281,13 +259,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const prompt = buildPrompt(platform, { platform, ...fields });
-
   try {
     const message = await client.messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: 512,
-      messages: [{ role: "user", content: prompt }],
+      system: [{ type: "text" as const, text: buildSystemPrompt(platform), cache_control: { type: "ephemeral" as const } }],
+      messages: [{ role: "user", content: buildUserMessage(platform, { platform, ...fields }) }],
     });
 
     const text =
