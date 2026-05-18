@@ -4,14 +4,12 @@ const PLAN_FEATURES: Record<string, string[]> = {
   starter: [
     "50 listing optimisations per month",
     "Keyword Research",
-    "Competitor Peek",
     "Listing Audit",
     "Optimisation history",
   ],
   growth: [
     "Unlimited listing optimisations",
     "Unlimited keyword research",
-    "Unlimited competitor analyses",
     "Unlimited listing audits",
     "Optimisation history",
     "Priority support",

@@ -142,7 +142,21 @@
       "Bash(git stash *)",
       "Bash(FILTER_BRANCH_SQUELCH_WARNING=1 git filter-branch -f --env-filter ' *)",
       "Bash(Move-Item *)",
-      "Bash(npx sharp-cli *)"
+      "Bash(npx sharp-cli *)",
+      "Bash(Remove-Item *)",
+      "Bash(New-Item -ItemType Directory -Force \"C:\\\\Dev\\\\Projects\\\\Sellwise\\\\src\\\\app\\\\api\\\\shopify\\\\media\")",
+      "Bash(Out-Null)",
+      "WebFetch(domain:www.ebay.com.au)",
+      "mcp__plugin_vercel_vercel__deploy_to_vercel",
+      "Bash(python -m json.tool)",
+      "PowerShell($r = Invoke-WebRequest -Uri \"https://sellwise-test-store.myshopify.com/products.json\" -UseBasicParsing; \\($r.Content | ConvertFrom-Json\\).products | Select-Object -First 10 title, handle, body_html | Format-List)",
+      "PowerShell($r = Invoke-WebRequest -Uri \"https://sellwise-test-store.myshopify.com/products.json\" -UseBasicParsing; $r.StatusCode; $r.Content.Substring\\(0, [Math]::Min\\(500, $r.Content.Length\\)\\))",
+      "WebFetch(domain:www.shopify.com)",
+      "WebFetch(domain:developer.ebay.com)",
+      "WebFetch(domain:developer-docs.amazon.com)",
+      "WebFetch(domain:developers.ebay.com)",
+      "Bash(rm src/app/api/competitor/route.ts src/app/dashboard/competitor/page.tsx src/app/dashboard/competitor/competitor-client.tsx)",
+      "Bash(rmdir src/app/api/competitor src/app/dashboard/competitor)"
     ]
   }
 }

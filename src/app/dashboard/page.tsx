@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Sparkles, Search, Eye, BarChart3, ArrowRight, ArrowLeftRight, Store, Plus } from "lucide-react";
+import { Sparkles, Search, BarChart3, ArrowRight, ArrowLeftRight, Store, Plus } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -28,12 +28,6 @@ const quickActions = [
     description: "Find 15 marketplace keywords ranked by search volume and competition.",
     href: "/dashboard/keywords",
     icon: Search,
-  },
-  {
-    label: "Analyse a competitor",
-    description: "Paste a Shopify listing URL and get an AI-optimised side-by-side comparison.",
-    href: "/dashboard/competitor",
-    icon: Eye,
   },
   {
     label: "Audit my listing",
@@ -73,13 +67,11 @@ export default async function DashboardPage() {
     !usage ||
     (usage.optimisations === 0 &&
       usage.keywords === 0 &&
-      usage.competitor === 0 &&
       usage.audits === 0);
 
   const stats = [
     { label: "Optimisations", value: usage?.optimisations ?? 0, sub: "this month" },
     { label: "Keywords explored", value: usage?.keywords ?? 0, sub: "this month" },
-    { label: "Competitors analysed", value: usage?.competitor ?? 0, sub: "this month" },
     { label: "Audits run", value: usage?.audits ?? 0, sub: "this month" },
   ];
 
@@ -121,7 +113,7 @@ export default async function DashboardPage() {
 
       {/* Stats — only shown once user has activity */}
       {!isNewUser && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {stats.map((stat) => (
             <Card key={stat.label} className="border-border/50">
               <CardContent className="pt-4">

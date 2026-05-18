@@ -12,7 +12,7 @@ export function trialExpiredEmail(firstName: string | null, email: string): { su
         Your free trial of SellWise Growth has ended. You're now on the Free plan: 1 optimisation per month.
       </p>
       <p style="margin:0 0 28px;font-size:15px;color:#444444;line-height:1.6">
-        Upgrade any time to get back to unlimited optimisations, keyword research, competitor analysis, and listing audits.
+        Upgrade any time to get back to unlimited optimisations, keyword research, and listing audits.
       </p>
       <a href="${appUrl}/pricing"
          style="display:inline-block;background:#f0873b;color:#1a1a1a;text-decoration:none;font-size:14px;font-weight:700;padding:13px 24px;border-radius:8px">

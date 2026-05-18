@@ -162,11 +162,10 @@ export default async function SettingsPage() {
             <CardTitle className="text-base">Usage this month</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {[
                 { label: "Optimisations", count: usageData.optimisations },
                 { label: "Keywords", count: usageData.keywords },
-                { label: "Competitor", count: usageData.competitor },
                 { label: "Audits", count: usageData.audits },
               ].map(({ label, count }) => (
                 <div key={label} className="rounded-lg border border-border/50 p-3 text-center">

@@ -10,8 +10,8 @@ import { toast } from "sonner";
 
 const features = {
   free:    ["1 optimisation / month", "All platforms (manual entry)", "Basic listing optimiser"],
-  starter: ["50 optimisations / month", "Keyword Research", "Listing Audit", "Competitor Peek", "Platform Migration", "Email support"],
-  growth:  ["Unlimited optimisations", "Unlimited keywords", "Unlimited audits", "Unlimited competitor analyses", "Priority support", "Optimisation history"],
+  starter: ["50 optimisations / month", "Keyword Research", "Listing Audit", "Platform Migration", "Email support"],
+  growth:  ["Unlimited optimisations", "Unlimited keywords", "Unlimited audits", "Priority support", "Optimisation history"],
   studio:  ["Everything in Growth", "Connect your Shopify + eBay store", "Push edits back to your shop", "SEO metafield push (Shopify)", "Multi-shop management", "Dedicated support"],
   agency:  ["Everything in Studio", "Up to 10 connected stores", "500 optimisations / day", "Team seats (coming soon)", "White-label output (coming soon)", "Dedicated account manager"],
 };

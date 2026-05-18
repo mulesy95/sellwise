@@ -22,7 +22,6 @@ export function firstOptimisationEmail(firstName: string | null, email: string):
     <tr><td style="padding:0 32px 32px">
       ${[
         ["Keyword Research", "Find 15 keywords with real volume and competition data. Useful before you write a listing from scratch.", "/dashboard/keywords"],
-        ["Competitor Peek", "Paste any listing URL and get an AI-optimised version of it. Good for seeing what top sellers are doing.", "/dashboard/competitor"],
         ["Listing Audit", "Score an existing listing out of 100 and get specific fixes. Run it on your best sellers first.", "/dashboard/audit"],
       ].map(([title, desc, path]) => `
       <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:12px;background:#f9f9fb;border-radius:8px;border:1px solid #e4e4e7" role="presentation">

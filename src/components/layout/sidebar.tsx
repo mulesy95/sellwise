@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import {
   Sparkles,
   Search,
-  Eye,
   BarChart3,
   Settings,
   LayoutDashboard,
@@ -25,7 +24,6 @@ const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Optimiser", href: "/dashboard/optimise", icon: Sparkles, badge: "Core" },
   { label: "Keywords", href: "/dashboard/keywords", icon: Search },
-  { label: "Competitor", href: "/dashboard/competitor", icon: Eye },
   { label: "Audit", href: "/dashboard/audit", icon: BarChart3 },
   { label: "Migrate", href: "/dashboard/migrate", icon: ArrowLeftRight },
   { label: "Bulk", href: "/dashboard/bulk", icon: Files },

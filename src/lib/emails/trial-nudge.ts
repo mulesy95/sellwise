@@ -12,7 +12,7 @@ export function trialNudgeEmail(firstName: string | null, email: string): { subj
         Your free trial ends soon, ${name}
       </h1>
       <p style="margin:0 0 16px;font-size:15px;color:#444444;line-height:1.6">
-        Your 7-day Growth trial ends in 2 days. After that you'll drop to the Free plan: 1 optimisation per month, no keyword research, no competitor analysis, no audits.
+        Your 7-day Growth trial ends in 2 days. After that you'll drop to the Free plan: 1 optimisation per month, no keyword research, no audits.
       </p>
       <p style="margin:0 0 28px;font-size:15px;color:#444444;line-height:1.6">
         Upgrade now to keep everything running without interruption.
@@ -27,7 +27,7 @@ export function trialNudgeEmail(firstName: string | null, email: string): { subj
       <p style="margin:0 0 12px;font-size:11px;font-weight:600;color:#999999;text-transform:uppercase;letter-spacing:0.06em">
         What you'll keep with Growth at $29/mo
       </p>
-      ${["Unlimited listing optimisations", "Unlimited keyword research", "Unlimited competitor analyses", "Unlimited listing audits", "Optimisation history", "Priority support"].map(f => `
+      ${["Unlimited listing optimisations", "Unlimited keyword research", "Unlimited listing audits", "Optimisation history", "Priority support"].map(f => `
       <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:8px" role="presentation">
         <tr>
           <td width="20" valign="top">

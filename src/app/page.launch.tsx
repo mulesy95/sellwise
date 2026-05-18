@@ -215,7 +215,7 @@ export default function HomePage() {
                 </span>
               </p>
               <p className="text-xs text-muted-foreground">
-                50 optimisations + keywords, audits, competitor
+                50 optimisations + keywords, audits
               </p>
             </div>
             <div className="relative rounded-lg border border-primary bg-card p-4">

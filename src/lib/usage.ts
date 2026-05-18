@@ -1,6 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 
-export type UsageType = "optimisations" | "keywords" | "competitor" | "audits";
+export type UsageType = "optimisations" | "keywords" | "audits";
 
 export const PLAN_LIMITS: Record<string, number> = {
   free: 3,
@@ -42,7 +42,7 @@ export async function getUsageData(userId: string) {
       .single(),
     supabase
       .from("usage")
-      .select("optimisations, keywords, competitor, audits, daily_optimisations, daily_reset_date")
+      .select("optimisations, keywords, audits, daily_optimisations, daily_reset_date")
       .eq("user_id", userId)
       .eq("month", month)
       .single(),
@@ -75,7 +75,6 @@ export async function getUsageData(userId: string) {
     dailyOptimisations,
     optimisations: usage?.optimisations ?? 0,
     keywords: usage?.keywords ?? 0,
-    competitor: usage?.competitor ?? 0,
     audits: usage?.audits ?? 0,
   };
 }
