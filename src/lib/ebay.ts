@@ -201,6 +201,46 @@ export async function searchEbayItems(
   }));
 }
 
+// ─── Shopping API — category suggestions ─────────────────────────────────────
+
+export interface EbaySuggestedCategory {
+  categoryId: string;
+  categoryName: string;
+  categoryParentName?: string;
+}
+
+export async function getSuggestedEbayCategories(
+  title: string
+): Promise<EbaySuggestedCategory[]> {
+  const params = new URLSearchParams({
+    callname: "GetSuggestedCategories",
+    Query: title.slice(0, 350),
+    appid: APP_ID,
+    version: API_COMPAT,
+    responseencoding: "JSON",
+  });
+
+  const res = await fetchWithRetry(`https://open.api.ebay.com/shopping?${params}`, {
+    headers: { "User-Agent": USER_AGENT },
+  });
+  if (!res.ok) throw new Error(`eBay Shopping API error: ${res.status}`);
+
+  const data = await res.json();
+  if (data.Ack === "Failure") return [];
+
+  const cats = data.SuggestedCategoryArray?.SuggestedCategory ?? [];
+  const list = Array.isArray(cats) ? cats : [cats];
+
+  return list.slice(0, 6).map((c: Record<string, unknown>) => {
+    const cat = c.Category as Record<string, unknown> | undefined;
+    return {
+      categoryId: String(cat?.CategoryID ?? ""),
+      categoryName: String(cat?.CategoryName ?? ""),
+      categoryParentName: cat?.CategoryParentName ? String((cat.CategoryParentName as string[])[0] ?? "") : undefined,
+    };
+  }).filter((c) => c.categoryId);
+}
+
 // ─── Site defaults ────────────────────────────────────────────────────────────
 
 const SITE_DEFAULTS: Record<string, { country: string; currency: string; shippingService: string }> = {

@@ -975,7 +975,24 @@ function MigratePanel({
   const [creating, setCreating] = useState(false);
   const [ebayPrice, setEbayPrice] = useState("");
   const [ebayCategoryId, setEbayCategoryId] = useState("");
+  const [ebaySuggestedCats, setEbaySuggestedCats] = useState<{ categoryId: string; categoryName: string; categoryParentName?: string }[]>([]);
+  const [loadingCats, setLoadingCats] = useState(false);
   const isStudio = plan === "studio";
+
+  async function suggestEbayCategories() {
+    const title = result ? String(result.title ?? product.title) : product.title;
+    if (!title) return;
+    setLoadingCats(true);
+    try {
+      const res = await fetch(`/api/ebay/suggest-category?title=${encodeURIComponent(title.slice(0, 350))}`);
+      const data = await res.json();
+      setEbaySuggestedCats(data.categories ?? []);
+    } catch {
+      // silently ignore
+    } finally {
+      setLoadingCats(false);
+    }
+  }
 
   const existingText = product.body_html?.replace(/<[^>]+>/g, "").trim() ?? "";
   const imageUrl = product.images?.[0]?.src;
@@ -1275,16 +1292,25 @@ function MigratePanel({
                         />
                       </div>
                       <div className="flex-1">
-                        <label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground mb-1 block">
-                          Category ID{" "}
-                          <a
-                            href="https://www.ebay.com.au/sch/allcategories/all-categories"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary hover:underline normal-case"
+                        <label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground mb-1 flex items-center justify-between">
+                          <span>Category ID{" "}
+                            <a
+                              href="https://www.ebay.com.au/sch/allcategories/all-categories"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary hover:underline normal-case"
+                            >
+                              browse
+                            </a>
+                          </span>
+                          <button
+                            type="button"
+                            onClick={suggestEbayCategories}
+                            disabled={loadingCats}
+                            className="text-[10px] normal-case text-primary hover:underline disabled:opacity-50"
                           >
-                            find
-                          </a>
+                            {loadingCats ? "Suggesting…" : "Auto-suggest"}
+                          </button>
                         </label>
                         <input
                           type="text"
@@ -1293,6 +1319,21 @@ function MigratePanel({
                           onChange={(e) => setEbayCategoryId(e.target.value)}
                           className="w-full rounded-md border border-border/50 bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                         />
+                        {ebaySuggestedCats.length > 0 && (
+                          <div className="mt-1.5 flex flex-wrap gap-1">
+                            {ebaySuggestedCats.map((cat) => (
+                              <button
+                                key={cat.categoryId}
+                                type="button"
+                                onClick={() => { setEbayCategoryId(cat.categoryId); setEbaySuggestedCats([]); }}
+                                className="rounded border border-border/60 bg-muted px-2 py-0.5 text-[11px] text-left hover:border-primary hover:text-primary transition-colors"
+                                title={cat.categoryParentName ? `${cat.categoryParentName} > ${cat.categoryName}` : cat.categoryName}
+                              >
+                                {cat.categoryName}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                     <Button
