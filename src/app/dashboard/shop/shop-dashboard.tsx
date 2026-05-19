@@ -361,6 +361,214 @@ function ProductRow({
   );
 }
 
+// ─── Cross-platform push (Studio) ────────────────────────────────────────────
+
+interface CrossState {
+  status: "idle" | "loading" | "done" | "error";
+  result: Record<string, unknown> | null;
+  pushed: boolean;
+  ebayPrice: string;
+  creating: boolean;
+  error?: string;
+}
+
+function CrossPlatformPush({
+  product,
+  sourcePlatform,
+  connectedShops,
+}: {
+  product: ShopifyProduct;
+  sourcePlatform: string;
+  connectedShops: Shop[];
+}) {
+  const [states, setStates] = useState<Record<string, CrossState>>(() => {
+    const init: Record<string, CrossState> = {};
+    for (const shop of connectedShops) {
+      init[shop.id] = {
+        status: "idle",
+        result: null,
+        pushed: false,
+        ebayPrice: product.variants?.[0]?.price ?? "",
+        creating: false,
+      };
+    }
+    return init;
+  });
+
+  const existingText = product.body_html?.replace(/<[^>]+>/g, "").trim() ?? "";
+
+  function setState(shopId: string, patch: Partial<CrossState>) {
+    setStates((prev) => ({ ...prev, [shopId]: { ...prev[shopId], ...patch } }));
+  }
+
+  async function handleOptimiseFor(shop: Shop) {
+    setState(shop.id, { status: "loading", result: null });
+    try {
+      const body: Record<string, string> = {
+        sourcePlatform,
+        targetPlatform: shop.platform,
+        title: product.title,
+      };
+      if (["shopify", "woocommerce", "wix", "squarespace"].includes(sourcePlatform)) {
+        body.productCopy = existingText.slice(0, 2000);
+      } else {
+        body.description = existingText.slice(0, 2000);
+      }
+      const res = await fetch("/api/migrate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Migration failed");
+      setState(shop.id, { status: "done", result: data.result });
+    } catch (err) {
+      setState(shop.id, { status: "error", error: err instanceof Error ? err.message : "Failed" });
+    }
+  }
+
+  async function handlePushToEbay(shop: Shop) {
+    const state = states[shop.id];
+    if (!state.result) return;
+    const price = parseFloat(state.ebayPrice);
+    if (isNaN(price) || price <= 0) { toast.error("Enter a valid price for eBay"); return; }
+    setState(shop.id, { creating: true });
+    try {
+      const res = await fetch("/api/ebay/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          shopId: shop.id,
+          title: String(state.result.title ?? product.title).slice(0, 80),
+          description: String(state.result.description ?? ""),
+          price,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed");
+      toast.success(
+        <span>
+          Listed on eBay!{" "}
+          <a href={data.listingUrl} target="_blank" rel="noopener noreferrer" className="underline">
+            View listing
+          </a>
+        </span>
+      );
+      setState(shop.id, { pushed: true, creating: false });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to create eBay listing");
+      setState(shop.id, { creating: false });
+    }
+  }
+
+  async function handlePushToShopify(shop: Shop) {
+    const state = states[shop.id];
+    if (!state.result) return;
+    setState(shop.id, { creating: true });
+    try {
+      const res = await fetch("/api/shopify/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          shopId: shop.id,
+          title: String(state.result.productTitle ?? state.result.title ?? product.title),
+          body_html: String(state.result.description ?? ""),
+          metaTitle: String(state.result.metaTitle ?? ""),
+          metaDescription: String(state.result.metaDescription ?? ""),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed");
+      toast.success(
+        <span>
+          Draft created in {shop.shop_name}.{" "}
+          <a href={data.adminUrl} target="_blank" rel="noopener noreferrer" className="underline">
+            Open in Shopify
+          </a>
+        </span>
+      );
+      setState(shop.id, { pushed: true, creating: false });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to create product");
+      setState(shop.id, { creating: false });
+    }
+  }
+
+  return (
+    <div className="mt-4 border-t border-border/40 pt-4 space-y-3">
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+        Also push to connected stores
+      </p>
+      {connectedShops.map((shop) => {
+        const state = states[shop.id];
+        const label = PLATFORM_LABELS[shop.platform] ?? shop.platform;
+        return (
+          <div key={shop.id} className="rounded-lg border border-border/40 bg-muted/20 p-3 space-y-2.5">
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-xs font-medium truncate">{shop.shop_name}</p>
+                <p className="text-[10px] text-muted-foreground">{label}</p>
+              </div>
+              {state.status === "idle" && (
+                <Button size="sm" variant="outline" className="text-xs h-7 shrink-0" onClick={() => handleOptimiseFor(shop)}>
+                  <Sparkles className="size-3" />
+                  Optimise for {label}
+                </Button>
+              )}
+              {state.status === "loading" && <Spinner size="sm" className="shrink-0" />}
+              {state.pushed && (
+                <span className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 shrink-0">
+                  <Check className="size-3" />Pushed
+                </span>
+              )}
+              {state.status === "error" && (
+                <button onClick={() => handleOptimiseFor(shop)} className="text-xs text-destructive underline shrink-0">
+                  Retry
+                </button>
+              )}
+            </div>
+
+            {state.status === "done" && state.result && !state.pushed && (
+              <div className="space-y-2">
+                <div className="rounded-md bg-background/60 px-2.5 py-2">
+                  <p className="text-[10px] text-muted-foreground mb-0.5">Title</p>
+                  <p className="text-xs line-clamp-2">
+                    {String(state.result.title ?? state.result.productTitle ?? "")}
+                  </p>
+                </div>
+                {shop.platform === "ebay" && (
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <label className="text-[10px] text-muted-foreground">Price (listing price)</label>
+                      <input
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        placeholder="29.99"
+                        value={state.ebayPrice}
+                        onChange={(e) => setState(shop.id, { ebayPrice: e.target.value })}
+                        className="mt-0.5 w-full rounded-md border border-border/50 bg-background px-2.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+                      />
+                    </div>
+                    <Button size="sm" className="text-xs h-8 mt-4 shrink-0" onClick={() => handlePushToEbay(shop)} disabled={state.creating}>
+                      {state.creating ? <Spinner size="sm" /> : "Create on eBay"}
+                    </Button>
+                  </div>
+                )}
+                {shop.platform === "shopify" && (
+                  <Button size="sm" className="text-xs w-full h-7" onClick={() => handlePushToShopify(shop)} disabled={state.creating}>
+                    {state.creating ? <Spinner size="sm" /> : <><Store className="size-3" />Create draft in {shop.shop_name}</>}
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // ─── Optimise slide-out panel ─────────────────────────────────────────────────
 
 function OptimisePanel({
@@ -368,12 +576,14 @@ function OptimisePanel({
   plan,
   shopId,
   platform,
+  allShops,
   onClose,
 }: {
   product: ShopifyProduct;
   plan: string;
   shopId: string;
   platform: string;
+  allShops: Shop[];
   onClose: () => void;
 }) {
   const [loading, setLoading] = useState(false);
@@ -393,6 +603,7 @@ function OptimisePanel({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isStudio = plan === "studio";
   const isShopify = platform === "shopify";
+  const otherConnectedShops = allShops.filter((s) => s.id !== shopId);
 
   const existingText = product.body_html?.replace(/<[^>]+>/g, "").trim() ?? "";
   const imageUrl = product.images?.[0]?.src;
@@ -724,6 +935,13 @@ function OptimisePanel({
                     onChange={(v) => setResult((r) => r && { ...r, description: v })}
                     multiline
                   />
+                  {isStudio && otherConnectedShops.length > 0 && (
+                    <CrossPlatformPush
+                      product={product}
+                      sourcePlatform={platform}
+                      connectedShops={otherConnectedShops}
+                    />
+                  )}
                 </div>
               )}
             </div>
@@ -1589,6 +1807,7 @@ function ShopProductsPanel({
           plan={plan}
           shopId={shopId}
           platform={platform}
+          allShops={allShops}
           onClose={() => setSelectedProduct(null)}
         />
       )}

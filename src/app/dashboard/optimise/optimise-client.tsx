@@ -180,7 +180,7 @@ const FORM_STORAGE_KEY = "optimise:form";
 export function OptimiseClient({ plan }: { plan: string }) {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const initPlatform = (searchParams.get("platform") ?? "etsy") as Platform;
+  const initPlatform = (searchParams.get("platform") ?? "shopify") as Platform;
 
   const [platform, setPlatform] = useState<Platform>(initPlatform);
   const [formValues, setFormValues] = useState<FormValues>({

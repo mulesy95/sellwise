@@ -2,21 +2,12 @@ import Link from "next/link";
 import { Sparkles, Search, BarChart3, ArrowLeftRight, Store } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 
-const SAMPLE_TAGS = [
-  "ceramic mug",
-  "coffee lover gift",
-  "pottery gift",
-  "handmade mug",
-  "housewarming gift",
-  "wheel thrown mug",
-  "minimalist mug",
-  "gift for her",
-  "coffee cup",
-  "stoneware mug",
-  "birthday gift",
-  "artisan mug",
-  "unique mug",
-];
+const SAMPLE_OUTPUT = {
+  metaTitle: "Soy Candle Gift Set — 3×50hr, Hand-Poured | Slow & Glow",
+  metaDescription: "Three hand-poured soy candles, 50-hour burn each. Cedarwood, coastal citrus and sea salt — packaged gift-ready. Free AU shipping over $75.",
+  productTitle: "Soy Candle Gift Set | 3 × 250g | Hand-Poured",
+  description: "Each candle is poured by hand using 100% natural soy wax — burns clean, lasts longer, and fills the room without the headache. Choose from cedarwood, coastal citrus or sea salt…",
+};
 
 const FEATURES = [
   {
@@ -51,7 +42,7 @@ const PRICES = {
   AUD: { symbol: "A$", starter: "32", growth: "45", studio: "120" },
 };
 
-const PLATFORMS = ["Etsy", "Amazon", "Shopify", "eBay", "WooCommerce", "Wix", "Squarespace", "TikTok Shop", "Social"];
+const PLATFORMS = ["Shopify", "eBay", "Amazon", "Etsy", "WooCommerce", "Wix", "Squarespace", "TikTok Shop", "Social"];
 
 export function MarketingLanding({ currency = "USD" }: { currency?: "USD" | "AUD" }) {
   const p = PRICES[currency];
@@ -113,40 +104,37 @@ export function MarketingLanding({ currency = "USD" }: { currency?: "USD" | "AUD
           {/* Right: sample output card */}
           <div className="w-full md:w-[460px] lg:w-[520px] shrink-0 mx-auto md:mx-0 max-w-[520px]">
             <div className="bg-card rounded-xl p-5 border border-border text-left">
-              <div className="flex items-center justify-between mb-3.5">
+              <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-semibold text-muted-foreground">Sample output</span>
-                  <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">Etsy</span>
+                  <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">Shopify</span>
                 </div>
                 <span className="text-[13px] font-bold text-emerald-600 dark:text-emerald-400">
-                  87 / 100
+                  91 / 100
                 </span>
               </div>
 
-              <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Title</p>
-              <p className="text-xs text-foreground mb-3.5 leading-relaxed">
-                Handmade Ceramic Coffee Mug, Pottery Gift for Coffee Lover, Wheel
-                Thrown Mug, Minimalist Cup, Unique Housewarming Gift for Her
-              </p>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Meta title <span className="normal-case font-normal">(58 / 60)</span></p>
+                  <p className="text-xs text-foreground leading-relaxed">{SAMPLE_OUTPUT.metaTitle}</p>
+                </div>
 
-              <p className="text-xs text-muted-foreground uppercase tracking-widest mb-2">Tags (13)</p>
-              <div className="flex flex-wrap gap-1.5 mb-3.5">
-                {SAMPLE_TAGS.map((tag) => (
-                  <span
-                    key={tag}
-                    className="bg-background text-muted-foreground px-2 py-0.5 rounded text-[11px] border border-border"
-                  >
-                    {tag}
-                  </span>
-                ))}
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Meta description <span className="normal-case font-normal">(148 / 160)</span></p>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">{SAMPLE_OUTPUT.metaDescription}</p>
+                </div>
+
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Product title</p>
+                  <p className="text-xs text-foreground leading-relaxed">{SAMPLE_OUTPUT.productTitle}</p>
+                </div>
+
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Description</p>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">{SAMPLE_OUTPUT.description}</p>
+                </div>
               </div>
-
-              <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Description</p>
-              <p className="text-[11px] text-muted-foreground leading-relaxed">
-                This wheel thrown ceramic mug is made for the coffee lover who
-                appreciates something a bit different. Each one is shaped and glazed
-                by hand&hellip;
-              </p>
             </div>
           </div>
         </div>

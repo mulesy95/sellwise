@@ -1,6 +1,6 @@
 export type Platform = "etsy" | "amazon" | "shopify" | "ebay" | "woocommerce" | "wix" | "squarespace" | "tiktok" | "social";
 
-export const PLATFORMS: Platform[] = ["etsy", "amazon", "shopify", "ebay", "woocommerce", "wix", "squarespace", "tiktok", "social"];
+export const PLATFORMS: Platform[] = ["shopify", "ebay", "amazon", "etsy", "woocommerce", "wix", "squarespace", "tiktok", "social"];
 
 export const PLATFORM_LABELS: Record<Platform, string> = {
   etsy: "Etsy",
