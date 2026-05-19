@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { BarChart3, Sparkles, AlertCircle, Link2, PenLine, Share2, RotateCcw } from "lucide-react";
+import { BarChart3, Sparkles, AlertCircle, Link2, PenLine, Share2, RotateCcw, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,7 +20,7 @@ import { toast } from "sonner";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import { PlatformSelector } from "@/components/platform-selector";
 import { cn } from "@/lib/utils";
-import { AUDIT_SECTIONS, detectPlatformFromUrl, PLATFORM_URL_EXAMPLES, type Platform } from "@/lib/platforms";
+import { AUDIT_SECTIONS, PLATFORM_LABELS, detectPlatformFromUrl, PLATFORM_URL_EXAMPLES, type Platform } from "@/lib/platforms";
 
 interface AuditResult {
   score: number;
@@ -188,6 +188,9 @@ export function AuditClient() {
   const [urlHint, setUrlHint] = useState<string | null>(null);
   const [lastPayload, setLastPayload] = useState<Record<string, string> | null>(null);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [captionCopied, setCaptionCopied] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
   const [prefillValues, setPrefillValues] = useState<Record<string, string>>({});
   const [formKey, setFormKey] = useState(0);
 
@@ -314,8 +317,8 @@ export function AuditClient() {
     await runAudit(payload);
   }
 
-  async function shareScore() {
-    if (!result) return;
+  function buildShareUrl() {
+    if (!result) return "";
     const label = overallLabel(result.score);
     const improvements = (result.improvements as string[])?.length ?? 0;
     const url = new URL("/score", window.location.origin);
@@ -323,8 +326,37 @@ export function AuditClient() {
     url.searchParams.set("platform", detectedPlatform ?? platform);
     url.searchParams.set("label", label);
     url.searchParams.set("improvements", String(improvements));
-    await navigator.clipboard.writeText(url.toString());
-    toast.success("Score card link copied — paste it anywhere to share.");
+    return url.toString();
+  }
+
+  function buildShareCaption() {
+    if (!result) return "";
+    const score = result.score;
+    const improvements = (result.improvements as string[])?.length ?? 0;
+    const p = PLATFORM_LABELS[detectedPlatform ?? platform] ?? platform;
+    const url = buildShareUrl();
+    const fixLine = improvements > 0
+      ? `${improvements} improvement${improvements !== 1 ? "s" : ""} to fix.`
+      : "Looking solid.";
+    if (score >= 70) {
+      return `Just ran my ${p} listing through SellWise — scored ${score}/100. ${fixLine}\n\nScore yours free: ${url}`;
+    } else if (score >= 40) {
+      return `My ${p} listing scored ${score}/100 on SellWise. ${fixLine} More room to improve than I thought.\n\nAudit yours free: ${url}`;
+    } else {
+      return `My ${p} listing only scored ${score}/100 — turns out ${fixLine}\n\nSee what's dragging yours down: ${url}`;
+    }
+  }
+
+  async function copyCaption() {
+    await navigator.clipboard.writeText(buildShareCaption());
+    setCaptionCopied(true);
+    setTimeout(() => setCaptionCopied(false), 2000);
+  }
+
+  async function copyLink() {
+    await navigator.clipboard.writeText(buildShareUrl());
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 2000);
   }
 
   const sections = AUDIT_SECTIONS[detectedPlatform ?? platform];
@@ -529,16 +561,6 @@ export function AuditClient() {
                     </div>
                     <Progress value={result.score} className="h-2" />
                   </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={shareScore}
-                    className="shrink-0"
-                  >
-                    <Share2 className="size-3.5" />
-                    Share
-                  </Button>
                 </CardContent>
               </Card>
 
@@ -590,12 +612,72 @@ export function AuditClient() {
                 </Card>
               )}
 
+              {/* Share your score */}
+              <div className="rounded-xl border border-border/50 bg-card overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setShareOpen((o) => !o)}
+                  className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left hover:bg-muted/30 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                      <Share2 className="size-3.5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">Share your score</p>
+                      <p className="text-xs text-muted-foreground">Show your followers what you scored — and dare them to beat it.</p>
+                    </div>
+                  </div>
+                  <span className="text-xs text-muted-foreground shrink-0">{shareOpen ? "▲" : "▼"}</span>
+                </button>
+
+                {shareOpen && (
+                  <div className="border-t border-border/40 px-4 pb-4 pt-3 space-y-3">
+                    {/* Caption */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Caption</span>
+                        <button
+                          onClick={copyCaption}
+                          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          {captionCopied
+                            ? <><Check className="size-3 text-emerald-500" />Copied</>
+                            : <><Copy className="size-3" />Copy</>}
+                        </button>
+                      </div>
+                      <p className="whitespace-pre-wrap rounded-lg border border-border/40 bg-muted/30 px-3 py-2.5 text-xs leading-relaxed text-foreground">
+                        {buildShareCaption()}
+                      </p>
+                    </div>
+
+                    {/* Link only */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Link only</span>
+                        <button
+                          onClick={copyLink}
+                          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          {linkCopied
+                            ? <><Check className="size-3 text-emerald-500" />Copied</>
+                            : <><Copy className="size-3" />Copy</>}
+                        </button>
+                      </div>
+                      <p className="truncate rounded-lg border border-border/40 bg-muted/30 px-3 py-2 text-xs text-muted-foreground font-mono">
+                        {buildShareUrl()}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 className="w-full"
-                onClick={() => { setResult(null); setError(null); setLastPayload(null); }}
+                onClick={() => { setResult(null); setError(null); setLastPayload(null); setShareOpen(false); }}
               >
                 <RotateCcw className="size-3.5" />
                 Audit another listing
