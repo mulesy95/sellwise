@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
 
   const query = admin
     .from("shops")
-    .select("id, access_token, refresh_token")
+    .select("id, access_token, refresh_token, is_sandbox")
     .eq("user_id", user.id)
     .eq("platform", "ebay");
   if (shopId) query.eq("id", shopId);
@@ -21,23 +21,24 @@ export async function GET(req: NextRequest) {
   const { data: shop } = await query.single();
   if (!shop) return NextResponse.json({ error: "No eBay account connected" }, { status: 404 });
 
+  const isSandbox = (shop as { is_sandbox?: boolean }).is_sandbox ?? false;
   let token = shop.access_token;
 
   try {
-    const listings = await getEbayListings(token);
+    const listings = await getEbayListings(token, 50, isSandbox);
     return NextResponse.json({ listings });
   } catch (err) {
     // Token may have expired — try refreshing once
     if (shop.refresh_token) {
       try {
-        const refreshed = await refreshEbayToken(shop.refresh_token);
+        const refreshed = await refreshEbayToken(shop.refresh_token, isSandbox);
         token = refreshed.access_token;
         await admin.from("shops").update({
           access_token: refreshed.access_token,
           refresh_token: refreshed.refresh_token,
         }).eq("id", shop.id);
 
-        const listings = await getEbayListings(token);
+        const listings = await getEbayListings(token, 50, isSandbox);
         return NextResponse.json({ listings });
       } catch {
         // fall through to error

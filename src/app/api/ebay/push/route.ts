@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
 
   const query = admin
     .from("shops")
-    .select("id, access_token, refresh_token")
+    .select("id, access_token, refresh_token, is_sandbox")
     .eq("user_id", user.id)
     .eq("platform", "ebay");
   if (shopId) query.eq("id", shopId);
@@ -39,11 +39,12 @@ export async function POST(req: NextRequest) {
   const { data: shop } = await query.single();
   if (!shop) return NextResponse.json({ error: "No eBay account connected" }, { status: 404 });
 
+  const isSandbox = (shop as { is_sandbox?: boolean }).is_sandbox ?? false;
   let token = shop.access_token;
-  const previousContent = await getEbayCurrentItem(token, itemId);
+  const previousContent = await getEbayCurrentItem(token, itemId, isSandbox);
 
   async function tryRevise(t: string) {
-    await reviseEbayItem(t, itemId, { title, description });
+    await reviseEbayItem(t, itemId, { title, description }, isSandbox);
   }
 
   async function saveHistory() {
@@ -74,7 +75,7 @@ export async function POST(req: NextRequest) {
   } catch {
     if (shop.refresh_token) {
       try {
-        const refreshed = await refreshEbayToken(shop.refresh_token);
+        const refreshed = await refreshEbayToken(shop.refresh_token, isSandbox);
         token = refreshed.access_token;
         await admin.from("shops").update({
           access_token: refreshed.access_token,

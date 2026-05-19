@@ -10,9 +10,12 @@ export async function GET(req: NextRequest) {
   const error = searchParams.get("error");
 
   const cookieState = req.cookies.get("ebay_oauth_state")?.value;
+  const isSandbox = req.cookies.get("ebay_oauth_sandbox")?.value === "1";
+
   const redirect = (path: string) => {
     const res = NextResponse.redirect(new URL(path, req.url));
     res.cookies.delete("ebay_oauth_state");
+    res.cookies.delete("ebay_oauth_sandbox");
     return res;
   };
 
@@ -24,19 +27,24 @@ export async function GET(req: NextRequest) {
   if (!user) return redirect("/login");
 
   try {
-    const tokens = await exchangeEbayCode(code);
+    const tokens = await exchangeEbayCode(code, isSandbox);
     const admin = createAdminClient();
 
-    // Store in shops table — shop_name defaults to "eBay Store" until we can fetch it
+    // Sandbox and production shops have distinct shop_ids so they can coexist
+    const shopId = isSandbox ? `${user.id}:sandbox` : user.id;
+    const shopName = isSandbox ? "eBay Sandbox Store" : "eBay Store";
+    const shopUrl = isSandbox ? "sandbox.ebay.com" : "ebay.com";
+
     await admin.from("shops").upsert(
       {
         user_id: user.id,
         platform: "ebay",
-        shop_name: "eBay Store",
-        shop_url: "ebay.com",
-        shop_id: user.id,
+        shop_name: shopName,
+        shop_url: shopUrl,
+        shop_id: shopId,
         access_token: tokens.access_token,
         refresh_token: tokens.refresh_token,
+        is_sandbox: isSandbox,
       },
       { onConflict: "user_id,platform,shop_id" }
     );

@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
 
   const { data: shop } = await admin
     .from("shops")
-    .select("id, access_token, refresh_token")
+    .select("id, access_token, refresh_token, is_sandbox")
     .eq("id", shopId)
     .eq("user_id", user.id)
     .eq("platform", "ebay")
@@ -39,28 +39,29 @@ export async function POST(req: NextRequest) {
 
   if (!shop) return NextResponse.json({ error: "eBay account not found" }, { status: 404 });
 
+  const isSandbox = (shop as { is_sandbox?: boolean }).is_sandbox ?? false;
   let token = shop.access_token;
 
   async function tryCreate(t: string) {
-    return createEbayListing(t, { title, description, price, categoryId });
+    return createEbayListing(t, { title, description, price, categoryId }, isSandbox);
   }
 
   try {
-    const { itemId } = await tryCreate(token);
-    return NextResponse.json({ itemId, listingUrl: `https://www.ebay.com/itm/${itemId}` });
+    const { itemId, listingUrl } = await tryCreate(token);
+    return NextResponse.json({ itemId, listingUrl });
   } catch {
     if (!shop.refresh_token) {
       return NextResponse.json({ error: "Failed to create eBay listing" }, { status: 500 });
     }
     try {
-      const refreshed = await refreshEbayToken(shop.refresh_token);
+      const refreshed = await refreshEbayToken(shop.refresh_token, isSandbox);
       token = refreshed.access_token;
       await admin.from("shops").update({
         access_token: refreshed.access_token,
         refresh_token: refreshed.refresh_token,
       }).eq("id", shop.id);
-      const { itemId } = await tryCreate(token);
-      return NextResponse.json({ itemId, listingUrl: `https://www.ebay.com/itm/${itemId}` });
+      const { itemId, listingUrl } = await tryCreate(token);
+      return NextResponse.json({ itemId, listingUrl });
     } catch (e) {
       console.error("[ebay create]", e);
       return NextResponse.json(

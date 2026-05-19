@@ -1598,9 +1598,9 @@ function ConnectForm() {
     window.location.href = `/api/shopify/connect?shop=${encodeURIComponent(shopUrl.trim())}`;
   }
 
-  function handleEbay() {
+  function handleEbay(sandbox = false) {
     setConnecting(true);
-    window.location.href = "/api/ebay/connect";
+    window.location.href = sandbox ? "/api/ebay/connect?sandbox=true" : "/api/ebay/connect";
   }
 
   return (
@@ -1651,9 +1651,15 @@ function ConnectForm() {
           <p className="text-sm text-muted-foreground">
             Connect your eBay seller account via OAuth. You&apos;ll be redirected to eBay to authorise access.
           </p>
-          <Button className="w-full" onClick={handleEbay} disabled={connecting}>
+          <Button className="w-full" onClick={() => handleEbay(false)} disabled={connecting}>
             {connecting ? <Spinner size="md" /> : "Connect eBay account"}
           </Button>
+          <Button variant="outline" className="w-full" onClick={() => handleEbay(true)} disabled={connecting}>
+            {connecting ? <Spinner size="md" /> : "Connect sandbox account"}
+          </Button>
+          <p className="text-xs text-muted-foreground">
+            Use sandbox to test with dummy listings before connecting your live store.
+          </p>
         </div>
       )}
     </div>

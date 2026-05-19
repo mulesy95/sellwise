@@ -1,19 +1,27 @@
 import { fetchWithRetry } from "@/lib/fetch-with-retry";
 
-const CLIENT_ID = process.env.EBAY_CLIENT_ID!;
-const CLIENT_SECRET = process.env.EBAY_CLIENT_SECRET!;
-const APP_ID = process.env.EBAY_APP_ID!;
-const RU_NAME = process.env.EBAY_RU_NAME!;
+// Per-environment config — passed per-call so sandbox and production can coexist
+function ebayConfig(isSandbox: boolean) {
+  return {
+    clientId:     isSandbox ? process.env.EBAY_SANDBOX_CLIENT_ID!     : process.env.EBAY_CLIENT_ID!,
+    clientSecret: isSandbox ? process.env.EBAY_SANDBOX_CLIENT_SECRET! : process.env.EBAY_CLIENT_SECRET!,
+    ruName:       isSandbox ? process.env.EBAY_SANDBOX_RU_NAME!       : process.env.EBAY_RU_NAME!,
+    authBase:     isSandbox ? "https://auth.sandbox.ebay.com"         : "https://auth.ebay.com",
+    apiBase:      isSandbox ? "https://api.sandbox.ebay.com"          : "https://api.ebay.com",
+    tradeUrl:     isSandbox ? "https://api.sandbox.ebay.com/ws/api.dll" : "https://api.ebay.com/ws/api.dll",
+  };
+}
+
+// Production-only constants (Shopping/Browse API — always real eBay data for competitor research)
+const PROD_APP_ID    = process.env.EBAY_APP_ID!;
+const PROD_SHOP_BASE = "https://open.api.ebay.com/shopping";
+const PROD_API_BASE  = "https://api.ebay.com";
+
 const SITE_ID = process.env.EBAY_SITE_ID ?? "0"; // 0=US, 15=AU
 const API_COMPAT = "967";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://sellwise.au";
 const USER_AGENT = "SellWise/1.0 (+https://sellwise.au)";
 export const EBAY_CALLBACK_URI = `${APP_URL}/api/ebay/callback`;
-
-const AUTH_BASE = "https://auth.ebay.com";
-const API_BASE  = "https://api.ebay.com";
-const SHOP_BASE = "https://open.api.ebay.com/shopping";
-const TRADE_URL = "https://api.ebay.com/ws/api.dll";
 
 const SCOPES = [
   "https://api.ebay.com/oauth/api_scope",
@@ -23,31 +31,34 @@ const SCOPES = [
 
 // ─── OAuth ────────────────────────────────────────────────────────────────────
 
-export function getEbayAuthUrl(state: string): string {
+export function getEbayAuthUrl(state: string, isSandbox = false): string {
+  const cfg = ebayConfig(isSandbox);
   const params = new URLSearchParams({
-    client_id: CLIENT_ID,
-    redirect_uri: RU_NAME,
+    client_id: cfg.clientId,
+    redirect_uri: cfg.ruName,
     response_type: "code",
     scope: SCOPES,
     state,
   });
-  return `${AUTH_BASE}/oauth2/authorize?${params}`;
+  return `${cfg.authBase}/oauth2/authorize?${params}`;
 }
 
 export async function exchangeEbayCode(
-  code: string
+  code: string,
+  isSandbox = false
 ): Promise<{ access_token: string; refresh_token: string; expires_in: number }> {
-  const res = await fetch("${API_BASE}/identity/v1/oauth2/token", {
+  const cfg = ebayConfig(isSandbox);
+  const res = await fetch(`${cfg.apiBase}/identity/v1/oauth2/token`, {
     method: "POST",
     headers: {
-      Authorization: `Basic ${Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString("base64")}`,
+      Authorization: `Basic ${Buffer.from(`${cfg.clientId}:${cfg.clientSecret}`).toString("base64")}`,
       "Content-Type": "application/x-www-form-urlencoded",
       "User-Agent": USER_AGENT,
     },
     body: new URLSearchParams({
       grant_type: "authorization_code",
       code,
-      redirect_uri: RU_NAME,
+      redirect_uri: cfg.ruName,
     }),
   });
   if (!res.ok) {
@@ -58,12 +69,14 @@ export async function exchangeEbayCode(
 }
 
 export async function refreshEbayToken(
-  refreshToken: string
+  refreshToken: string,
+  isSandbox = false
 ): Promise<{ access_token: string; refresh_token: string; expires_in: number }> {
-  const res = await fetch("${API_BASE}/identity/v1/oauth2/token", {
+  const cfg = ebayConfig(isSandbox);
+  const res = await fetch(`${cfg.apiBase}/identity/v1/oauth2/token`, {
     method: "POST",
     headers: {
-      Authorization: `Basic ${Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString("base64")}`,
+      Authorization: `Basic ${Buffer.from(`${cfg.clientId}:${cfg.clientSecret}`).toString("base64")}`,
       "Content-Type": "application/x-www-form-urlencoded",
       "User-Agent": USER_AGENT,
     },
@@ -77,7 +90,7 @@ export async function refreshEbayToken(
   return res.json();
 }
 
-// ─── App token (for Browse API — no user auth needed) ─────────────────────────
+// ─── App token (for Browse API — always production, no user auth needed) ──────
 
 let cachedAppToken: { token: string; expiresAt: number } | null = null;
 
@@ -85,10 +98,11 @@ async function getAppToken(): Promise<string> {
   if (cachedAppToken && Date.now() < cachedAppToken.expiresAt - 60_000) {
     return cachedAppToken.token;
   }
-  const res = await fetch("${API_BASE}/identity/v1/oauth2/token", {
+  const cfg = ebayConfig(false); // Browse API is always production
+  const res = await fetch(`${PROD_API_BASE}/identity/v1/oauth2/token`, {
     method: "POST",
     headers: {
-      Authorization: `Basic ${Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString("base64")}`,
+      Authorization: `Basic ${Buffer.from(`${cfg.clientId}:${cfg.clientSecret}`).toString("base64")}`,
       "Content-Type": "application/x-www-form-urlencoded",
       "User-Agent": USER_AGENT,
     },
@@ -103,7 +117,7 @@ async function getAppToken(): Promise<string> {
   return data.access_token;
 }
 
-// ─── Shopping API — competitor research (no user auth) ────────────────────────
+// ─── Shopping API — competitor research (no user auth, always production) ─────
 
 export function extractEbayItemId(url: string): string | null {
   // Handles /itm/123456789012 and /itm/title/123456789012
@@ -124,13 +138,13 @@ export async function getEbayItem(itemId: string): Promise<EbayShoppingItem> {
   const params = new URLSearchParams({
     callname: "GetSingleItem",
     ItemID: itemId,
-    appid: APP_ID,
+    appid: PROD_APP_ID,
     version: API_COMPAT,
     IncludeSelector: "Description,Details,ItemSpecifics",
     responseencoding: "JSON",
   });
 
-  const res = await fetchWithRetry(`${SHOP_BASE}?${params}`, {
+  const res = await fetchWithRetry(`${PROD_SHOP_BASE}?${params}`, {
     headers: { "User-Agent": USER_AGENT },
   });
   if (!res.ok) throw new Error(`eBay Shopping API error: ${res.status}`);
@@ -166,7 +180,7 @@ export async function getEbayItem(itemId: string): Promise<EbayShoppingItem> {
   };
 }
 
-// ─── Browse API — keyword search ──────────────────────────────────────────────
+// ─── Browse API — keyword search (always production) ──────────────────────────
 
 export interface EbaySearchResult {
   itemId: string;
@@ -183,7 +197,7 @@ export async function searchEbayItems(
 ): Promise<EbaySearchResult[]> {
   const token = await getAppToken();
   const params = new URLSearchParams({ q: keyword, limit: String(limit) });
-  const res = await fetchWithRetry(`${API_BASE}/buy/browse/v1/item_summary/search?${params}`, {
+  const res = await fetchWithRetry(`${PROD_API_BASE}/buy/browse/v1/item_summary/search?${params}`, {
     headers: {
       Authorization: `Bearer ${token}`,
       "X-EBAY-C-MARKETPLACE-ID": "EBAY_US",
@@ -206,7 +220,7 @@ export async function searchEbayItems(
   }));
 }
 
-// ─── Shopping API — category suggestions ─────────────────────────────────────
+// ─── Shopping API — category suggestions (always production) ──────────────────
 
 export interface EbaySuggestedCategory {
   categoryId: string;
@@ -220,12 +234,12 @@ export async function getSuggestedEbayCategories(
   const params = new URLSearchParams({
     callname: "GetSuggestedCategories",
     Query: title.slice(0, 350),
-    appid: APP_ID,
+    appid: PROD_APP_ID,
     version: API_COMPAT,
     responseencoding: "JSON",
   });
 
-  const res = await fetchWithRetry(`${SHOP_BASE}?${params}`, {
+  const res = await fetchWithRetry(`${PROD_SHOP_BASE}?${params}`, {
     headers: { "User-Agent": USER_AGENT },
   });
   if (!res.ok) throw new Error(`eBay Shopping API error: ${res.status}`);
@@ -293,14 +307,20 @@ export interface EbayListing {
   images: { src: string }[];
 }
 
-async function tradingCall(callName: string, body: string, userToken: string): Promise<string> {
+async function tradingCall(
+  callName: string,
+  body: string,
+  userToken: string,
+  isSandbox = false
+): Promise<string> {
+  const cfg = ebayConfig(isSandbox);
   const xml = `<?xml version="1.0" encoding="utf-8"?>
 <${callName}Request xmlns="urn:ebay:apis:eBLBaseComponents">
   <RequesterCredentials><eBayAuthToken>${userToken}</eBayAuthToken></RequesterCredentials>
   ${body}
 </${callName}Request>`;
 
-  const res = await fetchWithRetry(TRADE_URL, {
+  const res = await fetchWithRetry(cfg.tradeUrl, {
     method: "POST",
     headers: {
       "X-EBAY-API-SITEID": SITE_ID,
@@ -318,7 +338,8 @@ async function tradingCall(callName: string, body: string, userToken: string): P
 
 export async function getEbayListings(
   userToken: string,
-  limit = 50
+  limit = 50,
+  isSandbox = false
 ): Promise<EbayListing[]> {
   const today = new Date().toISOString().split("T")[0];
   const startDate = new Date(Date.now() - 120 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
@@ -330,7 +351,8 @@ export async function getEbayListings(
      <Pagination><EntriesPerPage>${limit}</EntriesPerPage><PageNumber>1</PageNumber></Pagination>
      <DetailLevel>ReturnAll</DetailLevel>
      <GranularityLevel>Fine</GranularityLevel>`,
-    userToken
+    userToken,
+    isSandbox
   );
 
   const ack = xmlValue(xml, "Ack");
@@ -356,13 +378,15 @@ export async function getEbayListings(
 
 export async function getEbayCurrentItem(
   userToken: string,
-  itemId: string
+  itemId: string,
+  isSandbox = false
 ): Promise<{ title: string; description: string } | null> {
   try {
     const xml = await tradingCall(
       "GetItem",
       `<ItemID>${itemId}</ItemID><DetailLevel>ReturnAll</DetailLevel>`,
-      userToken
+      userToken,
+      isSandbox
     );
     const ack = xmlValue(xml, "Ack");
     if (ack === "Failure") return null;
@@ -378,7 +402,8 @@ export async function getEbayCurrentItem(
 export async function reviseEbayItem(
   userToken: string,
   itemId: string,
-  updates: { title?: string; description?: string }
+  updates: { title?: string; description?: string },
+  isSandbox = false
 ): Promise<void> {
   const titleXml = updates.title ? `<Title>${updates.title.slice(0, 80)}</Title>` : "";
   const descXml = updates.description ? `<Description><![CDATA[${updates.description}]]></Description>` : "";
@@ -386,7 +411,8 @@ export async function reviseEbayItem(
   const xml = await tradingCall(
     "ReviseFixedPriceItem",
     `<Item><ItemID>${itemId}</ItemID>${titleXml}${descXml}</Item>`,
-    userToken
+    userToken,
+    isSandbox
   );
 
   const ack = xmlValue(xml, "Ack");
@@ -395,8 +421,9 @@ export async function reviseEbayItem(
 
 export async function createEbayListing(
   userToken: string,
-  data: { title: string; description: string; price: number; categoryId?: string }
-): Promise<{ itemId: string }> {
+  data: { title: string; description: string; price: number; categoryId?: string },
+  isSandbox = false
+): Promise<{ itemId: string; listingUrl: string }> {
   const site = SITE_DEFAULTS[SITE_ID] ?? SITE_DEFAULTS["0"];
   const catId = data.categoryId?.trim() || "99"; // 99 = "Everything Else" fallback
 
@@ -427,7 +454,8 @@ export async function createEbayListing(
         </ShippingServiceOptions>
       </ShippingDetails>
     </Item>`,
-    userToken
+    userToken,
+    isSandbox
   );
 
   const ack = xmlValue(xml, "Ack");
@@ -436,7 +464,11 @@ export async function createEbayListing(
   const itemId = xmlValue(xml, "ItemID");
   if (!itemId) throw new Error("eBay did not return an item ID");
 
-  return { itemId };
+  const listingUrl = isSandbox
+    ? `https://www.sandbox.ebay.com/itm/${itemId}`
+    : `https://www.ebay.com/itm/${itemId}`;
+
+  return { itemId, listingUrl };
 }
 
 export function normaliseEbayDomain(_input: string): string {
