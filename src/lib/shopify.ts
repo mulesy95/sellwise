@@ -302,6 +302,45 @@ export async function pushShopifyMetafields(
   if (errors.length) throw new Error(errors[0].message);
 }
 
+// ─── Create product (draft) ───────────────────────────────────────────────────
+
+const PRODUCT_CREATE_MUTATION = `
+  mutation productCreate($input: ProductInput!) {
+    productCreate(input: $input) {
+      product { id legacyResourceId }
+      userErrors { field message }
+    }
+  }
+`;
+
+export async function createShopifyProduct(
+  shop: string,
+  accessToken: string,
+  data: { title: string; body_html?: string }
+): Promise<{ id: string; legacyId: string }> {
+  const result = await shopifyGraphQL<{
+    productCreate: {
+      product: { id: string; legacyResourceId: string } | null;
+      userErrors: { field: string[]; message: string }[];
+    };
+  }>(shop, accessToken, PRODUCT_CREATE_MUTATION, {
+    input: {
+      title: data.title,
+      descriptionHtml: data.body_html ?? "",
+      status: "DRAFT",
+    },
+  });
+
+  const errors = result.productCreate.userErrors;
+  if (errors.length) throw new Error(errors[0].message);
+  if (!result.productCreate.product) throw new Error("Product creation failed");
+
+  return {
+    id: result.productCreate.product.id,
+    legacyId: result.productCreate.product.legacyResourceId,
+  };
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface ShopifyProduct {

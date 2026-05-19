@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import {
   Store, Sparkles, ExternalLink, RefreshCw, ArrowRight,
   Lock, AlertCircle, Unplug, X, Copy, Check, Plus, ChevronRight, ImagePlus,
-  History, RotateCcw,
+  History, RotateCcw, ArrowLeftRight,
 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -76,6 +76,74 @@ const SCORE_CONFIG: Record<SeoScore, { label: string; dot: string; badge: string
     badge: "text-red-700 dark:text-red-400 bg-red-500/10 border-red-500/20",
   },
 };
+
+const PLATFORM_LABELS: Record<string, string> = {
+  etsy: "Etsy", amazon: "Amazon", shopify: "Shopify", ebay: "eBay",
+  woocommerce: "WooCommerce", wix: "Wix", squarespace: "Squarespace",
+  tiktok: "TikTok Shop", social: "Social",
+};
+
+const ALL_PLATFORMS = ["etsy", "amazon", "shopify", "ebay", "woocommerce", "wix", "squarespace", "tiktok", "social"] as const;
+
+function getMigrateResultFields(targetPlatform: string, result: Record<string, unknown>) {
+  const str = (v: unknown) => (Array.isArray(v) ? v.join(", ") : String(v ?? ""));
+  switch (targetPlatform) {
+    case "etsy":
+      return [
+        { label: "Title", value: str(result.title), maxLen: 140 },
+        { label: "Tags (13)", value: Array.isArray(result.tags) ? result.tags.join(", ") : str(result.tags) },
+        { label: "Description", value: str(result.description) },
+      ];
+    case "amazon":
+      return [
+        { label: "Title", value: str(result.title), maxLen: 200 },
+        { label: "Bullets", value: Array.isArray(result.bullets) ? result.bullets.join("\n") : str(result.bullets) },
+        { label: "Backend keywords", value: str(result.backendKeywords), maxLen: 250 },
+        { label: "Description", value: str(result.description) },
+      ];
+    case "shopify":
+      return [
+        { label: "Meta title", value: str(result.metaTitle), maxLen: 60 },
+        { label: "Meta description", value: str(result.metaDescription), maxLen: 160 },
+        { label: "Product title", value: str(result.productTitle) },
+        { label: "Description", value: str(result.description) },
+      ];
+    case "ebay":
+      return [
+        { label: "Title", value: str(result.title), maxLen: 80 },
+        { label: "Description", value: str(result.description) },
+      ];
+    case "woocommerce":
+      return [
+        { label: "SEO title", value: str(result.seoTitle), maxLen: 60 },
+        { label: "SEO description", value: str(result.seoDescription), maxLen: 160 },
+        { label: "Product title", value: str(result.productTitle) },
+        { label: "Short description", value: str(result.shortDescription), maxLen: 150 },
+        { label: "Description", value: str(result.description) },
+      ];
+    case "wix":
+    case "squarespace":
+      return [
+        { label: "SEO title", value: str(result.seoTitle), maxLen: 60 },
+        { label: "SEO description", value: str(result.seoDescription), maxLen: 160 },
+        { label: "Product title", value: str(result.productTitle) },
+        { label: "Description", value: str(result.description) },
+      ];
+    case "tiktok":
+      return [
+        { label: "Title", value: str(result.title), maxLen: 100 },
+        { label: "Description", value: str(result.description) },
+      ];
+    case "social":
+      return [
+        { label: "Caption", value: str(result.caption), maxLen: 125 },
+        { label: "Post copy", value: str(result.postCopy) },
+        { label: "Hashtags", value: Array.isArray(result.hashtags) ? result.hashtags.map((h: unknown) => `#${h}`).join(" ") : str(result.hashtags) },
+      ];
+    default:
+      return [];
+  }
+}
 
 function sortByScore(products: ShopifyProduct[]): ShopifyProduct[] {
   const order: Record<SeoScore, number> = { poor: 0, fair: 1, good: 2 };
@@ -216,6 +284,7 @@ function ProductRow({
   product,
   canOptimise,
   onOptimise,
+  onMigrate,
   onLocked,
   onViewHistory,
   lastOptimisedAt,
@@ -223,6 +292,7 @@ function ProductRow({
   product: ShopifyProduct;
   canOptimise: boolean;
   onOptimise: (p: ShopifyProduct) => void;
+  onMigrate: (p: ShopifyProduct) => void;
   onLocked: () => void;
   onViewHistory?: (p: ShopifyProduct) => void;
   lastOptimisedAt?: string;
@@ -264,18 +334,29 @@ function ProductRow({
           )}
         </div>
       </div>
-      <Button
-        size="sm"
-        variant={score === "poor" ? "default" : "outline"}
-        className="text-xs h-7 shrink-0"
-        onClick={() => canOptimise ? onOptimise(product) : onLocked()}
-      >
-        {canOptimise ? (
-          <><Sparkles className="size-3.5" />Optimise</>
-        ) : (
-          <><Lock className="size-3.5" />Optimise</>
-        )}
-      </Button>
+      <div className="flex items-center gap-1 shrink-0">
+        <Button
+          size="sm"
+          variant={score === "poor" ? "default" : "outline"}
+          className="text-xs h-7"
+          onClick={() => canOptimise ? onOptimise(product) : onLocked()}
+        >
+          {canOptimise ? (
+            <><Sparkles className="size-3.5" />Optimise</>
+          ) : (
+            <><Lock className="size-3.5" />Optimise</>
+          )}
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="text-xs h-7 px-2 text-muted-foreground"
+          onClick={() => canOptimise ? onMigrate(product) : onLocked()}
+          title="Migrate to another platform"
+        >
+          <ArrowLeftRight className="size-3.5" />
+        </Button>
+      </div>
     </div>
   );
 }
@@ -873,6 +954,295 @@ function HistoryPanel({
   );
 }
 
+// ─── Migrate panel ────────────────────────────────────────────────────────────
+
+function MigratePanel({
+  product,
+  sourcePlatform,
+  allShops,
+  plan,
+  onClose,
+}: {
+  product: ShopifyProduct;
+  sourcePlatform: string;
+  allShops: Shop[];
+  plan: string;
+  onClose: () => void;
+}) {
+  const [targetPlatform, setTargetPlatform] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<Record<string, unknown> | null>(null);
+  const [creating, setCreating] = useState(false);
+  const isStudio = plan === "studio";
+
+  const existingText = product.body_html?.replace(/<[^>]+>/g, "").trim() ?? "";
+  const imageUrl = product.images?.[0]?.src;
+
+  // Map connected shops by platform (excluding source)
+  const connectedByPlatform = useMemo(() => {
+    const map: Record<string, Shop> = {};
+    for (const shop of allShops) {
+      if (shop.platform !== sourcePlatform) map[shop.platform] = shop;
+    }
+    return map;
+  }, [allShops, sourcePlatform]);
+
+  const availableTargets = ALL_PLATFORMS.filter((p) => p !== sourcePlatform);
+
+  async function handleMigrate() {
+    if (!targetPlatform) return;
+    setLoading(true);
+    setResult(null);
+    const body: Record<string, string> = {
+      sourcePlatform,
+      targetPlatform,
+      title: product.title,
+    };
+    if (sourcePlatform === "shopify" || sourcePlatform === "woocommerce" || sourcePlatform === "wix" || sourcePlatform === "squarespace") {
+      body.productCopy = existingText.slice(0, 2000);
+    } else {
+      body.description = existingText.slice(0, 2000);
+    }
+    try {
+      const res = await fetch("/api/migrate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Migration failed");
+      setResult(data.result);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Migration failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleCreateOnShopify(targetShop: Shop) {
+    if (!result) return;
+    setCreating(true);
+    try {
+      const res = await fetch("/api/shopify/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          shopId: targetShop.id,
+          title: String(result.productTitle ?? result.title ?? product.title),
+          body_html: String(result.description ?? ""),
+          metaTitle: String(result.metaTitle ?? ""),
+          metaDescription: String(result.metaDescription ?? ""),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed to create");
+      toast.success(
+        <span>
+          Draft created in {targetShop.shop_name}.{" "}
+          <a href={data.adminUrl} target="_blank" rel="noopener noreferrer" className="underline">
+            Open in Shopify
+          </a>
+        </span>
+      );
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to create product");
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  async function copyAll() {
+    if (!result || !targetPlatform) return;
+    const fields = getMigrateResultFields(targetPlatform, result);
+    const text = fields.map((f) => `${f.label.toUpperCase()}:\n${f.value}`).join("\n\n");
+    await navigator.clipboard.writeText(text);
+    toast.success("All fields copied");
+  }
+
+  const resultFields = result && targetPlatform ? getMigrateResultFields(targetPlatform, result) : [];
+  const targetShopify = targetPlatform === "shopify" ? connectedByPlatform["shopify"] : null;
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 bg-black/40" onClick={onClose} aria-hidden="true" />
+      <div
+        className="fixed inset-y-0 right-0 z-50 flex w-full max-w-2xl flex-col bg-card border-l border-border shadow-2xl"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="migrate-panel-title"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-border px-6 py-4 shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            {imageUrl && (
+              <img src={imageUrl} alt="" className="size-8 rounded-md object-cover shrink-0" />
+            )}
+            <div className="min-w-0">
+              <h2 id="migrate-panel-title" className="text-sm font-semibold truncate">
+                {product.title}
+              </h2>
+              <p className="text-xs text-muted-foreground">Migrate to another platform</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="ml-4 shrink-0 rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-6 space-y-5">
+            {/* Source summary */}
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                Source — {PLATFORM_LABELS[sourcePlatform]}
+              </p>
+              <div className="rounded-lg border border-border/40 bg-muted/20 px-4 py-3 space-y-1.5">
+                <p className="text-sm font-medium">{product.title}</p>
+                {existingText && (
+                  <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                    {existingText}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Target platform picker */}
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                Migrate to
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {availableTargets.map((p) => {
+                  const isConnected = !!connectedByPlatform[p];
+                  const isSelected = targetPlatform === p;
+                  return (
+                    <button
+                      key={p}
+                      onClick={() => { setTargetPlatform(p); setResult(null); }}
+                      className={cn(
+                        "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                        isSelected
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border bg-muted text-muted-foreground hover:text-foreground hover:border-foreground/30"
+                      )}
+                    >
+                      {PLATFORM_LABELS[p]}
+                      {isConnected && (
+                        <span
+                          className={cn("size-1.5 rounded-full shrink-0", isSelected ? "bg-primary-foreground/70" : "bg-emerald-500")}
+                          title="You have a connected store on this platform"
+                        />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              {Object.keys(connectedByPlatform).length > 0 && (
+                <p className="text-[11px] text-muted-foreground mt-2">
+                  <span className="inline-block size-1.5 rounded-full bg-emerald-500 mr-1 align-middle" />
+                  Green dot = you have a connected store on that platform
+                </p>
+              )}
+            </div>
+
+            {/* Migrate button */}
+            {targetPlatform && !result && !loading && (
+              <Button onClick={handleMigrate} className="w-full">
+                <ArrowLeftRight className="size-3.5" />
+                Migrate to {PLATFORM_LABELS[targetPlatform]}
+              </Button>
+            )}
+
+            {loading && (
+              <div className="flex flex-col items-center justify-center py-10 space-y-3">
+                <Spinner size="lg" />
+                <p className="text-sm text-muted-foreground">
+                  Reformatting for {targetPlatform ? PLATFORM_LABELS[targetPlatform] : "target platform"}…
+                </p>
+              </div>
+            )}
+
+            {/* Result */}
+            {result && targetPlatform && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    {PLATFORM_LABELS[targetPlatform]} listing
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="sm" className="text-xs h-7" onClick={copyAll}>
+                      <Copy className="size-3" />
+                      Copy all
+                    </Button>
+                    <Button variant="outline" size="sm" className="text-xs h-7" onClick={handleMigrate} disabled={loading}>
+                      Regenerate
+                    </Button>
+                  </div>
+                </div>
+
+                {resultFields.map((field) => (
+                  <ResultField
+                    key={field.label}
+                    label={field.label}
+                    value={field.value}
+                    onChange={() => {}}
+                    maxLen={field.maxLen}
+                    multiline={field.label.toLowerCase().includes("description") || field.label.toLowerCase().includes("copy") || field.label.toLowerCase().includes("bullets")}
+                  />
+                ))}
+
+                {/* Deploy section */}
+                {isStudio && targetShopify && (
+                  <div className="rounded-lg border border-emerald-500/25 bg-emerald-500/5 p-4 space-y-2.5">
+                    <p className="text-xs font-semibold text-foreground">Deploy to {targetShopify.shop_name}</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      Creates a draft product in your Shopify store with this content — finish it by adding price and images in Shopify admin.
+                    </p>
+                    <Button
+                      size="sm"
+                      className="text-xs"
+                      onClick={() => handleCreateOnShopify(targetShopify)}
+                      disabled={creating}
+                    >
+                      {creating ? <Spinner size="sm" /> : <><Store className="size-3.5" />Create draft in Shopify</>}
+                    </Button>
+                  </div>
+                )}
+
+                {isStudio && targetPlatform === "ebay" && connectedByPlatform["ebay"] && (
+                  <div className="rounded-lg border border-border/40 bg-muted/20 p-4 space-y-1.5">
+                    <p className="text-xs font-semibold text-foreground">eBay store connected</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      Copy the content above and paste into eBay Seller Hub. Creating eBay listings via API requires a category and price — direct push coming soon.
+                    </p>
+                  </div>
+                )}
+
+                {!isStudio && (targetShopify || connectedByPlatform[targetPlatform]) && (
+                  <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-xs font-semibold">Deploy directly to your store</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">Studio pushes migrated content straight to your connected store — no copy-paste.</p>
+                    </div>
+                    <a href="/pricing" className={cn(buttonVariants({ size: "sm" }), "shrink-0 text-xs whitespace-nowrap")}>
+                      Upgrade to Studio <ArrowRight className="size-3.5" />
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 // ─── Connect form ─────────────────────────────────────────────────────────────
 
 function ConnectForm() {
@@ -1019,6 +1389,7 @@ function ShopProductsPanel({
   canOptimise,
   onUpgrade,
   autoProductId,
+  allShops,
 }: {
   shopId: string;
   plan: string;
@@ -1026,6 +1397,7 @@ function ShopProductsPanel({
   canOptimise: boolean;
   onUpgrade: () => void;
   autoProductId?: string;
+  allShops: Shop[];
 }) {
   const [products, setProducts] = useState<ShopifyProduct[]>([]);
   const [nextCursor, setNextCursor] = useState<string | undefined>();
@@ -1033,6 +1405,7 @@ function ShopProductsPanel({
   const [error, setError] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<ShopifyProduct | null>(null);
   const [historyProduct, setHistoryProduct] = useState<ShopifyProduct | null>(null);
+  const [migrateProduct, setMigrateProduct] = useState<ShopifyProduct | null>(null);
   const [history, setHistory] = useState<Record<string, string>>({});
   const autoOpened = useRef(false);
 
@@ -1104,6 +1477,15 @@ function ShopProductsPanel({
           onClose={() => setHistoryProduct(null)}
         />
       )}
+      {migrateProduct && (
+        <MigratePanel
+          product={migrateProduct}
+          sourcePlatform={platform}
+          allShops={allShops}
+          plan={plan}
+          onClose={() => setMigrateProduct(null)}
+        />
+      )}
 
       <div className="space-y-4">
         <ProductsSummary products={sorted} />
@@ -1163,6 +1545,7 @@ function ShopProductsPanel({
                     product={p}
                     canOptimise={canOptimise}
                     onOptimise={setSelectedProduct}
+                    onMigrate={setMigrateProduct}
                     onLocked={onUpgrade}
                     onViewHistory={setHistoryProduct}
                     lastOptimisedAt={history[p.id]}
@@ -1386,6 +1769,7 @@ export function ShopDashboard({
               canOptimise={canOptimise}
               onUpgrade={() => setUpgradeOpen(true)}
               autoProductId={activeShop.id === (autoShopId ?? activeShop.id) ? autoProductId : undefined}
+              allShops={shops}
             />
           ) : null}
         </div>
