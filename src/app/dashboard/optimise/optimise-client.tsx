@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useSearchParams } from "next/navigation";
-import { Sparkles, Copy, Check, RotateCcw, ImagePlus, X, Lock, AlertCircle } from "lucide-react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { Sparkles, Copy, Check, RotateCcw, RefreshCw, Download, BarChart3, ImagePlus, X, Lock, AlertCircle } from "lucide-react";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import { Spinner } from "@/components/ui/spinner";
 import { PlatformSelector } from "@/components/platform-selector";
@@ -24,25 +24,19 @@ import type { Platform } from "@/lib/platforms";
 
 interface OptimisedListing {
   platform: Platform;
-  // Etsy
   title?: string;
   tags?: string[];
-  // Amazon
   bullets?: string[];
   backendKeywords?: string;
-  // Shopify / Wix / Squarespace
   metaTitle?: string;
   metaDescription?: string;
   productTitle?: string;
-  // WooCommerce
   shortDescription?: string;
   seoTitle?: string;
   seoDescription?: string;
-  // TikTok Shop / Social
   caption?: string;
   postCopy?: string;
   hashtags?: string[];
-  // Shared
   description?: string;
 }
 
@@ -125,59 +119,15 @@ const PLATFORM_DESCRIPTIONS: Record<Platform, string> = {
 };
 
 const LOADING_STEPS: Record<Platform, string[]> = {
-  etsy: [
-    "Analysing your product…",
-    "Researching Etsy keywords…",
-    "Writing your title…",
-    "Crafting your 13 tags…",
-    "Writing your description…",
-  ],
-  amazon: [
-    "Analysing your product…",
-    "Researching Amazon keywords…",
-    "Writing your title…",
-    "Crafting bullet points…",
-    "Writing your description…",
-  ],
-  shopify: [
-    "Analysing your product…",
-    "Researching SEO keywords…",
-    "Writing meta title and description…",
-    "Writing product copy…",
-  ],
-  ebay: [
-    "Analysing your product…",
-    "Researching eBay keywords…",
-    "Writing your title and description…",
-  ],
-  woocommerce: [
-    "Analysing your product…",
-    "Researching Google keywords…",
-    "Writing SEO title and description…",
-    "Writing product copy…",
-  ],
-  wix: [
-    "Analysing your product…",
-    "Researching keywords…",
-    "Writing SEO fields…",
-    "Writing product copy…",
-  ],
-  squarespace: [
-    "Analysing your product…",
-    "Researching keywords…",
-    "Writing SEO fields…",
-    "Writing product copy…",
-  ],
-  tiktok: [
-    "Analysing your product…",
-    "Researching TikTok trends…",
-    "Writing your listing…",
-  ],
-  social: [
-    "Analysing your product…",
-    "Writing your caption hook…",
-    "Crafting hashtags…",
-  ],
+  etsy: ["Analysing your product…", "Researching Etsy keywords…", "Writing your title…", "Crafting your 13 tags…", "Writing your description…"],
+  amazon: ["Analysing your product…", "Researching Amazon keywords…", "Writing your title…", "Crafting bullet points…", "Writing your description…"],
+  shopify: ["Analysing your product…", "Researching SEO keywords…", "Writing meta title and description…", "Writing product copy…"],
+  ebay: ["Analysing your product…", "Researching eBay keywords…", "Writing your title and description…"],
+  woocommerce: ["Analysing your product…", "Researching Google keywords…", "Writing SEO title and description…", "Writing product copy…"],
+  wix: ["Analysing your product…", "Researching keywords…", "Writing SEO fields…", "Writing product copy…"],
+  squarespace: ["Analysing your product…", "Researching keywords…", "Writing SEO fields…", "Writing product copy…"],
+  tiktok: ["Analysing your product…", "Researching TikTok trends…", "Writing your listing…"],
+  social: ["Analysing your product…", "Writing your caption hook…", "Crafting hashtags…"],
 };
 
 function useLoadingStep(loading: boolean, platform: Platform) {
@@ -203,6 +153,13 @@ function useLoadingStep(loading: boolean, platform: Platform) {
   return LOADING_STEPS[platform][step];
 }
 
+const HOP_PLATFORMS: { id: Platform; label: string }[] = [
+  { id: "etsy", label: "Etsy" },
+  { id: "amazon", label: "Amazon" },
+  { id: "shopify", label: "Shopify" },
+  { id: "ebay", label: "eBay" },
+];
+
 type ImageMediaType = "image/jpeg" | "image/png" | "image/gif" | "image/webp";
 
 interface KeywordList {
@@ -211,12 +168,27 @@ interface KeywordList {
   keywords: string[];
 }
 
+interface FormValues {
+  productName: string;
+  materials: string;
+  style: string;
+  targetBuyer: string;
+}
+
+const FORM_STORAGE_KEY = "optimise:form";
+
 export function OptimiseClient({ plan }: { plan: string }) {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const initPlatform = (searchParams.get("platform") ?? "etsy") as Platform;
-  const initKeywords = searchParams.get("keywords") ?? "";
 
   const [platform, setPlatform] = useState<Platform>(initPlatform);
+  const [formValues, setFormValues] = useState<FormValues>({
+    productName: searchParams.get("productName") ?? "",
+    materials: searchParams.get("materials") ?? "",
+    style: searchParams.get("style") ?? "",
+    targetBuyer: searchParams.get("targetBuyer") ?? "",
+  });
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<OptimisedListing | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
@@ -226,19 +198,29 @@ export function OptimiseClient({ plan }: { plan: string }) {
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [imageMediaType, setImageMediaType] = useState<ImageMediaType>("image/jpeg");
   const [keywordLists, setKeywordLists] = useState<KeywordList[]>([]);
-  const [keywordsValue, setKeywordsValue] = useState(initKeywords);
+  const [keywordsValue, setKeywordsValue] = useState(searchParams.get("keywords") ?? "");
   const [showListPicker, setShowListPicker] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const loadingStep = useLoadingStep(loading, platform);
-
   const canUploadImage = plan !== "free";
 
-  function handlePlatformChange(p: Platform) {
-    setPlatform(p);
-    setResult(null);
-    setKeywordsValue("");
-    setShowListPicker(false);
-  }
+  // Restore form from localStorage only when no URL params pre-fill
+  useEffect(() => {
+    if (!searchParams.get("productName")) {
+      try {
+        const saved = localStorage.getItem(FORM_STORAGE_KEY);
+        if (saved) setFormValues(JSON.parse(saved));
+      } catch {}
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persist form to localStorage on every change
+  useEffect(() => {
+    try {
+      localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(formValues));
+    } catch {}
+  }, [formValues]);
 
   useEffect(() => {
     fetch(`/api/keyword-lists?platform=${platform}`)
@@ -246,6 +228,18 @@ export function OptimiseClient({ plan }: { plan: string }) {
       .then((d) => setKeywordLists(d.lists ?? []))
       .catch(() => setKeywordLists([]));
   }, [platform]);
+
+  function setField(key: keyof FormValues) {
+    return (e: React.ChangeEvent<HTMLInputElement>) =>
+      setFormValues((v) => ({ ...v, [key]: e.target.value }));
+  }
+
+  function handlePlatformChange(p: Platform) {
+    setPlatform(p);
+    setResult(null);
+    setKeywordsValue("");
+    setShowListPicker(false);
+  }
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -272,6 +266,65 @@ export function OptimiseClient({ plan }: { plan: string }) {
     setImageBase64(null);
   }
 
+  function buildPayload(targetPlatform?: Platform): Record<string, unknown> {
+    const data: Record<string, unknown> = {
+      platform: targetPlatform ?? platform,
+      ...formValues,
+      keywords: keywordsValue,
+    };
+    if (imageBase64 && canUploadImage) {
+      data.imageBase64 = imageBase64;
+      data.imageMediaType = imageMediaType;
+    }
+    return data;
+  }
+
+  async function callOptimiseAPI(data: Record<string, unknown>) {
+    const previousResult = result;
+    setLoading(true);
+    setResult(null);
+    setError(null);
+    try {
+      const res = await fetch("/api/optimise", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        if (res.status === 402) {
+          setResult(previousResult);
+          setUpgradeOpen(true);
+          return;
+        }
+        throw new Error(err.error ?? "Something went wrong");
+      }
+      const json = await res.json();
+      setResult(json);
+      window.dispatchEvent(new Event("sellwise:optimised"));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to optimise");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    await callOptimiseAPI(buildPayload());
+  }
+
+  async function regenerate() {
+    if (!formValues.productName.trim()) return;
+    await callOptimiseAPI(buildPayload());
+  }
+
+  async function hopToPlatform(targetPlatform: Platform) {
+    if (!formValues.productName.trim()) return;
+    setPlatform(targetPlatform);
+    await callOptimiseAPI(buildPayload(targetPlatform));
+  }
+
   async function copyAll() {
     if (!result || tabs.length === 0) return;
     const parts = tabs.map((tab) => {
@@ -285,53 +338,33 @@ export function OptimiseClient({ plan }: { plan: string }) {
     toast.success("Full listing copied");
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const previousResult = result;
-    setLoading(true);
-    setResult(null);
-    setError(null);
-
-    const form = e.currentTarget;
-    const data: Record<string, unknown> = {
-      platform,
-      productName: (form.elements.namedItem("productName") as HTMLInputElement).value,
-      materials: (form.elements.namedItem("materials") as HTMLInputElement).value,
-      style: (form.elements.namedItem("style") as HTMLInputElement).value,
-      targetBuyer: (form.elements.namedItem("targetBuyer") as HTMLInputElement).value,
-      keywords: (form.elements.namedItem("keywords") as HTMLInputElement).value,
-    };
-
-    if (imageBase64 && canUploadImage) {
-      data.imageBase64 = imageBase64;
-      data.imageMediaType = imageMediaType;
-    }
-
-    try {
-      const res = await fetch("/api/optimise", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        if (res.status === 402) {
-          setResult(previousResult);
-          setUpgradeOpen(true);
-          return;
-        }
-        throw new Error(err.error ?? "Something went wrong");
+  function downloadListing() {
+    if (!result || tabs.length === 0) return;
+    const header = `SellWise — ${result.platform.charAt(0).toUpperCase() + result.platform.slice(1)} Listing\n${"═".repeat(44)}\n\n`;
+    const parts = tabs.map((tab) => {
+      const divider = "─".repeat(tab.label.length);
+      if (Array.isArray(tab.content)) {
+        return `${tab.label}\n${divider}\n${(tab.content as string[]).join("\n")}`;
       }
+      return `${tab.label}\n${divider}\n${tab.content as string}`;
+    });
+    const blob = new Blob([header + parts.join("\n\n")], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `sellwise-${result.platform}-listing.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
 
-      const json = await res.json();
-      setResult(json);
-      window.dispatchEvent(new Event("sellwise:optimised"));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to optimise");
-    } finally {
-      setLoading(false);
-    }
+  function scoreThisListing() {
+    if (!result) return;
+    try {
+      sessionStorage.setItem("audit:prefill", JSON.stringify(result));
+    } catch {}
+    router.push("/dashboard/audit");
   }
 
   async function copyToClipboard(text: string, field: string) {
@@ -342,6 +375,7 @@ export function OptimiseClient({ plan }: { plan: string }) {
   }
 
   const tabs = result ? getResultTabs(result) : [];
+  const hopOptions = HOP_PLATFORMS.filter((p) => p.id !== platform);
 
   return (
     <div className="space-y-6">
@@ -369,7 +403,16 @@ export function OptimiseClient({ plan }: { plan: string }) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form
+              onSubmit={handleSubmit}
+              onKeyDown={(e) => {
+                if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+                  e.preventDefault();
+                  (e.currentTarget as HTMLFormElement).requestSubmit();
+                }
+              }}
+              className="space-y-4"
+            >
               <div className="space-y-1.5">
                 <Label htmlFor="productName">
                   Product name / what it is{" "}
@@ -379,7 +422,8 @@ export function OptimiseClient({ plan }: { plan: string }) {
                   id="productName"
                   name="productName"
                   placeholder="e.g. Handmade ceramic coffee mug"
-                  defaultValue={searchParams.get("productName") ?? ""}
+                  value={formValues.productName}
+                  onChange={setField("productName")}
                   required
                 />
               </div>
@@ -389,7 +433,8 @@ export function OptimiseClient({ plan }: { plan: string }) {
                   id="materials"
                   name="materials"
                   placeholder="e.g. Stoneware clay, hand-thrown, food-safe glaze"
-                  defaultValue={searchParams.get("materials") ?? ""}
+                  value={formValues.materials}
+                  onChange={setField("materials")}
                 />
               </div>
               <div className="space-y-1.5">
@@ -398,7 +443,8 @@ export function OptimiseClient({ plan }: { plan: string }) {
                   id="style"
                   name="style"
                   placeholder="e.g. Minimalist, rustic, boho, cottagecore"
-                  defaultValue={searchParams.get("style") ?? ""}
+                  value={formValues.style}
+                  onChange={setField("style")}
                 />
               </div>
               <div className="space-y-1.5">
@@ -407,7 +453,8 @@ export function OptimiseClient({ plan }: { plan: string }) {
                   id="targetBuyer"
                   name="targetBuyer"
                   placeholder="e.g. Coffee lovers, housewarming gift, office decor"
-                  defaultValue={searchParams.get("targetBuyer") ?? ""}
+                  value={formValues.targetBuyer}
+                  onChange={setField("targetBuyer")}
                 />
               </div>
               <div className="space-y-1.5">
@@ -462,7 +509,6 @@ export function OptimiseClient({ plan }: { plan: string }) {
                     </Badge>
                   )}
                 </div>
-
                 {canUploadImage ? (
                   imagePreview ? (
                     <div className="relative overflow-hidden rounded-lg border border-border/50">
@@ -487,12 +533,8 @@ export function OptimiseClient({ plan }: { plan: string }) {
                         className="flex w-full flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-border/60 bg-muted/20 px-4 py-5 text-center transition-colors hover:bg-muted/40"
                       >
                         <ImagePlus className="size-4 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">
-                          Click to add a product photo
-                        </span>
-                        <span className="text-[10px] text-muted-foreground/60">
-                          Clear lighting, full product visible. JPEG, PNG or WebP, max 2 MB.
-                        </span>
+                        <span className="text-xs text-muted-foreground">Click to add a product photo</span>
+                        <span className="text-[10px] text-muted-foreground/60">Clear lighting, full product visible. JPEG, PNG or WebP, max 10 MB.</span>
                       </button>
                       <input
                         ref={fileInputRef}
@@ -510,29 +552,22 @@ export function OptimiseClient({ plan }: { plan: string }) {
                     className="flex w-full flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-border/60 bg-muted/20 px-4 py-5 text-center opacity-60 transition-opacity hover:opacity-80"
                   >
                     <Lock className="size-4 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">
-                      Add a photo for more accurate results
-                    </span>
-                    <span className="text-[10px] text-muted-foreground/60">
-                      Available on Starter and above
-                    </span>
+                    <span className="text-xs text-muted-foreground">Add a photo for more accurate results</span>
+                    <span className="text-[10px] text-muted-foreground/60">Available on Starter and above</span>
                   </button>
                 )}
               </div>
 
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? (
-                  <>
-                    <Spinner size="sm" className="mr-2" />
-                    Optimising…
-                  </>
+                  <><Spinner size="sm" className="mr-2" />Optimising…</>
                 ) : (
-                  <>
-                    <Sparkles className="size-3.5" />
-                    Optimise listing
-                  </>
+                  <><Sparkles className="size-3.5" />Optimise listing</>
                 )}
               </Button>
+              <p className="text-center text-[10px] text-muted-foreground/40">
+                ⌘/Ctrl+Enter to submit
+              </p>
             </form>
           </CardContent>
         </Card>
@@ -557,7 +592,8 @@ export function OptimiseClient({ plan }: { plan: string }) {
               <CardContent className="text-center">
                 <Sparkles className="mx-auto mb-3 size-8 text-muted-foreground/40" />
                 <p className="text-sm text-muted-foreground">
-                  Fill in your product details and click <span className="font-medium text-foreground">Optimise listing</span>.
+                  Fill in your product details and click{" "}
+                  <span className="font-medium text-foreground">Optimise listing</span>.
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground/70">
                   Your AI-generated listing will appear here.
@@ -571,166 +607,163 @@ export function OptimiseClient({ plan }: { plan: string }) {
               <CardContent className="text-center">
                 <Spinner size="lg" className="mx-auto mb-4" />
                 <p className="text-sm font-medium" aria-live="polite">{loadingStep}</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  This takes around 10 seconds
-                </p>
+                <p className="mt-1 text-xs text-muted-foreground">This takes around 10 seconds</p>
               </CardContent>
             </Card>
           )}
 
           {result && tabs.length > 0 && (
-            <Card className="border-border/50">
-              <CardHeader className="flex flex-row items-center justify-between pb-3">
-                <CardTitle className="text-base">Optimised listing</CardTitle>
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={copyAll}
-                    className="h-7 gap-1 text-xs"
-                  >
-                    <Copy className="size-3" />
-                    Copy all
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setResult(null)}
-                    disabled={loading}
-                    className="h-7 gap-1.5 text-xs text-muted-foreground"
-                  >
-                    <RotateCcw className="size-3" />
-                    New listing
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <Tabs defaultValue={tabs[0].id}>
-                  <TabsList className="w-full">
-                    {tabs.map((tab) => (
-                      <TabsTrigger
-                        key={tab.id}
-                        value={tab.id}
-                        className="flex-1 text-xs"
-                      >
-                        {tab.label}
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
+            <>
+              <Card className="border-border/50">
+                <CardHeader className="flex flex-row items-center justify-between pb-3">
+                  <CardTitle className="text-base">Optimised listing</CardTitle>
+                  <div className="flex items-center gap-1">
+                    <Button variant="outline" size="sm" onClick={copyAll} className="h-7 gap-1 text-xs">
+                      <Copy className="size-3" />Copy all
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={regenerate}
+                      disabled={loading}
+                      title="Generate a different version with the same inputs"
+                      className="h-7 gap-1.5 text-xs text-muted-foreground"
+                    >
+                      <RefreshCw className="size-3" />Try again
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setResult(null)}
+                      disabled={loading}
+                      className="h-7 gap-1.5 text-xs text-muted-foreground"
+                    >
+                      <RotateCcw className="size-3" />New
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <Tabs defaultValue={tabs[0].id}>
+                    <TabsList className="w-full">
+                      {tabs.map((tab) => (
+                        <TabsTrigger key={tab.id} value={tab.id} className="flex-1 text-xs">
+                          {tab.label}
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
 
-                  {tabs.map((tab) => (
-                    <TabsContent key={tab.id} value={tab.id} className="mt-4 space-y-3">
-                      {tab.isTags && Array.isArray(tab.content) ? (
-                        <>
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex flex-wrap gap-1.5">
-                              {(tab.content as string[]).map((tag) => (
-                                <Badge key={tag} variant="secondary" className="text-xs">
-                                  {tag}
-                                </Badge>
-                              ))}
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="icon-sm"
-                              onClick={() =>
-                                copyToClipboard(
-                                  (tab.content as string[]).join(", "),
-                                  tab.id
-                                )
-                              }
-                            >
-                              {copiedField === tab.id ? (
-                                <Check className="size-3.5 text-primary" />
-                              ) : (
-                                <Copy className="size-3.5" />
-                              )}
-                            </Button>
-                          </div>
-                          <Separator />
-                          <p className="text-xs text-muted-foreground">
-                            {(tab.content as string[]).length} / 13 tags
-                          </p>
-                        </>
-                      ) : tab.isBullets && Array.isArray(tab.content) ? (
-                        <>
-                          <div className="flex items-start justify-between gap-2">
-                            <ol className="flex-1 space-y-2 list-decimal list-inside">
-                              {(tab.content as string[]).map((bullet, i) => (
-                                <li key={i} className="text-xs leading-relaxed">
-                                  {bullet}
-                                </li>
-                              ))}
-                            </ol>
-                            <Button
-                              variant="ghost"
-                              size="icon-sm"
-                              onClick={() =>
-                                copyToClipboard(
-                                  (tab.content as string[]).join("\n"),
-                                  tab.id
-                                )
-                              }
-                            >
-                              {copiedField === tab.id ? (
-                                <Check className="size-3.5 text-primary" />
-                              ) : (
-                                <Copy className="size-3.5" />
-                              )}
-                            </Button>
-                          </div>
-                          <Separator />
-                          <p className="text-xs text-muted-foreground">
-                            {(tab.content as string[]).length} / 5 bullets
-                          </p>
-                        </>
-                      ) : (
-                        <>
-                          <div className="flex items-start justify-between gap-2">
-                            <p className="flex-1 whitespace-pre-wrap text-sm leading-relaxed">
-                              {tab.content as string}
-                            </p>
-                            <Button
-                              variant="ghost"
-                              size="icon-sm"
-                              onClick={() =>
-                                copyToClipboard(tab.content as string, tab.id)
-                              }
-                            >
-                              {copiedField === tab.id ? (
-                                <Check className="size-3.5 text-primary" />
-                              ) : (
-                                <Copy className="size-3.5" />
-                              )}
-                            </Button>
-                          </div>
-                          <Separator />
-                          <div className="flex items-center justify-between text-xs text-muted-foreground">
-                            <span>
-                              {(tab.content as string).length}
-                              {tab.maxChars ? ` / ${tab.maxChars} characters` : " characters"}
-                            </span>
-                            {tab.maxChars && (
-                              <span
-                                className={
-                                  (tab.content as string).length <= tab.maxChars
-                                    ? "text-emerald-600 dark:text-emerald-400"
-                                    : "text-destructive"
-                                }
+                    {tabs.map((tab) => (
+                      <TabsContent key={tab.id} value={tab.id} className="mt-4 space-y-3">
+                        {tab.isTags && Array.isArray(tab.content) ? (
+                          <>
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex flex-wrap gap-1.5">
+                                {(tab.content as string[]).map((tag) => (
+                                  <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
+                                ))}
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                onClick={() => copyToClipboard((tab.content as string[]).join(", "), tab.id)}
                               >
-                                {(tab.content as string).length <= tab.maxChars
-                                  ? "✓ Within limit"
-                                  : "Too long"}
+                                {copiedField === tab.id ? <Check className="size-3.5 text-primary" /> : <Copy className="size-3.5" />}
+                              </Button>
+                            </div>
+                            <Separator />
+                            <p className="text-xs text-muted-foreground">
+                              {(tab.content as string[]).length} / 13 tags
+                            </p>
+                          </>
+                        ) : tab.isBullets && Array.isArray(tab.content) ? (
+                          <>
+                            <div className="flex items-start justify-between gap-2">
+                              <ol className="flex-1 space-y-2 list-decimal list-inside">
+                                {(tab.content as string[]).map((bullet, i) => (
+                                  <li key={i} className="text-xs leading-relaxed">{bullet}</li>
+                                ))}
+                              </ol>
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                onClick={() => copyToClipboard((tab.content as string[]).join("\n"), tab.id)}
+                              >
+                                {copiedField === tab.id ? <Check className="size-3.5 text-primary" /> : <Copy className="size-3.5" />}
+                              </Button>
+                            </div>
+                            <Separator />
+                            <p className="text-xs text-muted-foreground">
+                              {(tab.content as string[]).length} / 5 bullets
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <div className="flex items-start justify-between gap-2">
+                              <p className="flex-1 whitespace-pre-wrap text-sm leading-relaxed">
+                                {tab.content as string}
+                              </p>
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                onClick={() => copyToClipboard(tab.content as string, tab.id)}
+                              >
+                                {copiedField === tab.id ? <Check className="size-3.5 text-primary" /> : <Copy className="size-3.5" />}
+                              </Button>
+                            </div>
+                            <Separator />
+                            <div className="flex items-center justify-between text-xs text-muted-foreground">
+                              <span>
+                                {(tab.content as string).length}
+                                {tab.maxChars ? ` / ${tab.maxChars} characters` : " characters"}
                               </span>
-                            )}
-                          </div>
-                        </>
-                      )}
-                    </TabsContent>
+                              {tab.maxChars && (
+                                <span className={(tab.content as string).length <= tab.maxChars ? "text-emerald-600 dark:text-emerald-400" : "text-destructive"}>
+                                  {(tab.content as string).length <= tab.maxChars ? "✓ Within limit" : "Too long"}
+                                </span>
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </TabsContent>
+                    ))}
+                  </Tabs>
+                </CardContent>
+              </Card>
+
+              {/* Utility links */}
+              <div className="flex items-center gap-4 px-1">
+                <button
+                  onClick={downloadListing}
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Download className="size-3" />Download .txt
+                </button>
+                <span className="text-muted-foreground/30 text-xs">·</span>
+                <button
+                  onClick={scoreThisListing}
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <BarChart3 className="size-3" />Score this listing
+                </button>
+              </div>
+
+              {/* Platform hop */}
+              {formValues.productName.trim() && hopOptions.length > 0 && (
+                <div className="flex items-center gap-2 flex-wrap px-1">
+                  <span className="text-xs text-muted-foreground shrink-0">Also try:</span>
+                  {hopOptions.map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => hopToPlatform(p.id)}
+                      disabled={loading}
+                      className="rounded-full border border-border/60 bg-muted/40 px-3 py-0.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-40"
+                    >
+                      {p.label}
+                    </button>
                   ))}
-                </Tabs>
-              </CardContent>
-            </Card>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

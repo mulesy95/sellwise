@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BarChart3, Sparkles, AlertCircle, Link2, PenLine, Share2, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -188,6 +188,54 @@ export function AuditClient() {
   const [urlHint, setUrlHint] = useState<string | null>(null);
   const [lastPayload, setLastPayload] = useState<Record<string, string> | null>(null);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [prefillValues, setPrefillValues] = useState<Record<string, string>>({});
+  const [formKey, setFormKey] = useState(0);
+
+  useEffect(() => {
+    const raw = sessionStorage.getItem("audit:prefill");
+    if (!raw) return;
+    sessionStorage.removeItem("audit:prefill");
+    try {
+      const res = JSON.parse(raw);
+      const p: Platform = res.platform ?? "etsy";
+      const vals: Record<string, string> = {};
+      if (p === "etsy") {
+        if (res.title) vals.title = res.title;
+        if (res.tags) vals.tags = Array.isArray(res.tags) ? res.tags.join(", ") : res.tags;
+        if (res.description) vals.description = res.description;
+      } else if (p === "amazon") {
+        if (res.title) vals.title = res.title;
+        if (res.bullets) vals.bullets = Array.isArray(res.bullets) ? res.bullets.join("\n") : res.bullets;
+        if (res.backendKeywords) vals.backendKeywords = res.backendKeywords;
+        if (res.description) vals.description = res.description;
+      } else if (p === "shopify") {
+        if (res.metaTitle) vals.metaTitle = res.metaTitle;
+        if (res.metaDescription) vals.metaDescription = res.metaDescription;
+        if (res.description) vals.productCopy = res.description;
+      } else if (p === "ebay") {
+        if (res.title) vals.title = res.title;
+        if (res.description) vals.description = res.description;
+      } else if (p === "woocommerce" || p === "wix" || p === "squarespace") {
+        if (res.seoTitle) vals.metaTitle = res.seoTitle;
+        if (res.seoDescription) vals.metaDescription = res.seoDescription;
+        if (res.description) vals.productCopy = res.description;
+      } else if (p === "tiktok") {
+        if (res.title) vals.title = res.title;
+        if (res.description) vals.description = res.description;
+      } else if (p === "social") {
+        if (res.caption) vals.title = res.caption;
+        if (res.hashtags) vals.tags = Array.isArray(res.hashtags) ? res.hashtags.join(", ") : res.hashtags;
+        if (res.postCopy) vals.description = res.postCopy;
+      }
+      setPlatform(p);
+      setPrefillValues(vals);
+      setMode("manual");
+      setFormKey((k) => k + 1);
+      toast.info("Listing pre-filled from optimiser");
+    } catch {
+      // ignore bad prefill data
+    }
+  }, []);
 
   function handlePlatformChange(p: Platform) {
     setPlatform(p);
@@ -368,7 +416,7 @@ export function AuditClient() {
                 <div className="mb-4">
                   <PlatformSelector value={platform} onChange={handlePlatformChange} />
                 </div>
-                <form onSubmit={handleManualSubmit} className="space-y-4">
+                <form key={formKey} onSubmit={handleManualSubmit} className="space-y-4">
                   {FORM_CONFIGS[platform].map((field) => (
                     <div key={field.name} className="space-y-1.5">
                       <Label htmlFor={field.name}>{field.label}</Label>
@@ -378,9 +426,10 @@ export function AuditClient() {
                           name={field.name}
                           rows={4}
                           placeholder={field.placeholder}
+                          defaultValue={prefillValues[field.name] ?? ""}
                         />
                       ) : (
-                        <Input id={field.name} name={field.name} placeholder={field.placeholder} />
+                        <Input id={field.name} name={field.name} placeholder={field.placeholder} defaultValue={prefillValues[field.name] ?? ""} />
                       )}
                       {field.hint && (
                         <p className="text-[11px] text-muted-foreground">{field.hint}</p>
