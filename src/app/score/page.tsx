@@ -10,6 +10,7 @@ interface Props {
     platform?: string;
     label?: string;
     improvements?: string;
+    before?: string;
   }>;
 }
 
@@ -22,25 +23,34 @@ function scoreColour(score: number) {
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const params = await searchParams;
   const score = params.score ?? "0";
-  const platform = params.platform ?? "etsy";
+  const platform = params.platform ?? "shopify";
   const label = params.label ?? "Good";
   const improvements = params.improvements ?? "0";
+  const before = params.before;
   const platformLabel = platform.charAt(0).toUpperCase() + platform.slice(1);
 
-  const ogImageUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/og/score?score=${score}&platform=${platform}&label=${label}&improvements=${improvements}`;
+  const ogBase = `${process.env.NEXT_PUBLIC_APP_URL}/api/og/score?score=${score}&platform=${platform}&label=${label}&improvements=${improvements}`;
+  const ogImageUrl = before ? `${ogBase}&before=${before}` : ogBase;
+
+  const title = before
+    ? `${platformLabel} listing improved from ${before} → ${score}/100 — SellWise`
+    : `${platformLabel} listing scored ${score}/100 — SellWise`;
+  const description = before
+    ? `Went from ${before} to ${score}/100 — a ${parseInt(score) - parseInt(before)} point improvement. Audit yours free at SellWise.`
+    : `${label} — ${platformLabel} listing audit score. ${improvements} improvements identified. Score your own listing free at SellWise.`;
 
   return {
-    title: `${platformLabel} listing scored ${score}/100 — SellWise`,
-    description: `${label} — ${platformLabel} listing audit score. ${improvements} improvements identified. Score your own listing free at SellWise.`,
+    title,
+    description,
     openGraph: {
-      title: `${platformLabel} listing scored ${score}/100`,
-      description: `${label} — ${improvements} improvements identified. Try SellWise free.`,
-      images: [{ url: ogImageUrl, width: 1200, height: 630, alt: `Score: ${score}/100` }],
+      title: before ? `${platformLabel} listing: ${before} → ${score}/100` : `${platformLabel} listing scored ${score}/100`,
+      description,
+      images: [{ url: ogImageUrl, width: 1200, height: 630, alt: before ? `${before} → ${score}/100` : `Score: ${score}/100` }],
     },
     twitter: {
       card: "summary_large_image",
-      title: `${platformLabel} listing scored ${score}/100`,
-      description: `${label}. Score your own listing free at SellWise.`,
+      title: before ? `${platformLabel} listing: ${before} → ${score}/100` : `${platformLabel} listing scored ${score}/100`,
+      description,
       images: [ogImageUrl],
     },
   };
@@ -49,10 +59,12 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 export default async function ScorePage({ searchParams }: Props) {
   const params = await searchParams;
   const score = parseInt(params.score ?? "0");
-  const platform = params.platform ?? "etsy";
+  const platform = params.platform ?? "shopify";
   const label = params.label ?? "Good";
   const improvements = parseInt(params.improvements ?? "0");
+  const before = params.before ? parseInt(params.before) : null;
   const platformLabel = platform.charAt(0).toUpperCase() + platform.slice(1);
+  const delta = before !== null ? score - before : null;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
@@ -63,13 +75,49 @@ export default async function ScorePage({ searchParams }: Props) {
 
         <div className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            A {platformLabel} listing was audited and scored
+            {before !== null
+              ? `A ${platformLabel} listing improved`
+              : `A ${platformLabel} listing was audited and scored`}
           </p>
-          <div className={cn("text-8xl font-bold tabular-nums leading-none", scoreColour(score))}>
-            {score}
+
+          {before !== null ? (
+            <div className="flex items-center justify-center gap-4">
+              <div className="text-center">
+                <div className={cn("text-6xl font-bold tabular-nums leading-none", scoreColour(before))}>
+                  {before}
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">before</div>
+              </div>
+              <div className="text-3xl text-muted-foreground/40">→</div>
+              <div className="text-center">
+                <div className={cn("text-6xl font-bold tabular-nums leading-none", scoreColour(score))}>
+                  {score}
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">after</div>
+              </div>
+            </div>
+          ) : (
+            <div className={cn("text-8xl font-bold tabular-nums leading-none", scoreColour(score))}>
+              {score}
+            </div>
+          )}
+
+          {before === null && <div className="text-base text-muted-foreground">out of 100</div>}
+
+          <div className="flex items-center justify-center gap-2 flex-wrap">
+            <p className="text-lg font-semibold">{label}</p>
+            {delta !== null && (
+              <span className={cn(
+                "rounded-full px-2.5 py-0.5 text-sm font-semibold",
+                delta >= 0
+                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                  : "bg-red-500/10 text-red-600 dark:text-red-400"
+              )}>
+                {delta >= 0 ? "+" : ""}{delta} pts
+              </span>
+            )}
           </div>
-          <div className="text-base text-muted-foreground">out of 100</div>
-          <p className="text-lg font-semibold">{label}</p>
+
           {improvements > 0 && (
             <p className="text-sm text-muted-foreground">
               {improvements} improvement{improvements !== 1 ? "s" : ""} identified
@@ -99,7 +147,7 @@ export default async function ScorePage({ searchParams }: Props) {
         </div>
 
         <p className="text-xs text-muted-foreground/50">
-          Audits listings for Etsy, Amazon, Shopify, and eBay.
+          Audits listings for Shopify, eBay, Etsy, Amazon, and more.
         </p>
       </div>
     </div>

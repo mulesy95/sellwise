@@ -191,6 +191,7 @@ export function AuditClient() {
   const [shareOpen, setShareOpen] = useState(false);
   const [captionCopied, setCaptionCopied] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [previousScore, setPreviousScore] = useState<number | null>(null);
   const [prefillValues, setPrefillValues] = useState<Record<string, string>>({});
   const [formKey, setFormKey] = useState(0);
 
@@ -267,6 +268,7 @@ export function AuditClient() {
   }
 
   async function runAudit(payload: Record<string, string>) {
+    if (result) setPreviousScore(result.score);
     setLoading(true);
     setResult(null);
     setError(null);
@@ -326,6 +328,7 @@ export function AuditClient() {
     url.searchParams.set("platform", detectedPlatform ?? platform);
     url.searchParams.set("label", label);
     url.searchParams.set("improvements", String(improvements));
+    if (previousScore !== null) url.searchParams.set("before", String(previousScore));
     return url.toString();
   }
 
@@ -338,6 +341,13 @@ export function AuditClient() {
     const fixLine = improvements > 0
       ? `${improvements} improvement${improvements !== 1 ? "s" : ""} to fix.`
       : "Looking solid.";
+
+    if (previousScore !== null) {
+      const delta = score - previousScore;
+      const deltaStr = delta >= 0 ? `+${delta}` : String(delta);
+      return `Just improved my ${p} listing from ${previousScore} → ${score}/100 on SellWise. ${deltaStr} points in one pass.\n\nAudit yours free: ${url}`;
+    }
+
     if (score >= 70) {
       return `Just ran my ${p} listing through SellWise — scored ${score}/100. ${fixLine}\n\nScore yours free: ${url}`;
     } else if (score >= 40) {
@@ -633,6 +643,33 @@ export function AuditClient() {
 
                 {shareOpen && (
                   <div className="border-t border-border/40 px-4 pb-4 pt-3 space-y-3">
+                    {/* Before / after score display */}
+                    {previousScore !== null && (
+                      <div className="flex items-center justify-center gap-4 py-2">
+                        <div className="text-center">
+                          <div className={cn("text-4xl font-bold tabular-nums", overallColour(previousScore))}>
+                            {previousScore}
+                          </div>
+                          <div className="text-[10px] text-muted-foreground mt-0.5">before</div>
+                        </div>
+                        <div className="text-2xl text-muted-foreground/50">→</div>
+                        <div className="text-center">
+                          <div className={cn("text-4xl font-bold tabular-nums", overallColour(result.score))}>
+                            {result.score}
+                          </div>
+                          <div className="text-[10px] text-muted-foreground mt-0.5">after</div>
+                        </div>
+                        <span className={cn(
+                          "rounded-full px-2.5 py-1 text-xs font-semibold",
+                          result.score >= previousScore
+                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                            : "bg-red-500/10 text-red-600 dark:text-red-400"
+                        )}>
+                          {result.score >= previousScore ? "+" : ""}{result.score - previousScore} pts
+                        </span>
+                      </div>
+                    )}
+
                     {/* Caption */}
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
@@ -677,7 +714,7 @@ export function AuditClient() {
                 variant="outline"
                 size="sm"
                 className="w-full"
-                onClick={() => { setResult(null); setError(null); setLastPayload(null); setShareOpen(false); }}
+                onClick={() => { setResult(null); setError(null); setLastPayload(null); setShareOpen(false); setPreviousScore(null); }}
               >
                 <RotateCcw className="size-3.5" />
                 Audit another listing
