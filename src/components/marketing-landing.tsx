@@ -68,9 +68,16 @@ export function MarketingLanding() {
           <br />
           actually find.
         </h1>
-        <p className="text-sm text-muted-foreground mb-6 max-w-[340px] mx-auto leading-relaxed">
-          Tell us what you sell. We&apos;ll write the listing.
+        <p className="text-sm text-muted-foreground mb-4 max-w-[360px] mx-auto leading-relaxed">
+          Describe your product. We&apos;ll write it to rank — for wherever you sell.
         </p>
+        <div className="flex flex-wrap items-center justify-center gap-1.5 mb-6">
+          {["Etsy", "Amazon", "Shopify", "eBay", "WooCommerce", "Wix", "Squarespace", "TikTok Shop", "Social"].map((p) => (
+            <span key={p} className="rounded-full border border-border bg-muted px-2.5 py-0.5 text-[11px] text-muted-foreground font-medium">
+              {p}
+            </span>
+          ))}
+        </div>
         <div className="flex flex-wrap items-center justify-center gap-2.5 mb-8">
           <Link href="/signup" className={buttonVariants({ size: "lg" })}>
             Try free for 7 days
@@ -81,9 +88,10 @@ export function MarketingLanding() {
         {/* Sample output card */}
         <div className="bg-card rounded-xl p-5 border border-border max-w-[520px] mx-auto text-left">
           <div className="flex items-center justify-between mb-3.5">
-            <span className="text-xs font-semibold text-muted-foreground">
-              Sample output
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-muted-foreground">Sample output</span>
+              <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">Etsy</span>
+            </div>
             <span className="text-[13px] font-bold text-emerald-600 dark:text-emerald-400">
               87 / 100
             </span>
@@ -154,7 +162,7 @@ export function MarketingLanding() {
             <p className="text-[11px] font-semibold text-foreground">Free</p>
             <p className="text-xl font-bold text-foreground my-1">$0</p>
             <p className="text-[11px] text-muted-foreground">
-              1 optimisation / month
+              3 optimisations / month
             </p>
           </div>
           <div className="bg-card rounded-lg p-3.5 border border-border">
@@ -169,10 +177,7 @@ export function MarketingLanding() {
               50 optimisations + all tools
             </p>
           </div>
-          <div className="relative bg-card rounded-lg p-3.5 border border-primary">
-            <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full font-semibold whitespace-nowrap">
-              Popular
-            </span>
+          <div className="bg-card rounded-lg p-3.5 border border-border">
             <p className="text-[11px] font-semibold text-foreground">Growth</p>
             <p className="text-xl font-bold text-foreground my-1">
               $29
