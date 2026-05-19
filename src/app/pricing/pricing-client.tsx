@@ -164,11 +164,6 @@ export function PricingClient({ currency = "USD" }: { currency?: Currency }) {
                   plan.id === "growth" ? "border-primary/50 bg-primary/5" : "border-border"
                 )}
               >
-                {plan.id === "growth" && (
-                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs h-5 px-2 py-0 bg-primary text-primary-foreground">
-                    Most popular
-                  </Badge>
-                )}
                 <div className="mb-4">
                   <div className="text-sm font-semibold">{plan.name}</div>
                   <div className="text-xs text-muted-foreground mt-0.5 mb-3">
