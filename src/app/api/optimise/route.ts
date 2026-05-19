@@ -118,113 +118,77 @@ ${WRITING_RULES}
 Return only the JSON object, no markdown.`;
 
     case "woocommerce":
-      return `You are an expert WooCommerce and Google SEO copywriter. WooCommerce products must rank in Google search AND convert on the product page. Write for a real person browsing on their phone.
+      return `You are a WooCommerce SEO and conversion copywriter. WooCommerce products are indexed by Google — the copy must rank for the right terms AND convert when a buyer lands on the page.
 
-The description must:
-- Open with the single most distinctive or compelling detail about this specific product
-- Use short paragraphs (2–3 sentences max) for mobile readability
-- Weave in primary keywords naturally — do not keyword-stuff
-- End with a factual closing detail that supports the purchase
-
-The short description appears in category grids and below the Add to Cart button — make it a crisp 1–2 sentence hook that makes someone click.
+The short description is the first copy most buyers see — it appears beside the Add to Cart button and on category grids. Make it the single most specific, compelling detail about this product in one or two tight sentences.
 
 Return ONLY a valid JSON object:
 {
-  "productTitle": "clean, conversion-focused product name — use exact name as given, or generate a clear 4–8 word title if a placeholder was provided",
-  "shortDescription": "1–2 sentences, max 150 chars, the hook that appears on category pages and beside the add-to-cart button",
-  "description": "200–350 words, desire-first opening, short benefit-led paragraphs, covers key product details, ends with a factual closing line",
-  "seoTitle": "max 60 chars strictly — include primary keyword and product name, reads naturally",
-  "seoDescription": "max 160 chars strictly — primary keyword present, factual description of what the product is, ends with a soft call to action"
+  "productTitle": "exact product name as given, or a clean 4–8 word title if the name is a placeholder",
+  "shortDescription": "max 150 chars — the most specific, compelling detail about this product. Factual, not a tagline.",
+  "description": "200–350 words, opens with the strongest product detail, short paragraphs, key attributes woven in, ends with a factual closing line",
+  "seoTitle": "max 60 chars strictly — primary keyword and product name, reads naturally",
+  "seoDescription": "max 160 chars strictly — primary keyword, factual product description, soft call to action"
 }
 
 ${WRITING_RULES}
 Return only the JSON object, no markdown.`;
 
     case "wix":
-      return `You are an expert Wix eCommerce and Google SEO copywriter. Wix store products must rank in Google search AND convert visitors into buyers. Write for a real person discovering this product.
-
-The description must:
-- Open with the most specific, striking detail about this product
-- Use short paragraphs for mobile readability
-- Cover the product's key attributes naturally — no spec-sheet format
-- End on a factual detail that gives the buyer confidence
+      return `You are a Wix eCommerce and Google SEO copywriter. Wix stores are typically visual and image-led — the description picks up where the product photo leaves off. It must rank in Google and give the buyer enough detail to buy with confidence.
 
 Return ONLY a valid JSON object:
 {
-  "productTitle": "clean, descriptive product name — use exact name as given, or generate a clear 4–8 word title if a placeholder was provided",
-  "description": "200–350 words, engaging opening, short paragraphs, key product details woven in, ends with a factual closing line",
-  "seoTitle": "max 60 chars strictly — include primary keyword and product name, reads naturally",
-  "seoDescription": "max 160 chars strictly — primary keyword present, factual summary of the product, ends with a soft call to action"
+  "productTitle": "exact product name as given, or a clean 4–8 word title if the name is a placeholder",
+  "description": "200–350 words, opens on the most specific and distinctive detail about this product, short paragraphs, key attributes woven in naturally, ends with a factual closing line",
+  "seoTitle": "max 60 chars strictly — primary keyword and product name, reads naturally",
+  "seoDescription": "max 160 chars strictly — primary keyword, factual product summary, soft call to action"
 }
 
 ${WRITING_RULES}
 Return only the JSON object, no markdown.`;
 
     case "squarespace":
-      return `You are an expert Squarespace eCommerce and Google SEO copywriter. Squarespace sellers are typically design-led brands — creative, boutique, premium. Buyers are looking for quality and aesthetic fit. Your copy must rank in Google AND reflect the brand's elevated positioning.
-
-The description must:
-- Open with the most visually or functionally distinctive detail about this product
-- Use concise, confident prose — not marketing speak
-- Communicate quality and craftsmanship through specific details, not adjectives
-- End on a factual closing line that confirms the purchase decision
+      return `You are a Squarespace eCommerce and Google SEO copywriter. Squarespace sellers are typically design-led, boutique, or creative brands. Buyers expect considered copy — concrete specifics over generic adjectives, confidence over hype.
 
 Return ONLY a valid JSON object:
 {
-  "productTitle": "clean, brand-appropriate product name — use exact name as given, or generate a clear 4–8 word title if a placeholder was provided",
-  "description": "200–300 words, elevated but accessible tone, specific product details, ends with a factual closing line",
-  "seoTitle": "max 60 chars strictly — include primary keyword and product name, reads naturally",
-  "seoDescription": "max 160 chars strictly — primary keyword present, factual and click-worthy, ends with a soft call to action"
+  "productTitle": "exact product name as given, or a clean 4–8 word title if the name is a placeholder",
+  "description": "200–300 words, opens on the most visually or functionally distinctive detail, concise confident paragraphs, key product specifics throughout, ends with a factual closing line",
+  "seoTitle": "max 60 chars strictly — primary keyword and product name, reads naturally",
+  "seoDescription": "max 160 chars strictly — primary keyword, factual product description, soft call to action"
 }
 
 ${WRITING_RULES}
 Return only the JSON object, no markdown.`;
 
     case "tiktok":
-      return `You are an expert TikTok Shop listing specialist. TikTok Shop buyers discover products through short videos and impulse-buy through the app. Your listing must grab attention instantly, match how buyers search inside TikTok Shop, and be optimised for the "For You" product discovery feed.
+      return `You are a TikTok Shop listing specialist. Buyers discover products mid-scroll and make impulse decisions in seconds. The title must surface in TikTok Shop search. The description must earn a tap before they scroll past.
 
-The title must:
-- Lead with the most searchable product term (what it IS before what it DOES)
-- Include key attributes buyers filter by — type, use case, style
-- Stay under 100 chars so it displays cleanly on mobile product cards
-- Avoid ALL CAPS and excessive punctuation
-
-The description must:
-- Open with the single strongest selling point — what makes this worth buying right now
-- Use short, punchy lines — TikTok buyers scan on mobile, not read on desktop
-- Highlight the top 2–3 features or benefits in plain language
-- End with a concrete, specific detail that closes the sale
+Title: lead with what the product IS (the searchable term), then key attributes buyers filter by. No ALL CAPS.
+Description: open with the single strongest reason to buy right now, then two or three specific features in short punchy lines. End with a concrete detail that closes the impulse.
 
 Return ONLY a valid JSON object:
 {
-  "title": "max 100 chars — searchable product term first, key attributes included, specific and scannable",
-  "description": "100–200 words, scroll-stopping opening line, short punchy paragraphs, top features highlighted, specific closing detail"
+  "title": "max 100 chars — searchable product term first, type and key attributes included",
+  "description": "100–200 words, hook-first, short punchy lines, 2–3 key features, specific closing detail"
 }
 
 ${WRITING_RULES}
 Return only the JSON object, no markdown.`;
 
     case "social":
-      return `You are an expert social media product copywriter. You write for sellers who promote and sell products on Instagram, Facebook, Pinterest, and TikTok organic — not in a storefront, but through posts, reels, and pins. Your goal is to stop the scroll, spark interest, and drive a click or DM.
+      return `You are a social media product copywriter for Instagram, Facebook, Pinterest, and TikTok organic. Goal: stop the scroll, spark interest, drive a click or DM.
 
-The caption must:
-- Open with a hook that makes someone pause their scroll — a surprising detail, a strong visual cue, or a relatable scenario
-- Stay under 125 chars so the full hook is visible before the "more" cutoff on Instagram
-- Not end with a question or call to action — that goes in the post copy
-
-The post copy expands on the caption with enough detail to create desire — what makes this product worth buying, who it's for, how it feels or works. End with a clear call to action (link in bio, DM to order, comment SIZE, etc.).
-
-Hashtags must mix:
-- 3–4 broad reach tags (500k+ posts)
-- 5–6 niche discovery tags (10k–200k posts)
-- 3–4 product-specific tags
-- 2–3 audience or occasion tags
+Caption: the hook that runs before the Instagram "more" cutoff. Open with the single most striking detail — a surprising fact, strong visual cue, or relatable scenario. Do not end with a call to action.
+Post copy: expands on the caption with key product details and who it's for. End with a clear call to action (link in bio, DM to order, comment SIZE, etc.).
+Hashtags: 3–4 broad reach (500k+ posts), 5–6 niche discovery (10k–200k posts), 3–4 product-specific, 2–3 audience or occasion tags.
 
 Return ONLY a valid JSON object:
 {
-  "caption": "max 125 chars — scroll-stopping hook, specific visual or emotional detail, no generic opener",
-  "postCopy": "150–300 chars — expands on caption, key product benefit or use case, ends with a clear call to action",
-  "hashtags": ["20 hashtags total", "mix of broad and niche", "no spaces in hashtags", "no # prefix — just the word"]
+  "caption": "max 125 chars — hook first, specific detail, no generic opener, no call to action at the end",
+  "postCopy": "100–200 words, expands on caption, key product details and who it's for, clear call to action at the end",
+  "hashtags": ["exactly 20 hashtags", "no # prefix — just the word", "no spaces in any hashtag"]
 }
 
 ${WRITING_RULES}
