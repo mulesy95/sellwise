@@ -9,7 +9,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-type Platform = "etsy" | "amazon" | "shopify" | "ebay";
+import type { Platform } from "@/lib/platforms";
 
 interface Optimisation {
   id: string;
@@ -30,10 +30,15 @@ interface Optimisation {
 }
 
 const PLATFORM_CONFIG: Record<Platform, { label: string; className: string }> = {
-  etsy:     { label: "Etsy",     className: "bg-orange-500/15 text-orange-700 dark:text-orange-400 border-orange-500/25" },
-  amazon:   { label: "Amazon",   className: "bg-yellow-500/15 text-yellow-700 dark:text-yellow-400 border-yellow-500/25" },
-  shopify:  { label: "Shopify",  className: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/25" },
-  ebay:     { label: "eBay",     className: "bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/25" },
+  etsy:        { label: "Etsy",        className: "bg-orange-500/15 text-orange-700 dark:text-orange-400 border-orange-500/25" },
+  amazon:      { label: "Amazon",      className: "bg-yellow-500/15 text-yellow-700 dark:text-yellow-400 border-yellow-500/25" },
+  shopify:     { label: "Shopify",     className: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/25" },
+  ebay:        { label: "eBay",        className: "bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/25" },
+  woocommerce: { label: "WooCommerce", className: "bg-purple-500/15 text-purple-700 dark:text-purple-400 border-purple-500/25" },
+  wix:         { label: "Wix",         className: "bg-sky-500/15 text-sky-700 dark:text-sky-400 border-sky-500/25" },
+  squarespace: { label: "Squarespace", className: "bg-slate-500/15 text-slate-700 dark:text-slate-400 border-slate-500/25" },
+  tiktok:      { label: "TikTok Shop", className: "bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/25" },
+  social:      { label: "Social",      className: "bg-indigo-500/15 text-indigo-700 dark:text-indigo-400 border-indigo-500/25" },
 };
 
 const SCORE_CONFIG = (score: number) =>
@@ -132,18 +137,61 @@ function PlatformOutput({ platform, output }: { platform: Platform; output: Reco
     );
   }
 
-  if (platform === "shopify") {
+  if (platform === "shopify" || platform === "wix" || platform === "squarespace") {
     return (
       <div className="space-y-4">
         <OutputField label="Product Title" value={str(output.productTitle)} />
-        <OutputField label="Meta Title" value={str(output.metaTitle)} />
-        <OutputField label="Meta Description" value={str(output.metaDescription)} />
+        <OutputField label={platform === "shopify" ? "Meta Title" : "SEO Title"} value={str(output.metaTitle ?? output.seoTitle)} />
+        <OutputField label={platform === "shopify" ? "Meta Description" : "SEO Description"} value={str(output.metaDescription ?? output.seoDescription)} />
         <OutputField label="Description" value={str(output.description)} />
       </div>
     );
   }
 
-  // eBay
+  if (platform === "woocommerce") {
+    return (
+      <div className="space-y-4">
+        <OutputField label="Product Title" value={str(output.productTitle)} />
+        <OutputField label="SEO Title" value={str(output.seoTitle)} />
+        <OutputField label="SEO Description" value={str(output.seoDescription)} />
+        {str(output.shortDescription) && <OutputField label="Short Description" value={str(output.shortDescription)} />}
+        <OutputField label="Description" value={str(output.description)} />
+      </div>
+    );
+  }
+
+  if (platform === "tiktok") {
+    return (
+      <div className="space-y-4">
+        <OutputField label="Title" value={str(output.title)} />
+        <OutputField label="Description" value={str(output.description)} />
+      </div>
+    );
+  }
+
+  if (platform === "social") {
+    return (
+      <div className="space-y-4">
+        <OutputField label="Caption" value={str(output.caption)} />
+        <OutputField label="Post Copy" value={str(output.postCopy)} />
+        {arr(output.hashtags).length > 0 && (
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Hashtags</span>
+              <CopyButton value={arr(output.hashtags).map((h) => `#${h}`).join(" ")} label="Hashtags" />
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {arr(output.hashtags).map((h) => (
+                <span key={h} className="rounded border border-border bg-muted px-2 py-0.5 text-xs">#{h}</span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // eBay (and any unknown platform)
   return (
     <div className="space-y-4">
       <OutputField label="Title" value={str(output.title)} />
@@ -295,6 +343,11 @@ const PLATFORMS: { value: Platform | "all"; label: string }[] = [
   { value: "amazon", label: "Amazon" },
   { value: "shopify", label: "Shopify" },
   { value: "ebay", label: "eBay" },
+  { value: "woocommerce", label: "WooCommerce" },
+  { value: "wix", label: "Wix" },
+  { value: "squarespace", label: "Squarespace" },
+  { value: "tiktok", label: "TikTok Shop" },
+  { value: "social", label: "Social" },
 ];
 
 export function HistoryClient() {

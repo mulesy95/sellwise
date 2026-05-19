@@ -15,8 +15,8 @@ import {
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
+import type { Platform } from "@/lib/platforms";
 
-type Platform = "etsy" | "amazon" | "shopify" | "ebay";
 type RowStatus = "pending" | "running" | "done" | "error";
 
 interface CsvRow {
@@ -36,6 +36,11 @@ const PLATFORMS: { value: Platform; label: string }[] = [
   { value: "amazon", label: "Amazon" },
   { value: "shopify", label: "Shopify" },
   { value: "ebay", label: "eBay" },
+  { value: "woocommerce", label: "WooCommerce" },
+  { value: "wix", label: "Wix" },
+  { value: "squarespace", label: "Squarespace" },
+  { value: "tiktok", label: "TikTok Shop" },
+  { value: "social", label: "Social" },
 ];
 
 const EXAMPLE_CSV = `title,description\n"Handmade Leather Wallet","Genuine brown leather bifold wallet with card slots"\n"Silver Ring Size 7","Handcrafted 925 sterling silver ring with engraved pattern"`;
@@ -95,34 +100,48 @@ function str(v: unknown): string {
 }
 
 function resultToCSVRow(row: ResultRow, platform: Platform): string {
-  const isEbay = platform === "ebay";
-  const isAmazon = platform === "amazon";
-  const isEtsy = platform === "etsy";
   const r = row.result ?? {};
 
   const fields: string[] = [
     csvEscape(row.title),
     csvEscape(row.description),
-    csvEscape(str(r.title ?? r.productTitle)),
-    csvEscape(str(r.description ?? r.body_html)),
   ];
 
-  if (isEtsy) {
+  if (platform === "etsy") {
+    fields.push(csvEscape(str(r.title)));
+    fields.push(csvEscape(str(r.description)));
     const tags = r.tags;
     fields.push(csvEscape(Array.isArray(tags) ? tags.join(", ") : str(tags)));
-  }
-  if (isAmazon) {
-    fields.push(csvEscape(str(r.backend_keywords)));
+  } else if (platform === "amazon") {
+    fields.push(csvEscape(str(r.title)));
+    fields.push(csvEscape(str(r.description)));
+    fields.push(csvEscape(str(r.backendKeywords)));
     const bullets = r.bullets;
     if (Array.isArray(bullets)) {
       for (const b of bullets) fields.push(csvEscape(str(b)));
     } else {
       for (let i = 0; i < 5; i++) fields.push("");
     }
-  }
-  if (!isEbay && !isAmazon) {
-    fields.push(csvEscape(str(r.metaTitle)));
-    fields.push(csvEscape(str(r.metaDescription)));
+  } else if (platform === "ebay" || platform === "tiktok") {
+    fields.push(csvEscape(str(r.title)));
+    fields.push(csvEscape(str(r.description)));
+  } else if (platform === "woocommerce") {
+    fields.push(csvEscape(str(r.productTitle)));
+    fields.push(csvEscape(str(r.shortDescription)));
+    fields.push(csvEscape(str(r.description)));
+    fields.push(csvEscape(str(r.seoTitle)));
+    fields.push(csvEscape(str(r.seoDescription)));
+  } else if (platform === "social") {
+    fields.push(csvEscape(str(r.caption)));
+    fields.push(csvEscape(str(r.postCopy)));
+    const hashtags = r.hashtags;
+    fields.push(csvEscape(Array.isArray(hashtags) ? hashtags.map((h) => `#${h}`).join(" ") : str(hashtags)));
+  } else {
+    // shopify, wix, squarespace
+    fields.push(csvEscape(str(r.productTitle)));
+    fields.push(csvEscape(str(r.description)));
+    fields.push(csvEscape(str(r.metaTitle ?? r.seoTitle)));
+    fields.push(csvEscape(str(r.metaDescription ?? r.seoDescription)));
   }
 
   return fields.join(",");
@@ -135,10 +154,13 @@ function csvEscape(val: string | undefined): string {
 }
 
 function buildCSVHeader(platform: Platform): string {
-  const base = ["original_title", "original_description", "optimised_title", "optimised_description"];
-  if (platform === "etsy") return [...base, "tags"].join(",");
-  if (platform === "amazon") return [...base, "backend_keywords", "bullet_1", "bullet_2", "bullet_3", "bullet_4", "bullet_5"].join(",");
-  return [...base, "meta_title", "meta_description"].join(",");
+  const base = ["original_title", "original_description"];
+  if (platform === "etsy") return [...base, "optimised_title", "optimised_description", "tags"].join(",");
+  if (platform === "amazon") return [...base, "optimised_title", "optimised_description", "backend_keywords", "bullet_1", "bullet_2", "bullet_3", "bullet_4", "bullet_5"].join(",");
+  if (platform === "ebay" || platform === "tiktok") return [...base, "optimised_title", "optimised_description"].join(",");
+  if (platform === "woocommerce") return [...base, "product_title", "short_description", "description", "seo_title", "seo_description"].join(",");
+  if (platform === "social") return [...base, "caption", "post_copy", "hashtags"].join(",");
+  return [...base, "product_title", "description", "seo_title", "seo_description"].join(",");
 }
 
 function downloadCSV(rows: ResultRow[], platform: Platform) {
