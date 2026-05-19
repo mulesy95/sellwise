@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Sparkles, Search, Eye, BarChart3, ArrowLeftRight, Store } from "lucide-react";
+import { Sparkles, Search, BarChart3, ArrowLeftRight, Store } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 
 const SAMPLE_TAGS = [
@@ -38,11 +38,6 @@ const FEATURES = [
     icon: ArrowLeftRight,
     title: "Platform Migration",
     desc: "Selling somewhere new? Paste your listing and we'll reformat it for any of the 9 platforms we support.",
-  },
-  {
-    icon: Eye,
-    title: "Competitor Peek",
-    desc: "Paste a competitor's URL and get an AI-optimised side-by-side comparison of their listing vs what yours could be.",
   },
   {
     icon: Store,
