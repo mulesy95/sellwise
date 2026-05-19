@@ -61,10 +61,13 @@ async function checkStatusPage(url: string): Promise<ServiceStatus> {
     if (!res.ok) return { status: "ok", latency };
     const data = await res.json() as { status?: { indicator?: string; description?: string } };
     const indicator = data?.status?.indicator;
+    const description = data?.status?.description ?? "";
+    // If the incident only mentions Haiku and not Sonnet, SellWise (Sonnet-only) is unaffected
+    const haikusOnly = /haiku/i.test(description) && !/sonnet|claude-3-5|claude-4/i.test(description);
     // Only flag an issue when the status page explicitly reports one
-    if (indicator === "minor") return { status: "degraded", latency, message: data?.status?.description };
-    if (indicator === "maintenance") return { status: "degraded", latency, message: data?.status?.description ?? "Maintenance in progress" };
-    if (indicator && indicator !== "none") return { status: "down", latency, message: data?.status?.description ?? "Incident reported" };
+    if (indicator === "minor") return haikusOnly ? { status: "ok", latency } : { status: "degraded", latency, message: description };
+    if (indicator === "maintenance") return { status: "degraded", latency, message: description || "Maintenance in progress" };
+    if (indicator && indicator !== "none") return { status: "down", latency, message: description || "Incident reported" };
     return { status: "ok", latency };
   } catch {
     // Unreachable or timed out — assume fine rather than false-alarming users
