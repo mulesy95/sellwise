@@ -212,7 +212,11 @@ export function PricingClient({ currency = "USD" }: { currency?: Currency }) {
                     onClick={() => handleUpgrade(plan)}
                     disabled={loading === plan.id}
                     className={cn(
-                      buttonVariants({ variant: "outline", size: "sm", className: "w-full text-xs" }),
+                      buttonVariants({
+                        variant: plan.id === "studio" ? "default" : "outline",
+                        size: "sm",
+                        className: "w-full text-xs",
+                      }),
                       "disabled:opacity-60"
                     )}
                   >

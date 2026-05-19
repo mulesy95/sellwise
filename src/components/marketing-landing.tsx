@@ -61,7 +61,7 @@ export function MarketingLanding({ currency = "USD" }: { currency?: "USD" | "AUD
       {/* NAV */}
       <nav className="sticky top-0 z-50 border-b border-border bg-background">
         <div className="flex items-center justify-between px-5 md:px-10 py-3.5 max-w-6xl mx-auto">
-          <span className="font-bold text-foreground text-[15px]">Sell<span className="text-primary">Wise</span></span>
+          <span className="font-bold text-foreground text-lg">Sell<span className="text-primary">Wise</span></span>
           <div className="flex items-center gap-5 text-xs text-muted-foreground">
             <a href="#features" className="hover:text-foreground transition-colors hidden sm:block">
               Features
@@ -90,7 +90,7 @@ export function MarketingLanding({ currency = "USD" }: { currency?: "USD" | "AUD
               actually find.
             </h1>
             <p className="text-sm md:text-base text-muted-foreground mb-5 max-w-[360px] mx-auto md:mx-0 leading-relaxed">
-              Describe your product. We&apos;ll write it to rank — for wherever you sell.
+              Describe your product. We&apos;ll write it to rank, wherever you sell.
             </p>
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-1.5 mb-6">
               {PLATFORMS.map((platform) => (
@@ -243,11 +243,14 @@ export function MarketingLanding({ currency = "USD" }: { currency?: "USD" | "AUD
 
       {/* FOOTER */}
       <footer className="border-t border-border">
-        <div className="px-5 md:px-10 py-4 flex justify-between items-center max-w-6xl mx-auto">
-          <span className="text-[11px] font-semibold text-muted-foreground">SellWise</span>
-          <div className="flex gap-4 text-xs text-muted-foreground">
+        <div className="px-5 md:px-10 py-5 max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <span className="text-base font-bold">Sell<span className="text-primary">Wise</span></span>
+          <div className="flex flex-wrap justify-center gap-x-5 gap-y-1 text-xs text-muted-foreground">
             <Link href="/pricing" className="hover:text-foreground transition-colors">Pricing</Link>
             <Link href="/login" className="hover:text-foreground transition-colors">Sign in</Link>
+            <Link href="/status" className="hover:text-foreground transition-colors">Status</Link>
+            <Link href="/terms" className="hover:text-foreground transition-colors">Terms</Link>
+            <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
           </div>
         </div>
         <div className="border-t border-border px-5 md:px-10 py-2 text-center">

@@ -57,7 +57,7 @@ export function Sidebar({
     <aside className="flex h-full w-56 flex-col border-r border-sidebar-border bg-sidebar">
       {/* Logo */}
       <div className="flex h-14 items-center border-b border-sidebar-border px-4">
-        <span className="text-lg font-bold tracking-tight">
+        <span className="text-xl font-bold tracking-tight">
           Sell<span className="text-primary">Wise</span>
         </span>
       </div>

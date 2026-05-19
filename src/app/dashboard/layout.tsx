@@ -53,7 +53,7 @@ export default async function DashboardLayout({
 
       {/* Mobile header */}
       <header className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-sidebar px-4 lg:hidden">
-        <span className="text-lg font-bold tracking-tight">
+        <span className="text-xl font-bold tracking-tight">
           Sell<span className="text-primary">Wise</span>
         </span>
         <MobileNav {...navProps} />
