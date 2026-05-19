@@ -9,7 +9,7 @@ import type { Platform } from "@/lib/platforms";
 const client = new Anthropic();
 
 const requestSchema = z.object({
-  platform: z.enum(["etsy", "amazon", "shopify", "ebay"]).default("etsy"),
+  platform: z.enum(["etsy", "amazon", "shopify", "ebay", "woocommerce", "wix", "squarespace", "tiktok", "social"]).default("etsy"),
   keyword: z.string().min(1).max(100),
 });
 
@@ -75,6 +75,44 @@ Additional rules:
 - Include compatibility terms (fits, compatible with, replacement, OEM)
 - Include spec/size variations buyers search by
 - volume/competition reflect eBay search landscape`;
+
+    case "woocommerce":
+    case "wix":
+    case "squarespace":
+      return `You are a Google SEO and eCommerce expert. Given a seed keyword, return 15 keyword phrases that shoppers search for on Google to find products like this — for a ${platform === "woocommerce" ? "WooCommerce" : platform === "wix" ? "Wix" : "Squarespace"} store.
+
+${KEYWORDS_SCHEMA}
+
+Additional rules:
+- Focus on Google organic search intent — informational, navigational, and transactional
+- Include long-tail buyer phrases (where to buy, best X for Y, X near me, affordable X)
+- Include comparison and review searches
+- Include problem/solution phrasing buyers use before discovering a product
+- volume/competition reflect Google search landscape`;
+
+    case "tiktok":
+      return `You are a TikTok Shop and social commerce expert. Given a seed keyword, return 15 keyword phrases and discovery terms that TikTok users search for to find products like this.
+
+${KEYWORDS_SCHEMA}
+
+Additional rules:
+- TikTok search is driven by trending language, aesthetic categories, and use-case discovery
+- Include aesthetic and vibe terms (clean girl, dark academia, cottagecore, coastal grandmother)
+- Include "TikTok made me buy it" adjacent terms — viral product descriptors
+- Include hashtag-style discovery phrases buyers type in TikTok search
+- volume/competition reflect TikTok in-app search landscape`;
+
+    case "social":
+      return `You are a social media marketing and product discovery expert. Given a seed keyword, return 15 keyword phrases and hashtags that help a product get discovered on Instagram, Pinterest, and Facebook.
+
+${KEYWORDS_SCHEMA}
+
+Additional rules:
+- Include broad reach hashtags buyers search on Instagram and Pinterest
+- Include niche community tags that drive high-intent discovery
+- Include aesthetic and lifestyle tags relevant to the product
+- Include gift, occasion, and recipient tags
+- volume/competition reflect Instagram and Pinterest hashtag landscape`;
   }
 }
 

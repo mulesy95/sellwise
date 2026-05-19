@@ -4,7 +4,7 @@ import { z } from "zod";
 
 const saveSchema = z.object({
   name: z.string().min(1).max(100),
-  platform: z.enum(["etsy", "amazon", "shopify", "ebay"]),
+  platform: z.enum(["etsy", "amazon", "shopify", "ebay", "woocommerce", "wix", "squarespace", "tiktok", "social"]),
   keywords: z.array(z.object({
     keyword: z.string(),
     volume: z.enum(["high", "medium", "low"]),

@@ -30,10 +30,18 @@ interface OptimisedListing {
   // Amazon
   bullets?: string[];
   backendKeywords?: string;
-  // Shopify
+  // Shopify / Wix / Squarespace
   metaTitle?: string;
   metaDescription?: string;
   productTitle?: string;
+  // WooCommerce
+  shortDescription?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  // TikTok Shop / Social
+  caption?: string;
+  postCopy?: string;
+  hashtags?: string[];
   // Shared
   description?: string;
 }
@@ -74,6 +82,33 @@ function getResultTabs(result: OptimisedListing): TabConfig[] {
         { id: "title", label: "Title", content: result.title ?? "", maxChars: 80 },
         { id: "description", label: "Description", content: result.description ?? "" },
       ];
+    case "woocommerce":
+      return [
+        { id: "seoTitle", label: "SEO Title", content: result.seoTitle ?? "", maxChars: 60 },
+        { id: "seoDesc", label: "SEO Desc", content: result.seoDescription ?? "", maxChars: 160 },
+        { id: "productTitle", label: "Product Title", content: result.productTitle ?? "" },
+        { id: "shortDesc", label: "Short Desc", content: result.shortDescription ?? "", maxChars: 150 },
+        { id: "description", label: "Description", content: result.description ?? "" },
+      ];
+    case "wix":
+    case "squarespace":
+      return [
+        { id: "seoTitle", label: "SEO Title", content: result.seoTitle ?? "", maxChars: 60 },
+        { id: "seoDesc", label: "SEO Desc", content: result.seoDescription ?? "", maxChars: 160 },
+        { id: "productTitle", label: "Product Title", content: result.productTitle ?? "" },
+        { id: "description", label: "Description", content: result.description ?? "" },
+      ];
+    case "tiktok":
+      return [
+        { id: "title", label: "Title", content: result.title ?? "", maxChars: 100 },
+        { id: "description", label: "Description", content: result.description ?? "" },
+      ];
+    case "social":
+      return [
+        { id: "caption", label: "Caption", content: result.caption ?? "", maxChars: 125 },
+        { id: "postCopy", label: "Post Copy", content: result.postCopy ?? "" },
+        { id: "hashtags", label: "Hashtags", content: result.hashtags ?? [], isTags: true },
+      ];
   }
 }
 
@@ -82,6 +117,11 @@ const PLATFORM_DESCRIPTIONS: Record<Platform, string> = {
   amazon: "Get a keyword-rich title, 5 bullet points, backend keywords, and description.",
   shopify: "Get a meta title, meta description, product title, and page copy.",
   ebay: "Get an optimised listing title and item description.",
+  woocommerce: "Get a product title, short description, full copy, and Yoast/Rank Math SEO fields.",
+  wix: "Get a product title, full page copy, and SEO title and description for your Wix store.",
+  squarespace: "Get a product title, elevated page copy, and SEO title and description for your Squarespace store.",
+  tiktok: "Get a keyword-rich TikTok Shop title and scroll-stopping product description.",
+  social: "Get a scroll-stopping caption, full post copy, and hashtags for Instagram, Facebook, or Pinterest.",
 };
 
 const LOADING_STEPS: Record<Platform, string[]> = {
@@ -109,6 +149,34 @@ const LOADING_STEPS: Record<Platform, string[]> = {
     "Analysing your product…",
     "Researching eBay keywords…",
     "Writing your title and description…",
+  ],
+  woocommerce: [
+    "Analysing your product…",
+    "Researching Google keywords…",
+    "Writing SEO title and description…",
+    "Writing product copy…",
+  ],
+  wix: [
+    "Analysing your product…",
+    "Researching keywords…",
+    "Writing SEO fields…",
+    "Writing product copy…",
+  ],
+  squarespace: [
+    "Analysing your product…",
+    "Researching keywords…",
+    "Writing SEO fields…",
+    "Writing product copy…",
+  ],
+  tiktok: [
+    "Analysing your product…",
+    "Researching TikTok trends…",
+    "Writing your listing…",
+  ],
+  social: [
+    "Analysing your product…",
+    "Writing your caption hook…",
+    "Crafting hashtags…",
   ],
 };
 

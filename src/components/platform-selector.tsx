@@ -14,7 +14,7 @@ export function PlatformSelector({
 }) {
   const platforms = PLATFORMS.filter((p) => !exclude.includes(p));
   return (
-    <div className="inline-flex rounded-lg border border-border/50 bg-muted p-1 gap-1">
+    <div className="flex flex-wrap rounded-lg border border-border/50 bg-muted p-1 gap-1">
       {platforms.map((p) => (
         <button
           key={p}

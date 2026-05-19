@@ -1,12 +1,17 @@
-export type Platform = "etsy" | "amazon" | "shopify" | "ebay";
+export type Platform = "etsy" | "amazon" | "shopify" | "ebay" | "woocommerce" | "wix" | "squarespace" | "tiktok" | "social";
 
-export const PLATFORMS: Platform[] = ["etsy", "amazon", "shopify", "ebay"];
+export const PLATFORMS: Platform[] = ["etsy", "amazon", "shopify", "ebay", "woocommerce", "wix", "squarespace", "tiktok", "social"];
 
 export const PLATFORM_LABELS: Record<Platform, string> = {
   etsy: "Etsy",
   amazon: "Amazon",
   shopify: "Shopify",
   ebay: "eBay",
+  woocommerce: "WooCommerce",
+  wix: "Wix",
+  squarespace: "Squarespace",
+  tiktok: "TikTok Shop",
+  social: "Social",
 };
 
 export const AUDIT_SECTIONS: Record<
@@ -31,6 +36,30 @@ export const AUDIT_SECTIONS: Record<
   ebay: [
     { key: "titleScore", label: "Title", max: 50 },
     { key: "descriptionScore", label: "Description", max: 50 },
+  ],
+  woocommerce: [
+    { key: "metaTitleScore", label: "SEO Title", max: 30 },
+    { key: "metaDescScore", label: "SEO Description", max: 40 },
+    { key: "copyScore", label: "Product Copy", max: 30 },
+  ],
+  wix: [
+    { key: "metaTitleScore", label: "SEO Title", max: 30 },
+    { key: "metaDescScore", label: "SEO Description", max: 40 },
+    { key: "copyScore", label: "Product Copy", max: 30 },
+  ],
+  squarespace: [
+    { key: "metaTitleScore", label: "SEO Title", max: 30 },
+    { key: "metaDescScore", label: "SEO Description", max: 40 },
+    { key: "copyScore", label: "Product Copy", max: 30 },
+  ],
+  tiktok: [
+    { key: "titleScore", label: "Title", max: 50 },
+    { key: "descriptionScore", label: "Description", max: 50 },
+  ],
+  social: [
+    { key: "captionScore", label: "Caption", max: 40 },
+    { key: "hashtagScore", label: "Hashtags", max: 30 },
+    { key: "copyScore", label: "Post Copy", max: 30 },
   ],
 };
 

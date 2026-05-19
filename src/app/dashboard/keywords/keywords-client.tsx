@@ -83,6 +83,11 @@ const PLATFORM_PLACEHOLDERS: Record<Platform, string> = {
   amazon: "e.g. wireless earbuds, protein powder, yoga mat",
   shopify: "e.g. leather wallet, skincare serum, coffee beans",
   ebay: "e.g. vintage camera, car parts, gaming console",
+  woocommerce: "e.g. coffee beans, linen bedding, yoga mat",
+  wix: "e.g. handmade candle, art print, jewellery",
+  squarespace: "e.g. ceramic vase, linen shirt, wood furniture",
+  tiktok: "e.g. skincare routine, aesthetic lamp, viral gadget",
+  social: "e.g. handmade gift, home decor, sustainable fashion",
 };
 
 const PLATFORM_DESCRIPTIONS: Record<Platform, string> = {
@@ -90,6 +95,11 @@ const PLATFORM_DESCRIPTIONS: Record<Platform, string> = {
   amazon: "Find Amazon keywords with purchase intent and feature-based terms.",
   shopify: "Find Google SEO keywords for organic traffic to your store.",
   ebay: "Discover eBay search terms including condition and compatibility keywords.",
+  woocommerce: "Find Google SEO keywords to drive organic traffic to your WooCommerce store.",
+  wix: "Find Google SEO keywords that bring shoppers to your Wix store.",
+  squarespace: "Find Google SEO keywords that bring buyers to your Squarespace store.",
+  tiktok: "Discover trending TikTok search terms and discovery keywords for your product.",
+  social: "Find hashtags and discovery terms for Instagram, Pinterest, and Facebook.",
 };
 
 export function KeywordsClient() {

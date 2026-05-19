@@ -10,7 +10,7 @@ import { fetchShopifyProduct } from "@/lib/listing-scraper";
 const client = new Anthropic();
 
 const requestSchema = z.object({
-  platform: z.enum(["etsy", "amazon", "shopify", "ebay"]).default("etsy"),
+  platform: z.enum(["etsy", "amazon", "shopify", "ebay", "woocommerce", "wix", "squarespace", "tiktok", "social"]).default("etsy"),
   url: z.string().url().optional(),
   // Etsy / eBay
   title: z.string().max(200).optional().default(""),
@@ -96,6 +96,94 @@ Return ONLY valid JSON:
   "improvements": ["3 to 5 specific, actionable fixes"]
 }
 Return only the JSON, no markdown.`;
+
+    case "woocommerce":
+      return `You are an expert WooCommerce and Google SEO specialist. Audit the product listing provided.
+
+Score out of 100:
+- metaTitleScore (0–30): max 60 chars, primary keyword present, reads naturally, brand or product name included
+- metaDescScore (0–40): max 160 chars, keyword present, clear value proposition, includes a soft call to action
+- copyScore (0–30): keyword density appropriate, desire-first opening, short mobile-friendly paragraphs
+
+Return ONLY valid JSON:
+{
+  "score": number,
+  "metaTitleScore": number,
+  "metaDescScore": number,
+  "copyScore": number,
+  "improvements": ["3 to 5 specific, actionable fixes"]
+}
+Return only the JSON, no markdown.`;
+
+    case "wix":
+      return `You are an expert Wix eCommerce and Google SEO specialist. Audit the product listing provided.
+
+Score out of 100:
+- metaTitleScore (0–30): max 60 chars, primary keyword present, reads naturally
+- metaDescScore (0–40): max 160 chars, keyword present, clear value proposition, soft call to action
+- copyScore (0–30): engaging opening, mobile-readable paragraphs, keyword present, benefit-led
+
+Return ONLY valid JSON:
+{
+  "score": number,
+  "metaTitleScore": number,
+  "metaDescScore": number,
+  "copyScore": number,
+  "improvements": ["3 to 5 specific, actionable fixes"]
+}
+Return only the JSON, no markdown.`;
+
+    case "squarespace":
+      return `You are an expert Squarespace eCommerce and Google SEO specialist. Audit the product listing provided.
+
+Score out of 100:
+- metaTitleScore (0–30): max 60 chars, primary keyword present, brand-appropriate tone
+- metaDescScore (0–40): max 160 chars, keyword present, elevated but accessible, soft call to action
+- copyScore (0–30): distinctive opening, specific product details, confident prose, no generic marketing language
+
+Return ONLY valid JSON:
+{
+  "score": number,
+  "metaTitleScore": number,
+  "metaDescScore": number,
+  "copyScore": number,
+  "improvements": ["3 to 5 specific, actionable fixes"]
+}
+Return only the JSON, no markdown.`;
+
+    case "tiktok":
+      return `You are an expert TikTok Shop listing specialist. Audit the listing provided.
+
+Score out of 100:
+- titleScore (0–50): max 100 chars, leading with searchable product term, key attributes included, no ALL CAPS or excessive punctuation
+- descriptionScore (0–50): scroll-stopping opening, punchy short lines, top features highlighted, specific closing detail
+
+Return ONLY valid JSON:
+{
+  "score": number,
+  "titleScore": number,
+  "descriptionScore": number,
+  "improvements": ["3 to 5 specific, actionable fixes"]
+}
+Return only the JSON, no markdown.`;
+
+    case "social":
+      return `You are an expert social media product copywriter. Audit the social post provided.
+
+Score out of 100:
+- captionScore (0–40): hook visible before "more" cutoff (under 125 chars), specific and scroll-stopping, not generic
+- hashtagScore (0–30): mix of broad reach and niche discovery tags, 15–25 total, relevant to product and audience
+- copyScore (0–30): post copy expands on caption with product detail, ends with a clear call to action
+
+Return ONLY valid JSON:
+{
+  "score": number,
+  "captionScore": number,
+  "hashtagScore": number,
+  "copyScore": number,
+  "improvements": ["3 to 5 specific, actionable fixes"]
+}
+Return only the JSON, no markdown.`;
   }
 }
 
@@ -134,6 +222,28 @@ function buildUserMessage(
       return [
         data.title ? `Title: ${data.title}` : "Title: (not provided)",
         data.description ? `Description: ${data.description}` : "Description: (not provided)",
+      ].join("\n");
+
+    case "woocommerce":
+    case "wix":
+    case "squarespace":
+      return [
+        data.metaTitle ? `SEO Title: ${data.metaTitle}` : "SEO Title: (not provided)",
+        data.metaDescription ? `SEO Description: ${data.metaDescription}` : "SEO Description: (not provided)",
+        data.productCopy ? `Product copy: ${data.productCopy}` : "Product copy: (not provided)",
+      ].join("\n");
+
+    case "tiktok":
+      return [
+        data.title ? `Title: ${data.title}` : "Title: (not provided)",
+        data.description ? `Description: ${data.description}` : "Description: (not provided)",
+      ].join("\n");
+
+    case "social":
+      return [
+        data.title ? `Caption: ${data.title}` : "Caption: (not provided)",
+        data.tags ? `Hashtags: ${data.tags}` : "Hashtags: (not provided)",
+        data.description ? `Post copy: ${data.description}` : "Post copy: (not provided)",
       ].join("\n");
   }
 }

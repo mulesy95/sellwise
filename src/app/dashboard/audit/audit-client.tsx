@@ -118,6 +118,30 @@ const FORM_CONFIGS: Record<Platform, FieldConfig[]> = {
       placeholder: "Your item description",
     },
   ],
+  woocommerce: [
+    { name: "metaTitle", label: "SEO Title", type: "input", placeholder: "Your Yoast/Rank Math SEO title (max 60 chars)" },
+    { name: "metaDescription", label: "SEO Description", type: "input", placeholder: "Your meta description (max 160 chars)" },
+    { name: "productCopy", label: "Product Description", type: "textarea", placeholder: "Your product page description" },
+  ],
+  wix: [
+    { name: "metaTitle", label: "SEO Title", type: "input", placeholder: "Your Wix SEO title (max 60 chars)" },
+    { name: "metaDescription", label: "SEO Description", type: "input", placeholder: "Your meta description (max 160 chars)" },
+    { name: "productCopy", label: "Product Description", type: "textarea", placeholder: "Your product page description" },
+  ],
+  squarespace: [
+    { name: "metaTitle", label: "SEO Title", type: "input", placeholder: "Your Squarespace SEO title (max 60 chars)" },
+    { name: "metaDescription", label: "SEO Description", type: "input", placeholder: "Your meta description (max 160 chars)" },
+    { name: "productCopy", label: "Product Description", type: "textarea", placeholder: "Your product page description" },
+  ],
+  tiktok: [
+    { name: "title", label: "Listing Title", type: "input", placeholder: "Your TikTok Shop product title (max 100 chars)" },
+    { name: "description", label: "Description", type: "textarea", placeholder: "Your product description" },
+  ],
+  social: [
+    { name: "title", label: "Caption", type: "input", placeholder: "Your post caption / hook (max 125 chars)" },
+    { name: "tags", label: "Hashtags", type: "input", placeholder: "Your hashtags, comma or space separated" },
+    { name: "description", label: "Post Copy", type: "textarea", placeholder: "Your full post copy" },
+  ],
 };
 
 const PLATFORM_DESCRIPTIONS: Record<Platform, string> = {
@@ -125,6 +149,11 @@ const PLATFORM_DESCRIPTIONS: Record<Platform, string> = {
   amazon: "Score your Amazon listing 0–100 across title, bullet points, and backend keywords.",
   shopify: "Score your Shopify product 0–100 across meta title, meta description, and product copy.",
   ebay: "Score your eBay listing 0–100 across title and item description.",
+  woocommerce: "Score your WooCommerce product 0–100 across SEO title, meta description, and product copy.",
+  wix: "Score your Wix product 0–100 across SEO title, meta description, and product copy.",
+  squarespace: "Score your Squarespace product 0–100 across SEO title, meta description, and product copy.",
+  tiktok: "Score your TikTok Shop listing 0–100 across title and product description.",
+  social: "Score your social media post 0–100 across caption hook, hashtags, and post copy.",
 };
 
 function scoreColour(score: number, max: number) {

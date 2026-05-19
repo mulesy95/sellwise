@@ -51,6 +51,33 @@ const SOURCE_FIELDS: Record<Platform, FieldConfig[]> = {
     { name: "title", label: "Title", type: "input", placeholder: "Your eBay listing title" },
     { name: "description", label: "Description", type: "textarea", placeholder: "Your item description" },
   ],
+  woocommerce: [
+    { name: "title", label: "Product Title", type: "input", placeholder: "Your product name" },
+    { name: "productCopy", label: "Product Description", type: "textarea", placeholder: "Your product page description" },
+    { name: "metaTitle", label: "SEO Title", type: "input", placeholder: "Your Yoast/Rank Math SEO title (optional)" },
+    { name: "metaDescription", label: "SEO Description", type: "input", placeholder: "Your meta description (optional)" },
+  ],
+  wix: [
+    { name: "title", label: "Product Name", type: "input", placeholder: "Your product name" },
+    { name: "productCopy", label: "Product Description", type: "textarea", placeholder: "Your product page description" },
+    { name: "metaTitle", label: "SEO Title", type: "input", placeholder: "Your SEO title (optional)" },
+    { name: "metaDescription", label: "SEO Description", type: "input", placeholder: "Your meta description (optional)" },
+  ],
+  squarespace: [
+    { name: "title", label: "Product Title", type: "input", placeholder: "Your product name" },
+    { name: "productCopy", label: "Product Description", type: "textarea", placeholder: "Your product page description" },
+    { name: "metaTitle", label: "SEO Title", type: "input", placeholder: "Your SEO title (optional)" },
+    { name: "metaDescription", label: "SEO Description", type: "input", placeholder: "Your meta description (optional)" },
+  ],
+  tiktok: [
+    { name: "title", label: "Listing Title", type: "input", placeholder: "Your TikTok Shop product title" },
+    { name: "description", label: "Description", type: "textarea", placeholder: "Your product description" },
+  ],
+  social: [
+    { name: "title", label: "Caption", type: "input", placeholder: "Your post caption / hook" },
+    { name: "tags", label: "Hashtags", type: "input", placeholder: "Your hashtags, comma or space separated" },
+    { name: "description", label: "Post Copy", type: "textarea", placeholder: "Your full post copy" },
+  ],
 };
 
 // ─── Result field configs ─────────────────────────────────────────────────────
@@ -83,6 +110,34 @@ const RESULT_FIELDS: Record<Platform, ResultField[]> = {
     { key: "title", label: "Title", type: "text" },
     { key: "description", label: "Description", type: "longtext" },
   ],
+  woocommerce: [
+    { key: "seoTitle", label: "SEO Title", type: "text" },
+    { key: "seoDescription", label: "SEO Description", type: "text" },
+    { key: "productTitle", label: "Product Title", type: "text" },
+    { key: "shortDescription", label: "Short Description", type: "text" },
+    { key: "description", label: "Description", type: "longtext" },
+  ],
+  wix: [
+    { key: "seoTitle", label: "SEO Title", type: "text" },
+    { key: "seoDescription", label: "SEO Description", type: "text" },
+    { key: "productTitle", label: "Product Title", type: "text" },
+    { key: "description", label: "Description", type: "longtext" },
+  ],
+  squarespace: [
+    { key: "seoTitle", label: "SEO Title", type: "text" },
+    { key: "seoDescription", label: "SEO Description", type: "text" },
+    { key: "productTitle", label: "Product Title", type: "text" },
+    { key: "description", label: "Description", type: "longtext" },
+  ],
+  tiktok: [
+    { key: "title", label: "Title", type: "text" },
+    { key: "description", label: "Description", type: "longtext" },
+  ],
+  social: [
+    { key: "caption", label: "Caption", type: "text" },
+    { key: "postCopy", label: "Post Copy", type: "text" },
+    { key: "hashtags", label: "Hashtags", type: "tags" },
+  ],
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -107,7 +162,7 @@ export function MigrateClient() {
     setSource(p);
     if (p === target) {
       // Pick any other platform as target
-      const others = (["etsy", "amazon", "shopify", "ebay"] as Platform[]).filter((x) => x !== p);
+      const others = (["etsy", "amazon", "shopify", "ebay", "woocommerce", "wix", "squarespace", "tiktok", "social"] as Platform[]).filter((x) => x !== p);
       setTarget(others[0]);
     }
     setResult(null);

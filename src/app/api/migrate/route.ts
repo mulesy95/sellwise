@@ -8,8 +8,8 @@ import { getUsageData, incrementUsage } from "@/lib/usage";
 const client = new Anthropic();
 
 const requestSchema = z.object({
-  sourcePlatform: z.enum(["etsy", "amazon", "shopify", "ebay"]),
-  targetPlatform: z.enum(["etsy", "amazon", "shopify", "ebay"]),
+  sourcePlatform: z.enum(["etsy", "amazon", "shopify", "ebay", "woocommerce", "wix", "squarespace", "tiktok", "social"]),
+  targetPlatform: z.enum(["etsy", "amazon", "shopify", "ebay", "woocommerce", "wix", "squarespace", "tiktok", "social"]),
   title: z.string().max(300).optional().default(""),
   tags: z.string().max(500).optional().default(""),
   description: z.string().max(5000).optional().default(""),
@@ -27,6 +27,11 @@ const SOURCE_LABELS: Record<string, string> = {
   amazon: "Amazon",
   shopify: "Shopify",
   ebay: "eBay",
+  woocommerce: "WooCommerce",
+  wix: "Wix",
+  squarespace: "Squarespace",
+  tiktok: "TikTok Shop",
+  social: "Social",
 };
 
 function buildSourceBlock(data: ValidatedInput): string {
@@ -57,6 +62,26 @@ function buildSourceBlock(data: ValidatedInput): string {
       return [
         data.title ? `Title: ${data.title}` : "Title: (not provided)",
         data.description ? `Description: ${data.description}` : "Description: (not provided)",
+      ].join("\n");
+    case "woocommerce":
+    case "wix":
+    case "squarespace":
+      return [
+        data.title ? `Product Title: ${data.title}` : "Product Title: (not provided)",
+        data.productCopy ? `Product description: ${data.productCopy}` : "Product description: (not provided)",
+        data.metaTitle ? `SEO Title: ${data.metaTitle}` : "",
+        data.metaDescription ? `SEO Description: ${data.metaDescription}` : "",
+      ].filter(Boolean).join("\n");
+    case "tiktok":
+      return [
+        data.title ? `Title: ${data.title}` : "Title: (not provided)",
+        data.description ? `Description: ${data.description}` : "Description: (not provided)",
+      ].join("\n");
+    case "social":
+      return [
+        data.title ? `Caption: ${data.title}` : "Caption: (not provided)",
+        data.tags ? `Hashtags: ${data.tags}` : "Hashtags: (not provided)",
+        data.description ? `Post copy: ${data.description}` : "Post copy: (not provided)",
       ].join("\n");
   }
 }
@@ -111,6 +136,72 @@ function buildTargetSpec(targetPlatform: string): { spec: string; schema: string
         schema: `{
   "title": "string",
   "description": "string"
+}`,
+      };
+    case "woocommerce":
+      return {
+        spec: `WooCommerce product requirements:
+- productTitle: clean product name, conversion-focused
+- shortDescription: 1–2 sentences max 150 chars, appears beside the Add to Cart button and in category grids
+- description: 200–350 words, desire-first opening, short paragraphs for mobile, keyword-rich
+- seoTitle: max 60 chars, primary keyword present, reads naturally (for Yoast/Rank Math)
+- seoDescription: max 160 chars, keyword present, factual, ends with a soft call to action`,
+        schema: `{
+  "productTitle": "string",
+  "shortDescription": "string",
+  "description": "string",
+  "seoTitle": "string",
+  "seoDescription": "string"
+}`,
+      };
+    case "wix":
+      return {
+        spec: `Wix store product requirements:
+- productTitle: clean product name, conversion-focused
+- description: 200–350 words, engaging opening, short paragraphs, keyword-rich
+- seoTitle: max 60 chars, primary keyword present, reads naturally
+- seoDescription: max 160 chars, keyword present, factual, ends with a soft call to action`,
+        schema: `{
+  "productTitle": "string",
+  "description": "string",
+  "seoTitle": "string",
+  "seoDescription": "string"
+}`,
+      };
+    case "squarespace":
+      return {
+        spec: `Squarespace product requirements (design-led brands — elevated, confident tone):
+- productTitle: clean, brand-appropriate product name
+- description: 200–300 words, distinctive opening, specific product details, confident prose
+- seoTitle: max 60 chars, primary keyword present, brand-appropriate
+- seoDescription: max 160 chars, keyword present, elevated but accessible, soft call to action`,
+        schema: `{
+  "productTitle": "string",
+  "description": "string",
+  "seoTitle": "string",
+  "seoDescription": "string"
+}`,
+      };
+    case "tiktok":
+      return {
+        spec: `TikTok Shop listing requirements:
+- title: max 100 chars, searchable product term first, key attributes included, no ALL CAPS, mobile-friendly
+- description: 100–200 words, scroll-stopping opening line, punchy short lines, top features highlighted, specific closing detail`,
+        schema: `{
+  "title": "string",
+  "description": "string"
+}`,
+      };
+    case "social":
+      return {
+        spec: `Social media product post requirements (Instagram, Facebook, Pinterest):
+- caption: max 125 chars, scroll-stopping hook, specific and visual — not generic — no call to action here
+- postCopy: 150–300 chars, expands on caption, product benefit or use case, ends with a clear call to action (link in bio, DM to order, etc.)
+- hashtags: array of 20 hashtags — mix of broad reach, niche discovery, product-specific, and occasion/audience tags — no # prefix`,
+        schema: `{
+  "caption": "string",
+  "postCopy": "string",
+  "hashtags": ["string"]
 }`,
       };
     default:
