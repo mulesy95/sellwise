@@ -20,8 +20,20 @@ export default function Icon() {
       >
         <span
           style={{
+            color: "#ffffff",
+            fontSize: 15,
+            fontWeight: 900,
+            fontFamily: "system-ui, -apple-system, sans-serif",
+            letterSpacing: "-1px",
+            lineHeight: 1,
+          }}
+        >
+          S
+        </span>
+        <span
+          style={{
             color: "#f0873b",
-            fontSize: 20,
+            fontSize: 15,
             fontWeight: 900,
             fontFamily: "system-ui, -apple-system, sans-serif",
             letterSpacing: "-1px",
