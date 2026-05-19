@@ -1,5 +1,6 @@
 import * as cheerio from "cheerio";
 import type { Platform } from "@/lib/platforms";
+import { fetchWithRetry } from "@/lib/fetch-with-retry";
 
 export interface ExtractedListing {
   platform: Platform;
@@ -20,8 +21,11 @@ export async function fetchShopifyProduct(
   const handle = handleMatch[1];
   const apiUrl = `${parsed.origin}/products/${handle}.json`;
 
-  const response = await fetch(apiUrl, {
-    headers: { Accept: "application/json" },
+  const response = await fetchWithRetry(apiUrl, {
+    headers: {
+      Accept: "application/json",
+      "User-Agent": "SellWise/1.0 (+https://sellwise.au)",
+    },
     signal: AbortSignal.timeout(10000),
   });
 
