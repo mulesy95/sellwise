@@ -973,6 +973,8 @@ function MigratePanel({
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<Record<string, unknown> | null>(null);
   const [creating, setCreating] = useState(false);
+  const [ebayPrice, setEbayPrice] = useState("");
+  const [ebayCategoryId, setEbayCategoryId] = useState("");
   const isStudio = plan === "studio";
 
   const existingText = product.body_html?.replace(/<[^>]+>/g, "").trim() ?? "";
@@ -1059,8 +1061,45 @@ function MigratePanel({
     toast.success("All fields copied");
   }
 
+  async function handleCreateOnEbay(targetShop: Shop) {
+    if (!result) return;
+    const price = parseFloat(ebayPrice);
+    if (isNaN(price) || price <= 0) { toast.error("Enter a valid price"); return; }
+    setCreating(true);
+    try {
+      const res = await fetch("/api/ebay/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          shopId: targetShop.id,
+          title: String(result.title ?? product.title).slice(0, 80),
+          description: String(result.description ?? ""),
+          price,
+          categoryId: ebayCategoryId.trim() || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed to create");
+      toast.success(
+        <span>
+          Listed on eBay!{" "}
+          <a href={data.listingUrl} target="_blank" rel="noopener noreferrer" className="underline">
+            View listing
+          </a>
+        </span>
+      );
+      setEbayPrice("");
+      setEbayCategoryId("");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to create eBay listing");
+    } finally {
+      setCreating(false);
+    }
+  }
+
   const resultFields = result && targetPlatform ? getMigrateResultFields(targetPlatform, result) : [];
   const targetShopify = targetPlatform === "shopify" ? connectedByPlatform["shopify"] : null;
+  const targetEbay = targetPlatform === "ebay" ? connectedByPlatform["ebay"] : null;
 
   return (
     <>
@@ -1214,12 +1253,56 @@ function MigratePanel({
                   </div>
                 )}
 
-                {isStudio && targetPlatform === "ebay" && connectedByPlatform["ebay"] && (
-                  <div className="rounded-lg border border-border/40 bg-muted/20 p-4 space-y-1.5">
-                    <p className="text-xs font-semibold text-foreground">eBay store connected</p>
-                    <p className="text-[11px] text-muted-foreground">
-                      Copy the content above and paste into eBay Seller Hub. Creating eBay listings via API requires a category and price — direct push coming soon.
-                    </p>
+                {isStudio && targetEbay && (
+                  <div className="rounded-lg border border-emerald-500/25 bg-emerald-500/5 p-4 space-y-3">
+                    <div>
+                      <p className="text-xs font-semibold text-foreground">Create on eBay</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        Set a price to publish this listing to {targetEbay.shop_name}. Category defaults to "Everything Else" — you can recategorise in Seller Hub after.
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <div className="flex-1">
+                        <label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground mb-1 block">Price *</label>
+                        <input
+                          type="number"
+                          min="0.01"
+                          step="0.01"
+                          placeholder="29.99"
+                          value={ebayPrice}
+                          onChange={(e) => setEbayPrice(e.target.value)}
+                          className="w-full rounded-md border border-border/50 bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground mb-1 block">
+                          Category ID{" "}
+                          <a
+                            href="https://www.ebay.com.au/sch/allcategories/all-categories"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline normal-case"
+                          >
+                            find
+                          </a>
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Optional (default: 99)"
+                          value={ebayCategoryId}
+                          onChange={(e) => setEbayCategoryId(e.target.value)}
+                          className="w-full rounded-md border border-border/50 bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                        />
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      className="text-xs w-full"
+                      onClick={() => handleCreateOnEbay(targetEbay)}
+                      disabled={creating || !ebayPrice || parseFloat(ebayPrice) <= 0}
+                    >
+                      {creating ? <Spinner size="sm" /> : <><Store className="size-3.5" />Create on eBay</>}
+                    </Button>
                   </div>
                 )}
 

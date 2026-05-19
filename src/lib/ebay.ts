@@ -201,6 +201,18 @@ export async function searchEbayItems(
   }));
 }
 
+// ─── Site defaults ────────────────────────────────────────────────────────────
+
+const SITE_DEFAULTS: Record<string, { country: string; currency: string; shippingService: string }> = {
+  "0":  { country: "US", currency: "USD", shippingService: "USPSFirstClass" },
+  "3":  { country: "GB", currency: "GBP", shippingService: "UK_RoyalMailFirstClassStandard" },
+  "15": { country: "AU", currency: "AUD", shippingService: "AU_Regular" },
+};
+
+function escapeXml(str: string): string {
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
 // ─── XML helpers for Trading API ─────────────────────────────────────────────
 
 function xmlValue(xml: string, tag: string): string {
@@ -334,6 +346,52 @@ export async function reviseEbayItem(
 
   const ack = xmlValue(xml, "Ack");
   if (ack === "Failure") throw new Error(xmlValue(xml, "LongMessage") || "ReviseFixedPriceItem failed");
+}
+
+export async function createEbayListing(
+  userToken: string,
+  data: { title: string; description: string; price: number; categoryId?: string }
+): Promise<{ itemId: string }> {
+  const site = SITE_DEFAULTS[SITE_ID] ?? SITE_DEFAULTS["0"];
+  const catId = data.categoryId?.trim() || "99"; // 99 = "Everything Else" fallback
+
+  const xml = await tradingCall(
+    "AddFixedPriceItem",
+    `<Item>
+      <Title>${escapeXml(data.title.slice(0, 80))}</Title>
+      <Description><![CDATA[${data.description}]]></Description>
+      <PrimaryCategory><CategoryID>${catId}</CategoryID></PrimaryCategory>
+      <StartPrice currencyID="${site.currency}">${data.price.toFixed(2)}</StartPrice>
+      <ConditionID>1000</ConditionID>
+      <Country>${site.country}</Country>
+      <Currency>${site.currency}</Currency>
+      <ListingDuration>GTC</ListingDuration>
+      <ListingType>FixedPriceItem</ListingType>
+      <Quantity>1</Quantity>
+      <ReturnPolicy>
+        <ReturnsAcceptedOption>ReturnsAccepted</ReturnsAcceptedOption>
+        <RefundOption>MoneyBack</RefundOption>
+        <ReturnsWithinOption>Days_30</ReturnsWithinOption>
+      </ReturnPolicy>
+      <ShippingDetails>
+        <ShippingType>Flat</ShippingType>
+        <ShippingServiceOptions>
+          <ShippingServicePriority>1</ShippingServicePriority>
+          <ShippingService>${site.shippingService}</ShippingService>
+          <FreeShipping>true</FreeShipping>
+        </ShippingServiceOptions>
+      </ShippingDetails>
+    </Item>`,
+    userToken
+  );
+
+  const ack = xmlValue(xml, "Ack");
+  if (ack === "Failure") throw new Error(xmlValue(xml, "LongMessage") || "AddFixedPriceItem failed");
+
+  const itemId = xmlValue(xml, "ItemID");
+  if (!itemId) throw new Error("eBay did not return an item ID");
+
+  return { itemId };
 }
 
 export function normaliseEbayDomain(_input: string): string {
