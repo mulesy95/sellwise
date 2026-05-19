@@ -19,7 +19,7 @@ import { ReferralCard } from "@/components/referral-card";
 export const metadata = { title: "Settings" };
 
 const planDisplay: Record<string, { label: string; price: string; limit: string }> = {
-  free:    { label: "Free",    price: "$0/mo",  limit: "1 optimisation / month" },
+  free:    { label: "Free",    price: "$0/mo",  limit: "3 optimisations / month" },
   starter: { label: "Starter", price: "$19/mo", limit: "50 optimisations / month" },
   growth:  { label: "Growth",  price: "$29/mo", limit: "Unlimited" },
   studio:  { label: "Studio",  price: "$79/mo", limit: "Unlimited + multi-shop" },
@@ -28,6 +28,7 @@ const planDisplay: Record<string, { label: string; price: string; limit: string 
 const upgradePlans = [
   { id: "starter", label: "Starter", price: "$19/mo", limit: "50 / mo" },
   { id: "growth",  label: "Growth",  price: "$29/mo", limit: "Unlimited", popular: true },
+  { id: "studio",  label: "Studio",  price: "$79/mo", limit: "Unlimited + shops" },
 ];
 
 export default async function SettingsPage() {

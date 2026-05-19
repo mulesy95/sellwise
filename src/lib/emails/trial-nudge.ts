@@ -12,7 +12,7 @@ export function trialNudgeEmail(firstName: string | null, email: string): { subj
         Your free trial ends soon, ${name}
       </h1>
       <p style="margin:0 0 16px;font-size:15px;color:#444444;line-height:1.6">
-        Your 7-day Growth trial ends in 2 days. After that you'll drop to the Free plan: 1 optimisation per month, no keyword research, no audits.
+        Your 7-day Growth trial ends in 2 days. After that you'll drop to the Free plan: 3 optimisations per month, no keyword research, no audits.
       </p>
       <p style="margin:0 0 28px;font-size:15px;color:#444444;line-height:1.6">
         Upgrade now to keep everything running without interruption.

@@ -9,7 +9,7 @@ export function trialExpiredEmail(firstName: string | null, email: string): { su
         Your trial has ended, ${name}
       </h1>
       <p style="margin:0 0 16px;font-size:15px;color:#444444;line-height:1.6">
-        Your free trial of SellWise Growth has ended. You're now on the Free plan: 1 optimisation per month.
+        Your free trial of SellWise Growth has ended. You're now on the Free plan: 3 optimisations per month.
       </p>
       <p style="margin:0 0 28px;font-size:15px;color:#444444;line-height:1.6">
         Upgrade any time to get back to unlimited optimisations, keyword research, and listing audits.
@@ -25,7 +25,7 @@ export function trialExpiredEmail(firstName: string | null, email: string): { su
              style="background:#f9f9fb;border-radius:8px;border:1px solid #e4e4e7;padding:20px">
         <tr><td>
           <p style="margin:0 0 12px;font-size:13px;font-weight:600;color:#111111">Plans from $19/mo</p>
-          ${[["Starter", "$19/mo", "50 optimisations + all features"], ["Growth", "$29/mo", "Unlimited everything"], ["Studio", "$79/mo", "Multi-shop + platform API"]].map(([plan, price, desc]) => `
+          ${[["Starter", "$19/mo", "50 optimisations + all features"], ["Growth", "$29/mo", "Unlimited everything"], ["Studio", "$79/mo", "Connect Shopify & eBay stores, push live"]].map(([plan, price, desc]) => `
           <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:10px" role="presentation">
             <tr>
               <td style="font-size:13px;font-weight:600;color:#111111;width:70px">${plan}</td>

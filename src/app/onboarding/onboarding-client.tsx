@@ -10,6 +10,7 @@ import {
   Sparkles,
   Check,
   ArrowRight,
+  ArrowLeftRight,
   Gem,
   Home,
   Leaf,
@@ -18,7 +19,6 @@ import {
   Heart,
   Palette,
   Search,
-  ImageIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -227,9 +227,9 @@ export function OnboardingClient({ firstName }: { firstName: string | null }) {
                   desc: "Generate SEO-optimised titles, tags, and descriptions.",
                 },
                 {
-                  icon: ImageIcon,
-                  title: "Competitor Peek",
-                  desc: "Paste a Shopify listing URL and get an AI-optimised version side by side.",
+                  icon: ArrowLeftRight,
+                  title: "Platform Migration",
+                  desc: "Reformat any listing for a different marketplace in seconds.",
                 },
                 {
                   icon: Search,
@@ -253,7 +253,7 @@ export function OnboardingClient({ firstName }: { firstName: string | null }) {
             </div>
 
             <p className="text-xs text-muted-foreground/70">
-              Free plan: 1 optimisation per month. Upgrade anytime for unlimited access.
+              Free plan: 3 optimisations per month. Upgrade anytime for unlimited access.
             </p>
 
             <Button className="w-full" onClick={finish}>
