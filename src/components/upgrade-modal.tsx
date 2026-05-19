@@ -1,43 +1,45 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { X, Lock, Search, BarChart3, ArrowLeftRight, Store, Check } from "lucide-react";
+import { X, Lock, Search, BarChart3, ArrowLeftRight, Store, Check, Sparkles } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 
 const LOCKED_FEATURES = [
+  { icon: Sparkles,      label: "Listing Optimiser",    hint: "AI-written titles, tags, bullets and descriptions for all 9 platforms including Amazon, Shopify and eBay" },
   { icon: Search,        label: "Keyword Research",     hint: "15 keywords per search with volume and trend signals" },
   { icon: BarChart3,     label: "Listing Audit",        hint: "Score your listings 0–100 with specific fixes" },
-  { icon: ArrowLeftRight, label: "Platform Migration",  hint: "Reformat any listing for any marketplace" },
-  { icon: Store,         label: "Store Connect",        hint: "View SEO scores and optimise from your shop" },
+  { icon: ArrowLeftRight, label: "Platform Migration",  hint: "Reformat any listing for any marketplace in seconds" },
+  { icon: Store,         label: "Store Connect",        hint: "Connect Shopify or eBay — view SEO scores and optimise without copy-paste" },
 ];
 
 const PLANS = [
   {
-    name: "Starter",
-    price: "$19",
-    period: "/mo",
-    features: [
-      "50 optimisations / month",
-      "Keyword research — 15 keywords per search",
-      "Listing audit with score and fixes",
-      "Platform migration tool",
-      "Optimisation history",
-    ],
-    href: "/pricing",
-    primary: false,
-  },
-  {
     name: "Growth",
     price: "$29",
     period: "/mo",
+    badge: "Most popular",
     features: [
       "Unlimited optimisations",
-      "Unlimited keyword research and audits",
+      "All 9 platforms — Amazon, Shopify, eBay, Etsy + more",
+      "Keyword research, audit, platform migration",
       "Connect 1 store — view scores and optimise",
-      "Priority support",
     ],
     href: "/pricing",
     primary: true,
+  },
+  {
+    name: "Studio",
+    price: "$79",
+    period: "/mo",
+    badge: "For power sellers",
+    features: [
+      "Everything in Growth",
+      "Unlimited connected stores",
+      "Push content live to Shopify and eBay — no copy-paste",
+      "Multi-platform push in one click",
+    ],
+    href: "/pricing",
+    primary: false,
   },
 ];
 
@@ -89,7 +91,7 @@ export function UpgradeModal({
           <div>
             <h2 id="upgrade-modal-title" className="text-base font-bold">
               {isLimit
-                ? "You've used your 3 free optimisations this month"
+                ? "You've used your free optimisations this month"
                 : "This feature is on paid plans"}
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
@@ -131,7 +133,7 @@ export function UpgradeModal({
         )}
 
         {/* Plan cards */}
-        <div className="grid grid-cols-2 gap-3 px-6 pb-5">
+        <div className="grid grid-cols-2 gap-3 px-6 pb-2">
           {PLANS.map((plan) => (
             <div
               key={plan.name}
@@ -140,8 +142,17 @@ export function UpgradeModal({
               }`}
             >
               <div className="mb-3">
-                <div className="text-sm font-semibold">{plan.name}</div>
-                <div className="flex items-baseline gap-0.5 mt-0.5">
+                <div className="flex items-center justify-between gap-1 mb-0.5">
+                  <span className="text-sm font-semibold">{plan.name}</span>
+                  <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
+                    plan.primary
+                      ? "bg-primary/15 text-primary"
+                      : "bg-muted text-muted-foreground"
+                  }`}>
+                    {plan.badge}
+                  </span>
+                </div>
+                <div className="flex items-baseline gap-0.5">
                   <span className="text-2xl font-bold">{plan.price}</span>
                   <span className="text-xs text-muted-foreground">{plan.period}</span>
                 </div>
@@ -168,8 +179,11 @@ export function UpgradeModal({
           ))}
         </div>
 
-        <div className="border-t border-border px-6 py-3 text-center text-xs text-muted-foreground">
-          7-day free trial on all paid plans. Cancel anytime.
+        <div className="flex items-center justify-between border-t border-border mt-3 px-6 py-3">
+          <p className="text-xs text-muted-foreground">7-day free trial. Cancel anytime.</p>
+          <a href="/pricing" className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">
+            See all plans
+          </a>
         </div>
       </div>
     </div>
