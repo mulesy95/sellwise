@@ -283,7 +283,7 @@ export function AuditClient() {
 
   return (
     <div className="space-y-6">
-      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} />
+      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} reason="feature" />
 
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">

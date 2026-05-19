@@ -1,21 +1,27 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { X, Zap, Infinity } from "lucide-react";
+import { X, Lock, Search, BarChart3, ArrowLeftRight, Store, Check } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 
-const plans = [
+const LOCKED_FEATURES = [
+  { icon: Search,        label: "Keyword Research",     hint: "15 keywords per search with volume and trend signals" },
+  { icon: BarChart3,     label: "Listing Audit",        hint: "Score your listings 0–100 with specific fixes" },
+  { icon: ArrowLeftRight, label: "Platform Migration",  hint: "Reformat any listing for any marketplace" },
+  { icon: Store,         label: "Store Connect",        hint: "View SEO scores and optimise from your shop" },
+];
+
+const PLANS = [
   {
     name: "Starter",
     price: "$19",
     period: "/mo",
-    badge: null,
     features: [
       "50 optimisations / month",
-      "Keyword Research",
-      "Competitor Peek",
-      "Listing Audit",
+      "Keyword research — 15 keywords per search",
+      "Listing audit with score and fixes",
+      "Platform migration tool",
+      "Optimisation history",
     ],
     href: "/pricing",
     primary: false,
@@ -24,12 +30,10 @@ const plans = [
     name: "Growth",
     price: "$29",
     period: "/mo",
-    badge: "Most popular",
     features: [
       "Unlimited optimisations",
-      "Unlimited keyword research",
-      "Competitor Peek",
-      "Listing Audit",
+      "Unlimited keyword research and audits",
+      "Connect 1 store — view scores and optimise",
       "Priority support",
     ],
     href: "/pricing",
@@ -40,9 +44,11 @@ const plans = [
 export function UpgradeModal({
   open,
   onClose,
+  reason,
 }: {
   open: boolean;
   onClose: () => void;
+  reason?: "limit" | "feature";
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
 
@@ -52,9 +58,7 @@ export function UpgradeModal({
       if (e.key === "Escape") onClose();
     }
     window.addEventListener("keydown", onKey);
-    // Lock body scroll
     document.body.style.overflow = "hidden";
-    // Move focus to close button
     closeRef.current?.focus();
     return () => {
       window.removeEventListener("keydown", onKey);
@@ -64,16 +68,16 @@ export function UpgradeModal({
 
   if (!open) return null;
 
+  const isLimit = reason === "limit";
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
       <div
         className="absolute inset-0 bg-background/80 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* Modal */}
       <div
         role="dialog"
         aria-modal="true"
@@ -83,53 +87,69 @@ export function UpgradeModal({
         {/* Header */}
         <div className="flex items-start justify-between p-6 pb-4">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Zap className="size-4 text-primary" />
-              <h2 id="upgrade-modal-title" className="text-lg font-bold">Upgrade your plan</h2>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              You've reached your monthly limit. Upgrade to keep going.
+            <h2 id="upgrade-modal-title" className="text-base font-bold">
+              {isLimit
+                ? "You've used your 3 free optimisations this month"
+                : "This feature is on paid plans"}
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              {isLimit
+                ? "Upgrade to keep going — and unlock everything below."
+                : "All paid plans include a 7-day free trial. No card required to start."}
             </p>
           </div>
           <button
             ref={closeRef}
             onClick={onClose}
             aria-label="Close"
-            className="rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+            className="ml-4 shrink-0 rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
           >
             <X className="size-4" />
           </button>
         </div>
 
+        {/* Locked features — shown only on limit hit */}
+        {isLimit && (
+          <div className="mx-6 mb-4 rounded-lg border border-border bg-muted/40 p-4">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-3">
+              What unlocks on paid plans
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              {LOCKED_FEATURES.map(({ icon: Icon, label, hint }) => (
+                <div key={label} className="flex items-start gap-2">
+                  <div className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md bg-background border border-border">
+                    <Icon className="size-3 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium">{label}</p>
+                    <p className="text-[11px] text-muted-foreground leading-snug">{hint}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Plan cards */}
-        <div className="grid grid-cols-2 gap-3 px-6 pb-6">
-          {plans.map((plan) => (
+        <div className="grid grid-cols-2 gap-3 px-6 pb-5">
+          {PLANS.map((plan) => (
             <div
               key={plan.name}
-              className={`relative rounded-lg border p-4 ${
-                plan.primary
-                  ? "border-primary bg-primary/5"
-                  : "border-border bg-background"
+              className={`rounded-lg border p-4 ${
+                plan.primary ? "border-primary bg-primary/5" : "border-border bg-background"
               }`}
             >
-              {plan.badge && (
-                <Badge className="absolute -top-2 left-3 text-[10px] h-4 px-1.5 py-0">
-                  {plan.badge}
-                </Badge>
-              )}
               <div className="mb-3">
                 <div className="text-sm font-semibold">{plan.name}</div>
                 <div className="flex items-baseline gap-0.5 mt-0.5">
                   <span className="text-2xl font-bold">{plan.price}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {plan.period}
-                  </span>
+                  <span className="text-xs text-muted-foreground">{plan.period}</span>
                 </div>
               </div>
               <ul className="space-y-1.5 mb-4">
                 {plan.features.map((f) => (
                   <li key={f} className="flex items-start gap-1.5 text-xs">
-                    <Infinity className="size-3 shrink-0 mt-0.5 text-primary" />
+                    <Check className="size-3 shrink-0 mt-0.5 text-primary" />
                     <span>{f}</span>
                   </li>
                 ))}
@@ -142,14 +162,14 @@ export function UpgradeModal({
                   className: "w-full text-xs",
                 })}
               >
-                Upgrade to {plan.name}
+                Get {plan.name}
               </a>
             </div>
           ))}
         </div>
 
         <div className="border-t border-border px-6 py-3 text-center text-xs text-muted-foreground">
-          Cancel anytime. No long-term contracts.
+          7-day free trial on all paid plans. Cancel anytime.
         </div>
       </div>
     </div>

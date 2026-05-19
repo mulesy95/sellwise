@@ -345,7 +345,7 @@ export function OptimiseClient({ plan }: { plan: string }) {
 
   return (
     <div className="space-y-6">
-      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} />
+      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} reason="limit" />
 
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
