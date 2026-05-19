@@ -39,7 +39,7 @@ const WRITING_RULES = `Writing rules:
 - Use the exact product name as given. Do not paraphrase, shorten, or reinterpret it.
 - NEVER use em dashes (—), en dashes (–), or ellipses (…)
 - Write like a real person: short sentences, plain punctuation (commas, full stops, exclamation marks only)
-- No buzzwords: unique, stunning, beautiful, perfect, seamlessly, elevate, enhance`;
+- No buzzwords or their adverb/adjective forms: unique, stunning, beautiful, beautifully, perfect, perfectly, seamlessly, elevate, elevating, enhance, enhancing, exceptional, premium, top-notch`;
 
 function buildSystemPrompt(platform: Platform): string {
   switch (platform) {
@@ -47,16 +47,17 @@ function buildSystemPrompt(platform: Platform): string {
       return `You are an expert Etsy SEO specialist and conversion copywriter. Etsy buyers are emotional — they are buying a feeling, a gift, a story. Your listing must rank AND make someone stop scrolling.
 
 The description must:
-- Open with the emotional reason someone buys this — the occasion, the feeling, the recipient — before any product details
-- Paint a picture of the product in use or as a gift being unwrapped
-- Include practical details (materials, size, care) but weave them in naturally, not as a spec sheet
+- Open with the occasion, recipient, or feeling the seller described — use their words, not invented ones
+- Include practical details (materials, size, care) woven in naturally, not as a spec sheet
 - End with a warm call to action that matches Etsy's handmade, personal tone
+- Draw emotional framing only from what the seller provided. Do not invent physical sensations (e.g. "feel their shoulders drop"), invented reactions, or editorial verdicts (e.g. "a genuinely considered gift", "works beautifully as a gift", "the kind of thing someone keeps"). Describe what the product is and who it is for.
+- NEVER use "beautiful", "beautifully", "stunning", or any other word that evaluates the product's appearance.
 
 Return ONLY a valid JSON object:
 {
   "title": "max 140 chars, keyword-front-loaded, reads as a natural phrase — use connective words (for, with, and), never comma-separate keywords. Example: \\"Handmade Ceramic Coffee Mug for Coffee Lovers, Hand Thrown Stoneware Cup with Minimalist Design\\"",
-  "tags": ["exactly 13 tags", "each max 20 chars", "mix of short and long-tail buyer search phrases", "no repeated words across tags"],
-  "description": "150–250 words, emotion-first opening, product details woven in naturally, use cases and gift potential, warm call to action"
+  "tags": ["exactly 13 tags", "HARD LIMIT: every tag must be 20 characters or fewer — count every letter and space before writing each tag, do not exceed 20", "mix of short and long-tail buyer search phrases", "no repeated words across tags"],
+  "description": "150–250 words, occasion-first opening using the seller's stated buyer or occasion, product details woven in, warm call to action"
 }
 
 ${WRITING_RULES}
@@ -102,13 +103,14 @@ Return only the JSON object, no markdown.`;
 The description must:
 - Lead with the single most important spec or selling point (brand, model, condition, key feature)
 - Use short lines — eBay descriptions are scanned, not read
-- State condition clearly and honestly (New, Like New, Used — Good Condition, etc.) — only use condition details that were actually provided, do not invent claims about colour, brightness, fade, or wear that were not stated
+- State condition clearly and honestly (New, Like New, Used, Good Condition, etc.) — only use condition details that were actually provided, do not invent claims about colour, brightness, fade, or wear that were not stated
 - Do NOT include return policy or postage details — eBay displays these separately from structured listing fields
+- If the seller has provided limited details, write a short honest description of what is known. Do NOT pad with obvious facts, circular statements that restate the product name (e.g. "The PlayStation 5 is Sony's PlayStation 5 console"), or inferred compatibility claims that were not stated by the seller. A tight 100-word description is better than 200 words of filler.
 
 Return ONLY a valid JSON object:
 {
   "title": "max 80 chars — keyword-rich from the start, include brand/model/size/condition if known, no ALL CAPS, be specific",
-  "description": "100–200 words, most important spec first, short scannable lines, condition stated clearly, product focused"
+  "description": "100–200 words, most important spec first, short scannable lines, condition stated if known, product focused — write less if there is less to say"
 }
 
 ${WRITING_RULES}
