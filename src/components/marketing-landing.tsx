@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Search, Eye, BarChart3 } from "lucide-react";
+import { Sparkles, Search, Eye, BarChart3, ArrowLeftRight, Store } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 
 const SAMPLE_TAGS = [
@@ -20,19 +20,34 @@ const SAMPLE_TAGS = [
 
 const FEATURES = [
   {
-    icon: Search,
-    title: "Keyword Research",
-    desc: "Find 15 keywords buyers actually search for, with volume, competition, and trend signals.",
+    icon: Sparkles,
+    title: "Listing Optimiser",
+    desc: "Describe your product and get AI-written titles, tags, bullets, and descriptions — formatted for whichever platform you sell on.",
   },
   {
-    icon: Eye,
-    title: "Competitor Peek",
-    desc: "Paste a Shopify product URL and get an AI-optimised side-by-side view.",
+    icon: Search,
+    title: "Keyword Research",
+    desc: "Find 15 keywords buyers actually search for, with volume, competition, and trend signals — platform-specific every time.",
   },
   {
     icon: BarChart3,
     title: "Listing Audit",
-    desc: "Score your listings 0 to 100 with a full breakdown and specific fixes to make.",
+    desc: "Score your existing listings 0 to 100 with a full breakdown and a prioritised fix list.",
+  },
+  {
+    icon: ArrowLeftRight,
+    title: "Platform Migration",
+    desc: "Selling somewhere new? Paste your listing and we'll reformat it for any of the 9 platforms we support.",
+  },
+  {
+    icon: Eye,
+    title: "Competitor Peek",
+    desc: "Paste a competitor's URL and get an AI-optimised side-by-side comparison of their listing vs what yours could be.",
+  },
+  {
+    icon: Store,
+    title: "Store Connect",
+    desc: "Connect your Shopify or eBay store and optimise listings directly from your dashboard — no copy-paste needed.",
   },
 ];
 
@@ -148,7 +163,7 @@ export function MarketingLanding({ currency = "USD" }: { currency?: "USD" | "AUD
           <h2 className="text-base md:text-lg font-bold text-foreground text-center mb-8">
             Everything you need to rank
           </h2>
-          <div className="grid gap-6 sm:grid-cols-3 max-w-3xl mx-auto">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto">
             {FEATURES.map(({ icon: Icon, title, desc }) => (
               <div key={title} className="flex flex-col items-center text-center sm:items-start sm:text-left">
                 <div className="mb-2.5 flex size-9 items-center justify-center rounded-md bg-primary/10 text-primary">
