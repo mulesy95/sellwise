@@ -2,6 +2,142 @@
 
 ---
 
+## Updated launch posts — Shopify/eBay focus (2026-05-19)
+
+These replace the Etsy-led posts below. Use these for the actual launch.
+
+---
+
+### Cold DM — Shopify store owners (BuiltWith list)
+
+**Touch 1 — pure value, no ask:**
+
+> Hey [Name], I was looking at [store name] and noticed your product page for "[product]" has a meta title of [X] characters — it's getting cut off in Google results around 60. Quick fix: lead with the search term, cut the store name to the end. Happy to share what I'd write if useful.
+
+*(Personalise with their actual product + actual meta title issue. BuiltWith gives you the store URL, then check their /products/[handle].json for the title, and view-source for the meta tag.)*
+
+**Touch 2 — only if they respond:**
+
+> Glad it was helpful. I've actually been building a tool that does this automatically — SellWise. It generates Shopify meta titles, descriptions, and product copy optimised for search. Still in early access. If you want to run a few products through it free, happy to set you up.
+
+---
+
+### Reddit — r/AusEcom intro post
+
+**Title:** Built a listing optimiser for Shopify and eBay sellers — based in Adelaide, looking for honest feedback
+
+> Been building a side project for the last few weeks called SellWise. It's an AI tool that writes Shopify meta titles, meta descriptions, and product descriptions optimised for search.
+>
+> Background on why I built it: I was helping my partner write Etsy listings and noticed how much time goes into getting the title and tags right for each platform. Every marketplace has different rules and different algorithms. ChatGPT helps but it doesn't know the character limits, what Shopify's algorithm actually looks for, or how to format an eBay title properly.
+>
+> So I built something that does. You describe your product, pick your platform, and it writes the listing copy in the right format.
+>
+> It works for Shopify, eBay, Amazon (manual), Etsy (manual), WooCommerce, and a few others. If you connect your Shopify or eBay store it can pull your products and you can optimise and push directly from the dashboard.
+>
+> I am not asking you to pay for anything. Looking for 5 to 10 sellers who will actually use it and tell me what's broken or missing. Free access in exchange for honest feedback.
+>
+> If that sounds useful, drop a comment or DM me. Would love to talk to Aussie sellers specifically since that's where I'm focused first.
+
+---
+
+### Reddit — r/shopify value posts (build karma before self-promoting)
+
+Post these first, before ever mentioning SellWise. Answer real questions about SEO, listings, Shopify meta fields. Example:
+
+**Title:** Your Shopify meta title is probably too long — here is how to fix it
+
+> A lot of Shopify themes default to "[Product name] — [Store name]" for the meta title. That format puts your store name first and your search keyword last. Google cuts titles off at around 60 characters and truncated titles get lower click rates.
+>
+> Better structure: [Main keyword] | [Key differentiator] | [Store name if space]
+>
+> Example: "Leather Card Wallet | Slim Bifold, RFID Blocking | Made in Australia" is 62 characters and leads with what buyers actually search for.
+>
+> You can edit it in Shopify under Products > [product] > Search engine listing. Takes 30 seconds per product.
+>
+> The bigger fix is auditing all your products at once. Happy to share how I do that if anyone's interested.
+
+*(That last line is the soft hook. When people ask, you mention SellWise naturally.)*
+
+---
+
+### Twitter/X — #buildinpublic thread (launch week)
+
+**Tweet 1:**
+> 8 days ago I started building SellWise. Today it's live.
+>
+> It's an AI tool that writes Shopify, eBay, and Amazon listings in the right format for each platform. Meta titles, descriptions, keyword research, listing audits.
+>
+> Here's what I built and why. Thread.
+
+**Tweet 2:**
+> The problem: my partner sells on Etsy. Writing a good listing takes 45 minutes. Getting the title right for Etsy vs Amazon vs Shopify is completely different.
+>
+> ChatGPT helps but it doesn't know that Etsy titles max out at 140 chars, or that eBay titles can't have exclamation marks, or that Shopify meta descriptions need to be under 160 for Google.
+>
+> So I built something that does.
+
+**Tweet 3:**
+> What's actually in it:
+>
+> - Listing optimiser for 9 platforms
+> - Keyword research with volume + trend signals
+> - Listing audit scored 0 to 100
+> - Platform migration (Etsy listing reformatted for Amazon in one click)
+> - Connect your Shopify or eBay store and push content directly
+>
+> Built in 8 days with Next.js, Supabase, Claude API, and Stripe.
+
+**Tweet 4:**
+> Stats from the build:
+>
+> Day 1: idea + market research
+> Day 3: core AI optimiser working
+> Day 5: Shopify OAuth + push to store live
+> Day 7: eBay Trading API integrated
+> Day 8: launched
+>
+> Total API cost per optimisation: $0.027
+> Plans start at $29/mo
+>
+> The unit economics work. Now I need users.
+
+**Tweet 5:**
+> Looking for 10 Shopify or eBay sellers to use it free in exchange for honest feedback.
+>
+> DM me or sign up at sellwise.au
+>
+> Happy to answer any questions about the build.
+
+---
+
+### Product Hunt — launch day
+
+**Tagline:** AI listing copy for Shopify, eBay, and Amazon sellers
+
+**Description:**
+> SellWise writes your product listings in the right format for wherever you sell. Describe your product, pick your platform, get an optimised title, description, tags, and meta copy in seconds.
+>
+> Shopify sellers can connect their store and push content directly. eBay sellers too. Includes keyword research, listing audit (scored 0 to 100), and platform migration.
+>
+> Built by a solo founder in Adelaide. Looking for honest feedback.
+
+---
+
+**Practical order this week:**
+
+1. Post the r/AusEcom intro post first (today or tomorrow)
+2. Post 2 to 3 value posts in r/shopify over the next 3 to 4 days to build up some comment history
+3. Start the BuiltWith outreach (10 DMs, not 100 — personalise each one)
+4. Hold the Twitter thread until you have at least one beta user with a real result to include
+
+---
+
+## Older posts — Etsy-led (archive only)
+
+*These were written before the Shopify/eBay-first pivot. Keep for reference but do not use for launch.*
+
+---
+
 ## Reddit
 
 ### r/Etsy + r/EtsySellers

@@ -10,6 +10,11 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://sellwise.au";
 const USER_AGENT = "SellWise/1.0 (+https://sellwise.au)";
 export const EBAY_CALLBACK_URI = `${APP_URL}/api/ebay/callback`;
 
+const AUTH_BASE = "https://auth.ebay.com";
+const API_BASE  = "https://api.ebay.com";
+const SHOP_BASE = "https://open.api.ebay.com/shopping";
+const TRADE_URL = "https://api.ebay.com/ws/api.dll";
+
 const SCOPES = [
   "https://api.ebay.com/oauth/api_scope",
   "https://api.ebay.com/oauth/api_scope/sell.inventory",
@@ -26,13 +31,13 @@ export function getEbayAuthUrl(state: string): string {
     scope: SCOPES,
     state,
   });
-  return `https://auth.ebay.com/oauth2/authorize?${params}`;
+  return `${AUTH_BASE}/oauth2/authorize?${params}`;
 }
 
 export async function exchangeEbayCode(
   code: string
 ): Promise<{ access_token: string; refresh_token: string; expires_in: number }> {
-  const res = await fetch("https://api.ebay.com/identity/v1/oauth2/token", {
+  const res = await fetch("${API_BASE}/identity/v1/oauth2/token", {
     method: "POST",
     headers: {
       Authorization: `Basic ${Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString("base64")}`,
@@ -55,7 +60,7 @@ export async function exchangeEbayCode(
 export async function refreshEbayToken(
   refreshToken: string
 ): Promise<{ access_token: string; refresh_token: string; expires_in: number }> {
-  const res = await fetch("https://api.ebay.com/identity/v1/oauth2/token", {
+  const res = await fetch("${API_BASE}/identity/v1/oauth2/token", {
     method: "POST",
     headers: {
       Authorization: `Basic ${Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString("base64")}`,
@@ -80,7 +85,7 @@ async function getAppToken(): Promise<string> {
   if (cachedAppToken && Date.now() < cachedAppToken.expiresAt - 60_000) {
     return cachedAppToken.token;
   }
-  const res = await fetch("https://api.ebay.com/identity/v1/oauth2/token", {
+  const res = await fetch("${API_BASE}/identity/v1/oauth2/token", {
     method: "POST",
     headers: {
       Authorization: `Basic ${Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString("base64")}`,
@@ -125,7 +130,7 @@ export async function getEbayItem(itemId: string): Promise<EbayShoppingItem> {
     responseencoding: "JSON",
   });
 
-  const res = await fetchWithRetry(`https://open.api.ebay.com/shopping?${params}`, {
+  const res = await fetchWithRetry(`${SHOP_BASE}?${params}`, {
     headers: { "User-Agent": USER_AGENT },
   });
   if (!res.ok) throw new Error(`eBay Shopping API error: ${res.status}`);
@@ -178,7 +183,7 @@ export async function searchEbayItems(
 ): Promise<EbaySearchResult[]> {
   const token = await getAppToken();
   const params = new URLSearchParams({ q: keyword, limit: String(limit) });
-  const res = await fetchWithRetry(`https://api.ebay.com/buy/browse/v1/item_summary/search?${params}`, {
+  const res = await fetchWithRetry(`${API_BASE}/buy/browse/v1/item_summary/search?${params}`, {
     headers: {
       Authorization: `Bearer ${token}`,
       "X-EBAY-C-MARKETPLACE-ID": "EBAY_US",
@@ -220,7 +225,7 @@ export async function getSuggestedEbayCategories(
     responseencoding: "JSON",
   });
 
-  const res = await fetchWithRetry(`https://open.api.ebay.com/shopping?${params}`, {
+  const res = await fetchWithRetry(`${SHOP_BASE}?${params}`, {
     headers: { "User-Agent": USER_AGENT },
   });
   if (!res.ok) throw new Error(`eBay Shopping API error: ${res.status}`);
@@ -295,7 +300,7 @@ async function tradingCall(callName: string, body: string, userToken: string): P
   ${body}
 </${callName}Request>`;
 
-  const res = await fetchWithRetry("https://api.ebay.com/ws/api.dll", {
+  const res = await fetchWithRetry(TRADE_URL, {
     method: "POST",
     headers: {
       "X-EBAY-API-SITEID": SITE_ID,
