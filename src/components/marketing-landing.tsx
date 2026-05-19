@@ -155,7 +155,7 @@ export function MarketingLanding({ currency = "USD" }: { currency?: "USD" | "AUD
       {/* FEATURES */}
       <section id="features" className="border-t border-border px-5 md:px-10 py-12">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-base md:text-lg font-bold text-foreground text-center mb-8">
+          <h2 className="text-lg md:text-xl font-bold text-foreground text-center mb-8">
             Everything you need to rank
           </h2>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto">
@@ -164,8 +164,8 @@ export function MarketingLanding({ currency = "USD" }: { currency?: "USD" | "AUD
                 <div className="mb-2.5 flex size-9 items-center justify-center rounded-md bg-primary/10 text-primary">
                   <Icon className="size-4" />
                 </div>
-                <h3 className="text-xs font-semibold text-foreground mb-1">{title}</h3>
-                <p className="text-[11px] text-muted-foreground leading-relaxed">{desc}</p>
+                <h3 className="text-sm font-semibold text-foreground mb-1">{title}</h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
               </div>
             ))}
           </div>
@@ -175,7 +175,7 @@ export function MarketingLanding({ currency = "USD" }: { currency?: "USD" | "AUD
       {/* PRICING */}
       <section id="pricing" className="border-t border-border px-5 md:px-10 py-12 text-center">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-base md:text-lg font-bold text-foreground mb-1">
+          <h2 className="text-lg md:text-xl font-bold text-foreground mb-1">
             Simple pricing, no surprises
           </h2>
           <p className="text-xs text-muted-foreground mb-6">
@@ -184,43 +184,43 @@ export function MarketingLanding({ currency = "USD" }: { currency?: "USD" | "AUD
 
           <div className="grid grid-cols-2 gap-2.5 max-w-2xl mx-auto mb-3 sm:grid-cols-4">
             <div className="bg-card rounded-lg p-3.5 border border-border">
-              <p className="text-[11px] font-semibold text-foreground">Free</p>
+              <p className="text-xs font-semibold text-foreground">Free</p>
               <p className="text-xl font-bold text-foreground my-1">{p.symbol}0</p>
-              <p className="text-[11px] text-muted-foreground">3 optimisations / month</p>
+              <p className="text-xs text-muted-foreground">3 optimisations / month</p>
             </div>
             <div className="bg-card rounded-lg p-3.5 border border-border">
-              <p className="text-[11px] font-semibold text-foreground">Starter</p>
+              <p className="text-xs font-semibold text-foreground">Starter</p>
               <p className="text-xl font-bold text-foreground my-1">
                 {p.symbol}{p.starter}
-                <span className="text-[11px] font-normal text-muted-foreground">/mo</span>
+                <span className="text-xs font-normal text-muted-foreground">/mo</span>
               </p>
-              <p className="text-[11px] text-muted-foreground">50 optimisations + all tools</p>
+              <p className="text-xs text-muted-foreground">50 optimisations + all tools</p>
             </div>
             <div className="bg-card rounded-lg p-3.5 border border-border">
-              <p className="text-[11px] font-semibold text-foreground">Growth</p>
+              <p className="text-xs font-semibold text-foreground">Growth</p>
               <p className="text-xl font-bold text-foreground my-1">
                 {p.symbol}{p.growth}
-                <span className="text-[11px] font-normal text-muted-foreground">/mo</span>
+                <span className="text-xs font-normal text-muted-foreground">/mo</span>
               </p>
-              <p className="text-[11px] text-muted-foreground">Unlimited + all features</p>
+              <p className="text-xs text-muted-foreground">Unlimited + all features</p>
             </div>
             <div className="bg-card rounded-lg p-3.5 border border-border">
-              <p className="text-[11px] font-semibold text-foreground">Studio</p>
+              <p className="text-xs font-semibold text-foreground">Studio</p>
               <p className="text-xl font-bold text-foreground my-1">
                 {p.symbol}{p.studio}
-                <span className="text-[11px] font-normal text-muted-foreground">/mo</span>
+                <span className="text-xs font-normal text-muted-foreground">/mo</span>
               </p>
-              <p className="text-[11px] text-muted-foreground">Unlimited + shop connect</p>
+              <p className="text-xs text-muted-foreground">Unlimited + shop connect</p>
             </div>
           </div>
 
-          <p className="text-[11px] text-muted-foreground mb-2">
+          <p className="text-xs text-muted-foreground mb-2">
             7-day free trial on all paid plans. No card required to start free.
             {currency === "AUD" && (
               <span className="ml-1 text-muted-foreground/60">Prices in AUD.</span>
             )}
           </p>
-          <Link href="/pricing" className="text-[11px] text-primary hover:opacity-80 transition-opacity">
+          <Link href="/pricing" className="text-xs text-primary hover:opacity-80 transition-opacity">
             See full pricing details
           </Link>
         </div>
