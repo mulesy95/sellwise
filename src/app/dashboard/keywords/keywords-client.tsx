@@ -103,7 +103,7 @@ const PLATFORM_DESCRIPTIONS: Record<Platform, string> = {
 };
 
 export function KeywordsClient() {
-  const [platform, setPlatform] = useState<Platform>("shopify");
+  const [platform, setPlatform] = useState<Platform>(() => (sessionStorage.getItem("sw_active_platform") as Platform) ?? "shopify");
   const [loading, setLoading] = useState(false);
   const [keywords, setKeywords] = useState<Keyword[]>([]);
   const [error, setError] = useState<string | null>(null);

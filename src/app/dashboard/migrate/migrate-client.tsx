@@ -150,7 +150,7 @@ interface MigrateResult {
 }
 
 export function MigrateClient() {
-  const [source, setSource] = useState<Platform>("shopify");
+  const [source, setSource] = useState<Platform>(() => (sessionStorage.getItem("sw_active_platform") as Platform) ?? "shopify");
   const [target, setTarget] = useState<Platform>("ebay");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<MigrateResult | null>(null);

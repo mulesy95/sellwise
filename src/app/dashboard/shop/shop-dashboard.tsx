@@ -2053,6 +2053,11 @@ export function ShopDashboard({
     if (error === "upgrade_required") toast.error("Upgrade to Growth or Studio to connect a shop.");
   }, [connected, error]);
 
+  useEffect(() => {
+    const shop = shops.find((s) => s.id === activeShopId);
+    if (shop) sessionStorage.setItem("sw_active_platform", shop.platform);
+  }, [activeShopId, shops]);
+
   function handleSelectShop(id: string) {
     setActiveShopId(id);
     setShowConnect(false);

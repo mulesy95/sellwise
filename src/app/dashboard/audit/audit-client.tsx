@@ -179,7 +179,7 @@ type InputMode = "url" | "manual";
 
 export function AuditClient() {
   const [mode, setMode] = useState<InputMode>("manual");
-  const [platform, setPlatform] = useState<Platform>("shopify");
+  const [platform, setPlatform] = useState<Platform>(() => (sessionStorage.getItem("sw_active_platform") as Platform) ?? "shopify");
   const [urlValue, setUrlValue] = useState("");
   const [detectedPlatform, setDetectedPlatform] = useState<Platform | null>(null);
   const [loading, setLoading] = useState(false);
