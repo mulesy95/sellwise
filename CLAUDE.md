@@ -57,9 +57,9 @@ Online sellers spend hours writing listings. SEO is opaque — each platform has
 ---
 
 ## Target Users
-- Etsy sellers (manual paste optimiser — full support, no store connect)
-- eBay sellers (full support coming via official APIs)
-- Shopify / DTC brand owners (store connect built)
+- Shopify store owners (PRIMARY — store connect fully built, launch target)
+- eBay sellers (SECONDARY — store connect fully built, no competing AI tool exists)
+- Etsy sellers (manual paste optimiser only — no store connect, API permanently banned)
 - Amazon FBA sellers (manual optimiser works, store connect deferred)
 - Non-technical; often mobile; time-poor
 - Primary pain: writing titles/tags/bullets that actually rank
@@ -71,9 +71,9 @@ Online sellers spend hours writing listings. SEO is opaque — each platform has
 
 | Phase | Platform | Approach | Status |
 |-------|----------|----------|--------|
-| MVP | Etsy | Manual paste optimiser only (no API, no scraping) | Live |
-| Current | Shopify | Store connect (OAuth) + competitor via /products.json | Store connect built, scraper to fix |
-| Next | eBay | Shopping/Browse API for competitor + Trading API for store connect | To build |
+| MVP | Etsy | Manual paste optimiser only (no API, no scraping) | Complete |
+| Current | Shopify | Store connect (OAuth, GraphQL, SEO metafield push) | Complete |
+| Current | eBay | Trading API store connect + OAuth + sandbox support | Complete |
 | Future | Amazon | SP-API store connect (high complexity) | Deferred |
 | Never | Etsy API | Permanently banned | — |
 
@@ -83,7 +83,7 @@ Online sellers spend hours writing listings. SEO is opaque — each platform has
 
 ### 1. Listing Optimiser (primary feature)
 - Platform selector (Etsy, Amazon, Shopify, eBay all active for manual optimisation)
-- Input: product title, description, category, style, material
+- Input: product title, description, category, style, material, optional image upload
 - Output: optimised title with char counter, tags/bullets, description
 - Copy buttons per field, SEO score badge (0–100), improvement tips
 - Usage check before API call, increment after success, upgrade modal if limit hit
@@ -92,55 +92,54 @@ Online sellers spend hours writing listings. SEO is opaque — each platform has
 - Seed keyword input + platform selector
 - Returns 15 keywords with volume/competition/trend indicators
 - Platform-aware prompts (Etsy occasion/style vs Amazon purchase intent vs eBay specifics)
-- Save to keyword list (persisted in Supabase)
+- Save to keyword list (persisted in Supabase); saved lists pull directly into optimiser
 
-### 3. Competitor Peek
-- URL input — Shopify only via `/products.json` (legitimate public endpoint)
-- Amazon/eBay: "coming soon via official API" message (Shopping API for eBay, nothing public for Amazon)
-- Etsy: blocked with redirect to manual audit
-- Side-by-side: their listing vs AI-optimised version
-
-### 4. Listing Audit
-- **URL mode**: Shopify only (via scraping currently — migrate to `/products.json`)
+### 3. Listing Audit
+- **URL mode**: Shopify only via `/products.json`
 - **Manual mode**: all platforms — paste title, tags/bullets, description → score 0–100
 - Score breakdown per platform section, quick wins list
+- Shareable score cards with og:image
 
-### 5. My Shop (store connect)
-- Shopify: OAuth connect, product list, optimise per product, push back (Studio only) — BUILT
-- eBay: Trading API connect — TO BUILD (next priority)
+### 4. My Shop (store connect)
+- Shopify: OAuth connect, product list, slide-out optimise panel, push content back (Studio), push SEO metafields (Studio), revert to previous version (Studio)
+- eBay: Trading API OAuth, read listings, push title/description (Studio), revert (Studio), sandbox account support
+- Multi-store tabs (Growth: 1 store, Studio: unlimited)
+- Per-product optimisation history with revert
 - Amazon: SP-API — DEFERRED
 - Etsy: PERMANENTLY UNAVAILABLE
 
-### 6. Dashboard
+### 5. Optimisation History
+- `/dashboard/history` — every optimisation saved, before/after panels, platform filter, pagination
+- Archive/restore toggle, re-optimise from history, route to My Shop when product + shop present
+
+### 6. Platform Migration Tool
+- `/dashboard/migrate` — paste a listing, select target platform, AI reformats for new platform requirements
+
+### 7. Bulk Optimiser
+- `/dashboard/bulk` — CSV upload, sequential AI processing with progress bar, download results CSV
+- Growth+ only, max 200 rows
+
+### 8. Dashboard
 - Usage bar (X / limit used this month)
 - Personal greeting (Welcome back, [First Name])
-- Quick actions grid
+- Quick actions grid, My Shop widget (Growth/Studio)
 - Subscription status + upgrade prompt
+
+### REMOVED — Competitor Peek
+Was built, then removed. No page, no API route. Do not reference as a current or planned feature.
 
 ---
 
-## New Features Identified (from API research, 2026-05-16)
+## Deferred / Future Features
 
-### eBay Shopping API — Competitor Research (HIGH PRIORITY)
-Extract item ID from eBay URL → call `GetSingleItem` via official Shopping API → return title, description, specifics, price. Replaces the banned URL scraping with a legitimate equivalent. Free, instant AppID, no auth required.
+### Amazon SP-API Store Connect (deferred)
+High complexity. Requires Login with Amazon (LWA) OAuth + SP-API Listings read/write. No public competitor data API exists — manual paste only for Amazon competitor analysis. Park until post-launch with real user demand signal.
 
-### eBay Browse API — Competitor Search
-Search eBay by keyword to surface competing listings. Helps sellers understand what they're up against. No auth required for basic access.
+### Shopify Bulk Product Optimisation (lower priority)
+GraphQL bulk mutations to optimise all store products at once — different from the CSV bulk tool. Park until Shopify store connect has been used in anger.
 
-### Shopify `/products.json` — Competitor Research (REPLACE CURRENT SCRAPER)
-Replace the current HTML scraping in the competitor route with a fetch to `{storeUrl}/products.json`. Structured data, no auth, no scraping risk.
-
-### Shopify SEO Metafield Push (STUDIO DIFFERENTIATOR)
-When a seller connects their Shopify store, write the AI-generated meta title and meta description directly to the product's SEO metafields via GraphQL (`title_tag` and `description_tag`). No copy-paste. This is a genuine Studio tier differentiator — no competitor offers this.
-
-### Platform Migration Tool
-"I sell on Etsy — help me list this on Amazon too." User pastes their Etsy listing, selects a target platform, AI reformats for the new platform's requirements. No API access needed — pure AI transformation. High value, easy to build.
-
-### Bulk Listing Optimiser (Growth/Studio)
-Upload a CSV of listings → AI generates optimised versions for each → download results. High value for sellers with 50+ listings. No API access needed.
-
-### eBay Store Connect (Trading API)
-OAuth connect for eBay sellers. Read active listings, surface SEO scores, allow optimise-and-push-back. Easiest platform to get approved (~1 business day). Build after Shopify GraphQL migration.
+### eBay Team Seats / White-label (future)
+Agency use case — multiple operator logins per account, white-label output. Deferred.
 
 ---
 
@@ -213,7 +212,6 @@ interface EbayOutput {
     /page.tsx                — dashboard home
     /optimise/page.tsx       — listing optimiser
     /keywords/page.tsx       — keyword research
-    /competitor/page.tsx     — competitor analysis (Shopify URL + manual)
     /audit/page.tsx          — listing audit (Shopify URL + manual all platforms)
     /shop/page.tsx           — connected store dashboard
     /settings/page.tsx       — account + billing
@@ -221,7 +219,6 @@ interface EbayOutput {
   /api
     /optimise/route.ts       — Claude API (platform-aware)
     /keywords/route.ts
-    /competitor/route.ts     — Shopify /products.json + manual (Amazon/eBay/Etsy blocked)
     /audit/route.ts          — Shopify URL + manual (Amazon/eBay/Etsy blocked for URL)
     /shopify/connect         — OAuth initiation
     /shopify/callback        — OAuth token exchange

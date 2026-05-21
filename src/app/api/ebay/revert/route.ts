@@ -34,29 +34,30 @@ export async function POST(req: NextRequest) {
 
   const { data: shop } = await admin
     .from("shops")
-    .select("id, access_token, refresh_token")
+    .select("id, access_token, refresh_token, is_sandbox")
     .eq("id", opt.shop_id)
     .eq("user_id", user.id)
     .single();
 
   if (!shop) return NextResponse.json({ error: "Shop not found" }, { status: 404 });
 
+  const isSandbox = (shop as { is_sandbox?: boolean }).is_sandbox ?? false;
   const prev = opt.previous_content as { title: string; description: string };
   let token = shop.access_token;
 
   try {
-    await reviseEbayItem(token, opt.product_id, { title: prev.title, description: prev.description });
+    await reviseEbayItem(token, opt.product_id, { title: prev.title, description: prev.description }, isSandbox);
     return NextResponse.json({ ok: true });
   } catch {
     if (shop.refresh_token) {
       try {
-        const refreshed = await refreshEbayToken(shop.refresh_token);
+        const refreshed = await refreshEbayToken(shop.refresh_token, isSandbox);
         token = refreshed.access_token;
         await admin.from("shops").update({
           access_token: refreshed.access_token,
           refresh_token: refreshed.refresh_token,
         }).eq("id", shop.id);
-        await reviseEbayItem(token, opt.product_id, { title: prev.title, description: prev.description });
+        await reviseEbayItem(token, opt.product_id, { title: prev.title, description: prev.description }, isSandbox);
         return NextResponse.json({ ok: true });
       } catch (e) {
         console.error("[ebay revert]", e);
