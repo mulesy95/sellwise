@@ -69,13 +69,17 @@ Online sellers spend hours writing listings. SEO is opaque — each platform has
 
 ## Platform Roadmap
 
-| Phase | Platform | Approach | Status |
-|-------|----------|----------|--------|
-| MVP | Etsy | Manual paste optimiser only (no API, no scraping) | Complete |
-| Current | Shopify | Store connect (OAuth, GraphQL, SEO metafield push) | Complete |
-| Current | eBay | Trading API store connect + OAuth + sandbox support | Complete |
-| Future | Amazon | SP-API store connect (high complexity) | Deferred |
-| Never | Etsy API | Permanently banned | — |
+Goal: launch with every platform that has a legitimate seller API. Etsy is the only permanent exception.
+
+| Platform | Approach | Status |
+|----------|----------|--------|
+| Shopify | OAuth, GraphQL, SEO metafield push | Complete |
+| eBay | Trading API, OAuth, sandbox support | Complete |
+| Amazon | SP-API (Login with Amazon OAuth + Listings API) | To build |
+| WooCommerce | REST API store connect | To build |
+| TikTok Shop | Seller API | To build |
+| Etsy API | Permanently banned | Never |
+| Etsy (manual) | Manual paste optimiser | Complete |
 
 ---
 
