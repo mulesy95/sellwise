@@ -12,6 +12,8 @@ import { ShopHealthCounts } from "@/components/shop-health-counts";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getUsageData } from "@/lib/usage";
+import { PLATFORM_LABELS, type Platform } from "@/lib/platforms";
+import { cn } from "@/lib/utils";
 
 export const metadata = {
   title: "Dashboard",
@@ -152,7 +154,12 @@ export default async function DashboardPage() {
                         <Store className="size-4 text-primary" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium">{shop.shop_name}</p>
+                        <p className="truncate text-sm font-medium">
+                          {shop.shop_name}
+                          <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+                            · {PLATFORM_LABELS[shop.platform as Platform] ?? shop.platform}
+                          </span>
+                        </p>
                         <div className="flex items-center gap-1.5 mt-0.5">
                           <span className="size-1.5 rounded-full bg-emerald-500 inline-block shrink-0" />
                           <ShopHealthCounts shop={shop} />

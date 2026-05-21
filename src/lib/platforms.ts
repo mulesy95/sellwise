@@ -17,6 +17,14 @@ export const PLATFORM_CAPABILITY: Record<Platform, PlatformCapability> = {
   social:      "manual",
 };
 
+export const PLATFORM_PILL: Partial<Record<Platform, string>> = {
+  shopify:     "bg-green-500/15 text-green-700 dark:text-green-400",
+  ebay:        "bg-red-500/15 text-red-700 dark:text-red-400",
+  amazon:      "bg-orange-500/15 text-orange-700 dark:text-orange-400",
+  etsy:        "bg-orange-400/15 text-orange-600 dark:text-orange-400",
+  woocommerce: "bg-purple-500/15 text-purple-700 dark:text-purple-400",
+};
+
 export const PLATFORM_LABELS: Record<Platform, string> = {
   etsy: "Etsy",
   amazon: "Amazon",
