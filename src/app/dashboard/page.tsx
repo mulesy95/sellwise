@@ -156,6 +156,7 @@ export default async function DashboardPage() {
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-medium">{shop.shop_name}</p>
                         <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="size-1.5 rounded-full bg-emerald-500 inline-block shrink-0" />
                           <span className={cn(
                             "inline-flex shrink-0 items-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold",
                             PLATFORM_PILL[shop.platform as Platform] ?? "bg-muted text-muted-foreground"
