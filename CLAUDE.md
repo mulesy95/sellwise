@@ -391,7 +391,7 @@ shipping and returns mentioned). Respond in valid JSON only.`,
 - [ ] Production deploy + domain
 - [ ] Launch posts drafted
 
-### Phase 5 — eBay Integration (COMPLETE 2026-05-17)
+### Phase 5 — eBay Integration (COMPLETE 2026-05-17, sandbox 2026-05-21)
 
 **Competitor research:**
 - [x] eBay Shopping API `GetSingleItem` — extracts item ID from URL, fetches listing data legitimately
@@ -399,14 +399,22 @@ shipping and returns mentioned). Respond in valid JSON only.`,
 
 **Store connect (Trading API):**
 - [x] `src/lib/ebay.ts` — full eBay library (Shopping, Browse, Trading APIs + OAuth, no new npm deps)
-- [x] `/api/ebay/connect` + `/api/ebay/callback` — OAuth flow
+- [x] `/api/ebay/connect` + `/api/ebay/callback` — OAuth flow; connect accepts `?sandbox=true`
 - [x] `/api/ebay/listings` — fetch seller's active listings via Trading API
 - [x] `/api/ebay/push` — revise listing via `ReviseFixedPriceItem` (Studio only)
 - [x] `/api/ebay/disconnect` — remove eBay shop record
-- [x] My Shop: eBay tab in ConnectForm, platform-aware product panel + optimise panel
+- [x] My Shop: eBay tab in ConnectForm (live + sandbox buttons), platform-aware product panel + optimise panel
 - [x] Token auto-refresh on all seller API routes
 - [x] `supabase/migrations/20260517110854_add_refresh_token_to_shops.sql`
-- Note: Requires `EBAY_APP_ID`, `EBAY_CLIENT_ID`, `EBAY_CLIENT_SECRET`, `EBAY_RU_NAME` in env
+
+**Per-shop sandbox support (2026-05-21):**
+- [x] `shops.is_sandbox` column (migration applied)
+- [x] `ebayConfig(isSandbox)` in `ebay.ts` — selects credentials + endpoints per call
+- [x] Shopping/Browse API always production; OAuth + Trading API per-shop
+- [x] Sandbox shop_id = `${userId}:sandbox` so live + sandbox can coexist per user
+- [x] All Trading API routes pass `is_sandbox` through
+- [x] Sandbox env vars in Vercel: `EBAY_SANDBOX_APP_ID`, `EBAY_SANDBOX_CLIENT_ID`, `EBAY_SANDBOX_CLIENT_SECRET`
+- [ ] `EBAY_SANDBOX_RU_NAME` — needs sandbox RuName created in eBay portal → `https://sellwise.au/api/ebay/callback`
 
 ### Phase 6 — Shopify Enhancements (COMPLETE 2026-05-17)
 
@@ -494,3 +502,5 @@ shipping and returns mentioned). Respond in valid JSON only.`,
 | 2026-05-17 | Phase 7 mostly complete — optimisation history page (/dashboard/history), keyword→optimiser integration, agency tier on pricing page, optimisations + keyword_lists Supabase tables created |
 | 2026-05-17 | Prompt hardening — WRITING_RULES: never invent product details not in input or visible in image; write around missing info |
 | 2026-05-17 | History page: before/after panels, platform filter, paginated, Re-optimise link pre-fills optimiser form via URL params |
+| 2026-05-20 | eBay developer account approved — compliance endpoint live, all production credentials in Vercel |
+| 2026-05-21 | Per-shop eBay sandbox support — ebayConfig(isSandbox) helper, is_sandbox on shops table, sandbox OAuth flow, ConnectForm "Connect sandbox account" button, sandbox env vars in Vercel |
