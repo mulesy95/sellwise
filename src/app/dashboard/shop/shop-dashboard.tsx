@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { ShopifyProduct } from "@/lib/shopify";
+import { calcSeoScore, type SeoScore } from "@/lib/seo-score";
 
 interface Shop {
   id: string;
@@ -40,24 +41,6 @@ interface HistoryEntry {
 }
 
 // ─── SEO score ────────────────────────────────────────────────────────────────
-
-type SeoScore = "good" | "fair" | "poor";
-
-function calcSeoScore(p: ShopifyProduct): SeoScore {
-  const text = p.body_html?.replace(/<[^>]+>/g, "").trim() ?? "";
-  const words = text.split(/\s+/).filter(Boolean).length;
-  const titleLen = p.title.length;
-  let score = 0;
-  if (titleLen >= 25 && titleLen <= 70) score += 35;
-  else if (titleLen > 5) score += 15;
-  if (words >= 100) score += 40;
-  else if (words >= 30) score += 20;
-  else if (words > 0) score += 5;
-  if (p.images?.length > 0) score += 25;
-  if (score >= 75) return "good";
-  if (score >= 40) return "fair";
-  return "poor";
-}
 
 const SCORE_CONFIG: Record<SeoScore, { label: string; dot: string; badge: string }> = {
   good: {
@@ -245,7 +228,15 @@ function ResultField({
 
 // ─── Products summary bar ─────────────────────────────────────────────────────
 
-function ProductsSummary({ products }: { products: ShopifyProduct[] }) {
+function ProductsSummary({
+  products,
+  activeFilter,
+  onFilterChange,
+}: {
+  products: ShopifyProduct[];
+  activeFilter: SeoScore | null;
+  onFilterChange: (f: SeoScore | null) => void;
+}) {
   const scores = products.map(calcSeoScore);
   const poor = scores.filter((s) => s === "poor").length;
   const fair = scores.filter((s) => s === "fair").length;
@@ -253,26 +244,59 @@ function ProductsSummary({ products }: { products: ShopifyProduct[] }) {
 
   if (products.length === 0) return null;
 
+  function toggle(score: SeoScore) {
+    onFilterChange(activeFilter === score ? null : score);
+  }
+
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border/40 bg-muted/20 px-4 py-2.5 text-sm">
-      <span className="font-medium">{products.length} products</span>
+      <button
+        onClick={() => onFilterChange(null)}
+        className={cn("font-medium transition-colors", activeFilter ? "text-muted-foreground hover:text-foreground" : "text-foreground")}
+      >
+        {products.length} products
+      </button>
       {poor > 0 && (
-        <span className="flex items-center gap-1.5 text-red-600 dark:text-red-400 font-medium">
+        <button
+          onClick={() => toggle("poor")}
+          className={cn(
+            "flex items-center gap-1.5 font-medium transition-colors",
+            activeFilter === "poor"
+              ? "text-red-600 dark:text-red-400 underline underline-offset-2"
+              : "text-red-600 dark:text-red-400 hover:underline underline-offset-2"
+          )}
+        >
           <span className="size-2 rounded-full bg-red-500 inline-block" />
           {poor} need attention
-        </span>
+        </button>
       )}
       {fair > 0 && (
-        <span className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
+        <button
+          onClick={() => toggle("fair")}
+          className={cn(
+            "flex items-center gap-1.5 transition-colors",
+            activeFilter === "fair"
+              ? "text-amber-600 dark:text-amber-400 underline underline-offset-2"
+              : "text-amber-600 dark:text-amber-400 hover:underline underline-offset-2"
+          )}
+        >
           <span className="size-2 rounded-full bg-amber-500 inline-block" />
           {fair} could improve
-        </span>
+        </button>
       )}
       {good > 0 && (
-        <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+        <button
+          onClick={() => toggle("good")}
+          className={cn(
+            "flex items-center gap-1.5 transition-colors",
+            activeFilter === "good"
+              ? "text-emerald-600 dark:text-emerald-400 underline underline-offset-2"
+              : "text-emerald-600 dark:text-emerald-400 hover:underline underline-offset-2"
+          )}
+        >
           <span className="size-2 rounded-full bg-emerald-500 inline-block" />
           {good} looking good
-        </span>
+        </button>
       )}
     </div>
   );
@@ -1755,6 +1779,7 @@ function ShopProductsPanel({
   const [historyProduct, setHistoryProduct] = useState<ShopifyProduct | null>(null);
   const [migrateProduct, setMigrateProduct] = useState<ShopifyProduct | null>(null);
   const [history, setHistory] = useState<Record<string, string>>({});
+  const [filterScore, setFilterScore] = useState<SeoScore | null>(null);
   const autoOpened = useRef(false);
 
   const fetchProducts = useCallback(async (cursor?: string) => {
@@ -1804,6 +1829,7 @@ function ShopProductsPanel({
   }, [products, autoProductId]);
 
   const sorted = products; // already sorted on fetch
+  const displayedProducts = filterScore ? sorted.filter((p) => calcSeoScore(p) === filterScore) : sorted;
 
   return (
     <>
@@ -1837,7 +1863,7 @@ function ShopProductsPanel({
       )}
 
       <div className="space-y-4">
-        <ProductsSummary products={sorted} />
+        <ProductsSummary products={sorted} activeFilter={filterScore} onFilterChange={setFilterScore} />
 
         {!canOptimise && sorted.length > 0 && (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 flex items-center justify-between gap-4">
@@ -1884,11 +1910,13 @@ function ShopProductsPanel({
                   Retry
                 </button>
               </div>
-            ) : products.length === 0 ? (
-              <p className="py-6 text-center text-sm text-muted-foreground">No products found.</p>
+            ) : displayedProducts.length === 0 ? (
+              <p className="py-6 text-center text-sm text-muted-foreground">
+                {filterScore ? "No products match this filter." : "No products found."}
+              </p>
             ) : (
               <>
-                {sorted.map((p) => (
+                {displayedProducts.map((p) => (
                   <ProductRow
                     key={p.id}
                     product={p}

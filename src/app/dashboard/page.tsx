@@ -8,6 +8,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ShopHealthCounts } from "@/components/shop-health-counts";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getUsageData } from "@/lib/usage";
@@ -153,8 +154,8 @@ export default async function DashboardPage() {
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-medium">{shop.shop_name}</p>
                         <div className="flex items-center gap-1.5 mt-0.5">
-                          <span className="size-1.5 rounded-full bg-emerald-500 inline-block" />
-                          <span className="text-xs text-muted-foreground capitalize">{shop.platform} · Review your listings</span>
+                          <span className="size-1.5 rounded-full bg-emerald-500 inline-block shrink-0" />
+                          <ShopHealthCounts shop={shop} />
                         </div>
                       </div>
                       <ArrowRight className="size-3.5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
