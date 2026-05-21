@@ -506,3 +506,4 @@ shipping and returns mentioned). Respond in valid JSON only.`,
 | 2026-05-20 | eBay developer account approved — compliance endpoint live, all production credentials in Vercel |
 | 2026-05-21 | Per-shop eBay sandbox support — ebayConfig(isSandbox) helper, is_sandbox on shops table, sandbox OAuth flow, ConnectForm "Connect sandbox account" button, sandbox env vars in Vercel |
 | 2026-05-22 | UI audit complete — nav reordered (My Shop to top), all tool defaults → Shopify, coming soon + homepage copy leads with Shopify+eBay, dashboard My Shop widget shows live health counts per shop (lazy-loaded via ShopHealthCounts), My Shop summary bar is now an interactive severity filter, calcSeoScore extracted to src/lib/seo-score.ts |
+| 2026-05-22 | UI audit 1.6 — platform label added to My Shop store switcher tabs and active shop header bar; sessionStorage-based platform sync so navigating from a connected store to any standalone tool pre-selects the matching platform tab |

@@ -50,6 +50,14 @@
 
 **Scope guard:** This layout rethink applies to My Shop ONLY. Do not apply severity-sorting or filter-bars to the other screens — the input→output two-column pattern on Optimiser/Audit/Keywords/Migrate is correct and should be left alone.
 
+### 1.6 Store / platform clarity — make every store's platform visible, and verify context carries — COMPLETE
+
+**Core fix — done (2026-05-22):** Each store tab in the My Shop switcher now shows the store name with the platform label (Shopify/eBay) as a subtitle. The active shop header bar also surfaces the platform inline: "Connected · Shopify · store-url". Platform identity is now visible everywhere a store is referenced.
+
+**Multi-store overflow — verified, no change needed:** The tab strip uses `overflow-x-auto` so 4+ stores scroll horizontally rather than break. Acceptable for now; revisit post-launch if users connect enough stores that horizontal scroll becomes friction.
+
+**Platform context carrying — verified, gap confirmed, fixed (2026-05-22):** Standalone tools were not syncing with My Shop's active store — an eBay user navigating to Keywords would land on Shopify. Fixed via `sessionStorage`: My Shop writes the active store's platform on every shop switch; Optimiser, Keywords, Audit, Bulk, and Migrate all read it on mount and pre-select the matching tab. URL params in Optimiser still take precedence. First-visit fallback remains Shopify.
+
 ---
 
 ## Priority 2 — Consistency & polish
