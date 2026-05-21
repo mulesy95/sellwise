@@ -27,7 +27,7 @@ export function ComingSoon() {
         Sell smarter on every platform.
       </p>
       <p className="mb-10 max-w-sm text-sm leading-relaxed text-muted-foreground">
-        AI-powered listing optimisation for Etsy, Amazon, Shopify, and more.
+        AI-powered listing optimisation for Shopify, eBay, and more.
         We&apos;re putting the finishing touches on. Leave your email and
         we&apos;ll let you know the moment we launch.
       </p>

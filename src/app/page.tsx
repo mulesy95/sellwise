@@ -7,11 +7,11 @@ import { MarketingLanding } from "@/components/marketing-landing";
 export const metadata: Metadata = {
   title: "SellWise — AI Listing Optimiser for Online Sellers",
   description:
-    "AI-powered listing optimiser for Etsy, Amazon, Shopify, eBay, WooCommerce, Wix, Squarespace, TikTok Shop, and Social. Better titles, tags, and descriptions in seconds.",
+    "AI-powered listing optimiser for Shopify, eBay, Amazon, and more. Better titles, tags, and descriptions in seconds.",
   openGraph: {
     title: "SellWise — AI Listing Optimiser for Online Sellers",
     description:
-      "AI-powered listing optimiser for Etsy, Amazon, Shopify, eBay, WooCommerce, Wix, Squarespace, TikTok Shop, and Social. Better titles, tags, and descriptions in seconds.",
+      "AI-powered listing optimiser for Shopify, eBay, Amazon, and more. Better titles, tags, and descriptions in seconds.",
     url: "/",
     images: [{ url: "/api/og", width: 1200, height: 630, alt: "SellWise — AI Listing Optimiser" }],
   },
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "SellWise — AI Listing Optimiser for Online Sellers",
     description:
-      "AI-powered listing optimiser for Etsy, Amazon, Shopify, eBay, WooCommerce, Wix, Squarespace, TikTok Shop, and Social. Better titles, tags, and descriptions in seconds.",
+      "AI-powered listing optimiser for Shopify, eBay, Amazon, and more. Better titles, tags, and descriptions in seconds.",
     images: ["/api/og"],
   },
 };

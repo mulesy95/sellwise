@@ -150,8 +150,8 @@ interface MigrateResult {
 }
 
 export function MigrateClient() {
-  const [source, setSource] = useState<Platform>("etsy");
-  const [target, setTarget] = useState<Platform>("amazon");
+  const [source, setSource] = useState<Platform>("shopify");
+  const [target, setTarget] = useState<Platform>("ebay");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<MigrateResult | null>(null);
   const [error, setError] = useState<string | null>(null);

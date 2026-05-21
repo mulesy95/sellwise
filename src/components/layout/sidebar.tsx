@@ -22,13 +22,13 @@ import { UsageBar } from "@/components/layout/usage-bar";
 
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Optimiser", href: "/dashboard/optimise", icon: Sparkles, badge: "Core" },
+  { label: "My Shop", href: "/dashboard/shop", icon: Store, badge: "Core" },
+  { label: "Optimiser", href: "/dashboard/optimise", icon: Sparkles },
   { label: "Keywords", href: "/dashboard/keywords", icon: Search },
   { label: "Audit", href: "/dashboard/audit", icon: BarChart3 },
   { label: "Migrate", href: "/dashboard/migrate", icon: ArrowLeftRight },
   { label: "Bulk", href: "/dashboard/bulk", icon: Files },
   { label: "History", href: "/dashboard/history", icon: History },
-  { label: "My Shop", href: "/dashboard/shop", icon: Store },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 

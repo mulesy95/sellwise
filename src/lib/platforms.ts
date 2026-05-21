@@ -2,6 +2,21 @@ export type Platform = "etsy" | "amazon" | "shopify" | "ebay" | "woocommerce" | 
 
 export const PLATFORMS: Platform[] = ["shopify", "ebay", "amazon", "etsy", "woocommerce", "wix", "squarespace", "tiktok", "social"];
 
+// Which platforms have store connect built vs manual-only
+export type PlatformCapability = "connect" | "manual";
+
+export const PLATFORM_CAPABILITY: Record<Platform, PlatformCapability> = {
+  shopify:     "connect",
+  ebay:        "connect",
+  amazon:      "manual",
+  etsy:        "manual",
+  woocommerce: "manual",
+  wix:         "manual",
+  squarespace: "manual",
+  tiktok:      "manual",
+  social:      "manual",
+};
+
 export const PLATFORM_LABELS: Record<Platform, string> = {
   etsy: "Etsy",
   amazon: "Amazon",

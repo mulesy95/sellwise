@@ -179,7 +179,7 @@ function downloadCSV(rows: ResultRow[], platform: Platform) {
 
 export function BulkClient({ plan }: { plan: string }) {
   const canAccess = plan === "growth" || plan === "studio";
-  const [platform, setPlatform] = useState<Platform>("etsy");
+  const [platform, setPlatform] = useState<Platform>("shopify");
   const [rows, setRows] = useState<CsvRow[]>([]);
   const [results, setResults] = useState<ResultRow[]>([]);
   const [running, setRunning] = useState(false);

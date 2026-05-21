@@ -111,22 +111,7 @@ export default async function DashboardPage() {
         </Card>
       )}
 
-      {/* Stats — only shown once user has activity */}
-      {!isNewUser && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {stats.map((stat) => (
-            <Card key={stat.label} className="border-border/50">
-              <CardContent className="pt-4">
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <div className="text-xs text-muted-foreground">{stat.sub}</div>
-                <div className="mt-1 text-xs font-medium">{stat.label}</div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      {/* My Shop widget — Growth/Studio only */}
+      {/* My Shop widget — Growth/Studio only, shown first as the hero action */}
       {canAccessShop && (
         <div>
           <div className="mb-3 flex items-center justify-between">
@@ -145,7 +130,7 @@ export default async function DashboardPage() {
                   </div>
                   <div>
                     <p className="text-sm font-medium">No stores connected</p>
-                    <p className="text-xs text-muted-foreground">Connect a store to see SEO scores and optimise listings.</p>
+                    <p className="text-xs text-muted-foreground">Connect a store to see SEO scores and optimise your listings.</p>
                   </div>
                 </div>
                 <Link href="/dashboard/shop">
@@ -169,7 +154,7 @@ export default async function DashboardPage() {
                         <p className="truncate text-sm font-medium">{shop.shop_name}</p>
                         <div className="flex items-center gap-1.5 mt-0.5">
                           <span className="size-1.5 rounded-full bg-emerald-500 inline-block" />
-                          <span className="text-xs text-muted-foreground capitalize">{shop.platform} · Connected</span>
+                          <span className="text-xs text-muted-foreground capitalize">{shop.platform} · Review your listings</span>
                         </div>
                       </div>
                       <ArrowRight className="size-3.5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
@@ -194,7 +179,22 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* Quick actions — entire card is a link */}
+      {/* Stats — only shown once user has activity */}
+      {!isNewUser && (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {stats.map((stat) => (
+            <Card key={stat.label} className="border-border/50">
+              <CardContent className="pt-4">
+                <div className="text-2xl font-bold">{stat.value}</div>
+                <div className="text-xs text-muted-foreground">{stat.sub}</div>
+                <div className="mt-1 text-xs font-medium">{stat.label}</div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Quick actions */}
       <div>
         <h2 className="mb-3 text-sm font-medium text-muted-foreground">
           Quick actions
