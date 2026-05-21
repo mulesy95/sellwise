@@ -12,24 +12,22 @@ The core pitch: sellers spend hours writing listings and have no good way to kno
 
 ---
 
-## Target Market and Platform Priority
+## Platform Strategy
 
-**Primary launch target: Shopify sellers.** Shopify has the most accessible API (no approval needed), the most technically savvy seller base, and the clearest willingness to pay for SaaS tools. Store connect is fully built.
+The goal is to launch on every platform that has a legitimate seller API. Etsy is the only permanent exception (developer app banned before launch -- no workaround). All other major platforms are targets.
 
-**Secondary target: eBay sellers.** eBay has 17.6M global sellers and no meaningful AI tool competing in this space. Store connect is fully built. eBay sellers are generally less tech-forward than Shopify sellers.
-
-**Supported for manual use (paste your listing, get optimised copy): all four platforms** -- Etsy, Amazon, Shopify, eBay. No store connect for Etsy or Amazon.
-
-### Platform Constraints
+Manual optimisation (paste your listing, get back AI-optimised copy) works across all platforms today. Store connect -- where SellWise reads your live listings and pushes optimised content back -- is the premium feature being built platform by platform.
 
 | Platform | Store Connect | Manual Optimiser | Notes |
 |----------|--------------|-----------------|-------|
-| Shopify | Built (OAuth, read/write, SEO metafields) | Yes | Primary target |
-| eBay | Built (Trading API OAuth, read/write) | Yes | Secondary target |
-| Etsy | Permanently unavailable | Yes | Developer app banned before launch |
-| Amazon | Not built (deferred) | Yes | SP-API too complex for now |
+| Shopify | Built | Yes | OAuth, GraphQL, SEO metafield push |
+| eBay | Built | Yes | Trading API, OAuth, sandbox support |
+| Amazon | To build | Yes | SP-API + Login with Amazon OAuth |
+| WooCommerce | To build | Yes | REST API |
+| TikTok Shop | To build | Yes | Seller API |
+| Etsy | Permanently unavailable | Yes | Developer app banned |
 
-The Etsy ban is a real constraint. The developer app was permanently banned before launch. Etsy sellers can use the manual optimiser (paste their listing, get back optimised copy) but there is no store connect and no automated access to Etsy data.
+The Etsy ban is a real constraint. Etsy sellers can use the manual optimiser but there is no store connect and no automated access to Etsy data -- this is unlikely to change.
 
 ---
 
@@ -139,7 +137,7 @@ No customers yet. These are planning assumptions.
 | Alura | Etsy only | ~$13-30/mo | Etsy-only |
 | ChatGPT (direct) | Any | $20/mo | No platform rules, no format enforcement, no store connect |
 
-No tool does Shopify + eBay store connect with AI-native copy generation in one product. No meaningful AI tool exists specifically for eBay sellers.
+No tool does multi-platform store connect (Shopify, eBay, Amazon, WooCommerce) with AI-native copy generation in one product. Every competitor is locked to a single platform. No meaningful AI tool exists specifically for eBay sellers.
 
 ---
 
