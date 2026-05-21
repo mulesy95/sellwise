@@ -1720,8 +1720,13 @@ function StoreTabs({
               : "border-transparent text-muted-foreground hover:text-foreground"
           )}
         >
-          <Store className="size-3.5" />
-          {shop.shop_name}
+          <Store className="size-3.5 shrink-0" />
+          <span className="flex flex-col items-start leading-tight">
+            <span>{shop.shop_name}</span>
+            <span className="text-[10px] font-normal text-muted-foreground/70">
+              {PLATFORM_LABELS[shop.platform] ?? shop.platform}
+            </span>
+          </span>
         </button>
       ))}
 
@@ -2112,6 +2117,8 @@ export function ShopDashboard({
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <span className="size-1.5 rounded-full bg-emerald-500 inline-block" />
                     <span>Connected</span>
+                    <span className="text-border">·</span>
+                    <span className="font-medium text-foreground/70">{PLATFORM_LABELS[activeShop.platform] ?? activeShop.platform}</span>
                     <span className="text-border">·</span>
                     <a
                       href={`https://${activeShop.shop_url}`}
