@@ -163,6 +163,7 @@ export default async function DashboardPage() {
                           )}>
                             {PLATFORM_LABELS[shop.platform as Platform] ?? shop.platform}
                           </span>
+                          <span className="text-muted-foreground/40 text-xs">|</span>
                           <ShopHealthCounts shop={shop} />
                         </div>
                       </div>
