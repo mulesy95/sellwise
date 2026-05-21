@@ -29,8 +29,8 @@ export function ShopHealthCounts({ shop }: { shop: { id: string; platform: strin
 
   if (!counts) {
     return (
-      <span className="text-xs text-muted-foreground capitalize">
-        {shop.platform} · Loading health…
+      <span className="text-xs text-muted-foreground">
+        Loading…
       </span>
     );
   }
@@ -60,15 +60,14 @@ export function ShopHealthCounts({ shop }: { shop: { id: string; platform: strin
 
   if (parts.length === 0) {
     return (
-      <span className="text-xs text-muted-foreground capitalize">
-        {shop.platform} · No products found
+      <span className="text-xs text-muted-foreground">
+        No products found
       </span>
     );
   }
 
   return (
     <span className="text-xs flex items-center gap-1.5 flex-wrap">
-      <span className="text-muted-foreground capitalize">{shop.platform} ·</span>
       {parts.reduce<React.ReactNode[]>((acc, el, i) => [...acc, ...(i > 0 ? [<span key={`sep-${i}`} className="text-muted-foreground/50">·</span>] : []), el], [])}
     </span>
   );
