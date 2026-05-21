@@ -66,6 +66,14 @@ const PLATFORM_LABELS: Record<string, string> = {
   tiktok: "TikTok Shop", social: "Social",
 };
 
+const PLATFORM_PILL: Record<string, string> = {
+  shopify: "bg-green-500/15 text-green-700 dark:text-green-400",
+  ebay:    "bg-red-500/15 text-red-700 dark:text-red-400",
+  amazon:  "bg-orange-500/15 text-orange-700 dark:text-orange-400",
+  etsy:    "bg-orange-400/15 text-orange-600 dark:text-orange-400",
+  woocommerce: "bg-purple-500/15 text-purple-700 dark:text-purple-400",
+};
+
 const ALL_PLATFORMS = ["etsy", "amazon", "shopify", "ebay", "woocommerce", "wix", "squarespace", "tiktok", "social"] as const;
 
 function getMigrateResultFields(targetPlatform: string, result: Record<string, unknown>) {
@@ -1721,9 +1729,12 @@ function StoreTabs({
           )}
         >
           <Store className="size-3.5 shrink-0" />
-          <span className="flex flex-col items-start leading-tight">
+          <span className="flex flex-col items-start gap-0.5">
             <span>{shop.shop_name}</span>
-            <span className="text-[10px] font-normal text-muted-foreground/70">
+            <span className={cn(
+              "inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold",
+              PLATFORM_PILL[shop.platform] ?? "bg-muted text-muted-foreground"
+            )}>
               {PLATFORM_LABELS[shop.platform] ?? shop.platform}
             </span>
           </span>
