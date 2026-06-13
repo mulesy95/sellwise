@@ -21,7 +21,7 @@ const requestSchema = z.object({
   imageBase64: z.string().optional(),
   imageMediaType: z.enum(["image/jpeg", "image/png", "image/gif", "image/webp"]).optional(),
   imageUrl: z.string().url().refine((u) => u.startsWith("https://"), "imageUrl must use HTTPS").optional(),
-  existingContent: z.string().max(1000).optional().default(""),
+  existingContent: z.string().max(2000).optional().default(""),
   productId: z.string().optional(),
   shopId: z.string().optional(),
 });
