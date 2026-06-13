@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Sparkles, Copy, Check, RotateCcw, RefreshCw, Download, BarChart3, ImagePlus, X, Lock, AlertCircle, ChevronDown, ThumbsUp, ThumbsDown, Lightbulb, Search, ArrowLeftRight } from "lucide-react";
+import { Sparkles, Copy, Check, RotateCcw, RefreshCw, Download, BarChart3, ImagePlus, X, Lock, AlertCircle, ChevronDown, ThumbsUp, ThumbsDown, Lightbulb, Search, ArrowLeftRight, Plus } from "lucide-react";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import { Spinner } from "@/components/ui/spinner";
 import { PlatformSelector } from "@/components/platform-selector";
@@ -296,6 +296,37 @@ function RescuePanel({ platform, onReset }: { platform: Platform; onReset: () =>
             <p className="font-medium">Try a different platform</p>
             <p className="text-muted-foreground mt-0.5">We'll scroll you back to the top so you can pick a different platform and re-run.</p>
           </div>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function WhatNextStrip({ platform, onReset }: { platform: Platform; onReset: () => void }) {
+  return (
+    <div className="rounded-lg border border-border/50 bg-muted/20 p-4 space-y-3">
+      <p className="text-xs font-medium text-muted-foreground">What next?</p>
+      <div className="grid gap-2 sm:grid-cols-3">
+        <a
+          href="/dashboard/keywords"
+          className="flex items-center gap-2 rounded-md border border-border/60 bg-background px-3 py-2 text-xs font-medium hover:border-border hover:bg-muted/30 transition-colors"
+        >
+          <Search className="size-3.5 shrink-0 text-muted-foreground" />
+          Research keywords
+        </a>
+        <a
+          href="/dashboard/audit"
+          className="flex items-center gap-2 rounded-md border border-border/60 bg-background px-3 py-2 text-xs font-medium hover:border-border hover:bg-muted/30 transition-colors"
+        >
+          <BarChart3 className="size-3.5 shrink-0 text-muted-foreground" />
+          Audit this listing
+        </a>
+        <button
+          onClick={onReset}
+          className="flex items-center gap-2 rounded-md border border-border/60 bg-background px-3 py-2 text-xs font-medium hover:border-border hover:bg-muted/30 transition-colors text-left w-full"
+        >
+          <Plus className="size-3.5 shrink-0 text-muted-foreground" />
+          Start a new listing
         </button>
       </div>
     </div>
@@ -1026,6 +1057,10 @@ export function OptimiseClient({ plan }: { plan: string }) {
 
               {afterScore !== null && afterScore < 60 && (
                 <RescuePanel platform={platform} onReset={handleReset} />
+              )}
+
+              {result !== null && (
+                <WhatNextStrip platform={platform} onReset={handleReset} />
               )}
 
               {/* Utility links */}
