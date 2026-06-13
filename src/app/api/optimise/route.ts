@@ -110,8 +110,18 @@ The description must:
 Return ONLY a valid JSON object:
 {
   "title": "max 80 chars — keyword-rich from the start, include brand/model/size/condition if known, no ALL CAPS, be specific",
-  "description": "100–200 words, most important spec first, short scannable lines, condition stated if known, product focused — write less if there is less to say"
+  "description": "100–200 words, most important spec first, short scannable lines, condition stated if known, product focused — write less if there is less to say",
+  "itemSpecifics": {
+    "Brand": "brand name or 'Does not apply' if unknown",
+    "Model": "model name/number or omit if unknown",
+    "Condition": "New / Like New / Good / Acceptable — only if stated by seller",
+    "Colour": "colour or omit if unknown",
+    "MPN": "manufacturer part number or omit if unknown",
+    "Type": "product type or category if helpful"
+  }
 }
+
+Only include keys in itemSpecifics where you have factual information from the seller's input. Do not invent or guess values. If you have no item specifics at all, include an empty object: "itemSpecifics": {}.
 
 ${WRITING_RULES}
 - eBay title: buyers search for exact model/spec terms — be specific, not generic

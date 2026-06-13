@@ -39,6 +39,7 @@ const FIELD_LABELS: Record<string, string> = {
   caption: "Caption",
   postCopy: "Post Copy",
   hashtags: "Hashtags",
+  itemSpecifics: "Item Specifics",
 };
 
 export { FIELD_LABELS };
