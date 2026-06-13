@@ -122,6 +122,7 @@ Return ONLY a valid JSON object:
 }
 
 Only include keys in itemSpecifics where you have factual information from the seller's input. Do not invent or guess values. If you have no item specifics at all, include an empty object: "itemSpecifics": {}.
+Add other category-relevant keys (e.g. Size, Screen Size, Storage Capacity, Material) if the seller's input supports them.
 
 ${WRITING_RULES}
 - eBay title: buyers search for exact model/spec terms — be specific, not generic
@@ -393,6 +394,20 @@ export async function POST(request: NextRequest) {
       }
     } catch (incErr) {
       console.error("Failed to increment usage:", incErr);
+    }
+
+    // Serialise itemSpecifics in original (if present) to the same key-value string format
+    if (
+      listing.original &&
+      typeof listing.original === "object" &&
+      !Array.isArray(listing.original)
+    ) {
+      const orig = listing.original as Record<string, unknown>;
+      if (orig.itemSpecifics && typeof orig.itemSpecifics === "object" && !Array.isArray(orig.itemSpecifics)) {
+        orig.itemSpecifics = Object.entries(orig.itemSpecifics as Record<string, string>)
+          .map(([k, v]) => `${k}: ${v}`)
+          .join("\n");
+      }
     }
 
     return NextResponse.json({ ...listing, platform, used: used + 1, limit, id: optimisationId });

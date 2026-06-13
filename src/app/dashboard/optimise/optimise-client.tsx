@@ -90,7 +90,7 @@ function getResultTabs(result: OptimisedListing): TabConfig[] {
         { id: "title", label: "Title", fieldKey: "title", content: result.title ?? "", maxChars: 80 },
         { id: "description", label: "Description", fieldKey: "description", content: result.description ?? "" },
         ...(result.itemSpecifics && Object.keys(result.itemSpecifics).length > 0
-          ? [{ id: "itemSpecifics", label: "Item Specifics", fieldKey: "itemSpecifics" as keyof Omit<OptimisedListing, "platform" | "original" | "changes">, content: Object.entries(result.itemSpecifics).map(([k, v]) => `${k}: ${v}`).join("\n") }]
+          ? [{ id: "itemSpecifics", label: "Item Specifics", fieldKey: "itemSpecifics" as const, content: Object.entries(result.itemSpecifics).map(([k, v]) => `${k}: ${v}`).join("\n") }]
           : []),
       ];
     case "woocommerce":
