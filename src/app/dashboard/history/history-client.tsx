@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 import type { Platform } from "@/lib/platforms";
+import { FIELD_LABELS } from "@/components/listing-diff";
 
 interface Optimisation {
   id: string;
@@ -331,6 +332,21 @@ function OptimisationCard({ opt, onArchiveToggle }: { opt: Optimisation; onArchi
               <PlatformOutput platform={opt.platform} output={opt.output} />
             </div>
           </div>
+          {Array.isArray(opt.output.changes) && (opt.output.changes as Array<{ field: string; reason: string }>).length > 0 && (
+            <div className="mt-4 pt-4 border-t border-border/50">
+              <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">What changed</h4>
+              <ul className="space-y-1.5">
+                {(opt.output.changes as Array<{ field: string; reason: string }>).map((c, i) => (
+                  <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
+                    <Badge variant="outline" className="mt-0.5 shrink-0 h-4 rounded px-1 py-0 text-[9px]">
+                      {FIELD_LABELS[c.field] ?? c.field}
+                    </Badge>
+                    <span className="leading-relaxed">{c.reason}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
     </Card>

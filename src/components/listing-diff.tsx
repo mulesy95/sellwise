@@ -24,6 +24,25 @@ interface ListingDiffProps {
   changes: ChangeNote[];
 }
 
+const FIELD_LABELS: Record<string, string> = {
+  title: "Title",
+  description: "Description",
+  tags: "Tags",
+  bullets: "Bullet Points",
+  backendKeywords: "Backend Keywords",
+  metaTitle: "Meta Title",
+  metaDescription: "Meta Description",
+  productTitle: "Product Title",
+  shortDescription: "Short Description",
+  seoTitle: "SEO Title",
+  seoDescription: "SEO Description",
+  caption: "Caption",
+  postCopy: "Post Copy",
+  hashtags: "Hashtags",
+};
+
+export { FIELD_LABELS };
+
 function renderValue(value: string | string[], isList: boolean): string {
   if (Array.isArray(value)) return value.join(isList ? ", " : "\n");
   return value;
@@ -55,7 +74,7 @@ export function ListingDiff({ tabs, original, changes }: ListingDiffProps) {
             <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
               {tab.label}
             </p>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div className="rounded-md bg-destructive/5 border border-destructive/20 p-2">
                 <p className="text-[10px] font-medium text-destructive/70 mb-1">Before</p>
                 <p className="text-xs text-muted-foreground leading-relaxed line-clamp-4 whitespace-pre-wrap">
@@ -84,7 +103,7 @@ export function ListingDiff({ tabs, original, changes }: ListingDiffProps) {
               {changes.map((c, i) => (
                 <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
                   <Badge variant="outline" className="mt-0.5 shrink-0 h-4 rounded px-1 py-0 text-[9px]">
-                    {c.field}
+                    {FIELD_LABELS[c.field] ?? c.field}
                   </Badge>
                   <span className="leading-relaxed">{c.reason}</span>
                 </li>
