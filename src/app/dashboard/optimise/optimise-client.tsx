@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Sparkles, Copy, Check, RotateCcw, RefreshCw, Download, BarChart3, ImagePlus, X, Lock, AlertCircle, ChevronDown, ThumbsUp, ThumbsDown, Lightbulb, Search, ArrowLeftRight, Plus } from "lucide-react";
 import { UpgradeModal } from "@/components/upgrade-modal";
@@ -302,25 +303,25 @@ function RescuePanel({ platform, onReset }: { platform: Platform; onReset: () =>
   );
 }
 
-function WhatNextStrip({ platform, onReset }: { platform: Platform; onReset: () => void }) {
+function WhatNextStrip({ onReset }: { onReset: () => void }) {
   return (
     <div className="rounded-lg border border-border/50 bg-muted/20 p-4 space-y-3">
       <p className="text-xs font-medium text-muted-foreground">What next?</p>
       <div className="grid gap-2 sm:grid-cols-3">
-        <a
+        <Link
           href="/dashboard/keywords"
           className="flex items-center gap-2 rounded-md border border-border/60 bg-background px-3 py-2 text-xs font-medium hover:border-border hover:bg-muted/30 transition-colors"
         >
           <Search className="size-3.5 shrink-0 text-muted-foreground" />
           Research keywords
-        </a>
-        <a
+        </Link>
+        <Link
           href="/dashboard/audit"
           className="flex items-center gap-2 rounded-md border border-border/60 bg-background px-3 py-2 text-xs font-medium hover:border-border hover:bg-muted/30 transition-colors"
         >
           <BarChart3 className="size-3.5 shrink-0 text-muted-foreground" />
           Audit this listing
-        </a>
+        </Link>
         <button
           onClick={onReset}
           className="flex items-center gap-2 rounded-md border border-border/60 bg-background px-3 py-2 text-xs font-medium hover:border-border hover:bg-muted/30 transition-colors text-left w-full"
@@ -1060,7 +1061,7 @@ export function OptimiseClient({ plan }: { plan: string }) {
               )}
 
               {result !== null && (
-                <WhatNextStrip platform={platform} onReset={handleReset} />
+                <WhatNextStrip onReset={handleReset} />
               )}
 
               {/* Utility links */}
