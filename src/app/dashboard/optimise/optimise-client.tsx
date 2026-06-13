@@ -22,6 +22,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import type { Platform } from "@/lib/platforms";
 
+interface ChangeNote {
+  field: string;
+  reason: string;
+}
+
 interface OptimisedListing {
   platform: Platform;
   title?: string;
@@ -38,11 +43,14 @@ interface OptimisedListing {
   postCopy?: string;
   hashtags?: string[];
   description?: string;
+  original?: Record<string, string | string[]>;
+  changes?: ChangeNote[];
 }
 
 interface TabConfig {
   id: string;
   label: string;
+  fieldKey: keyof Omit<OptimisedListing, "platform" | "original" | "changes">;
   content: string | string[];
   maxChars?: number;
   isTags?: boolean;
@@ -53,55 +61,55 @@ function getResultTabs(result: OptimisedListing): TabConfig[] {
   switch (result.platform) {
     case "etsy":
       return [
-        { id: "title", label: "Title", content: result.title ?? "", maxChars: 140 },
-        { id: "tags", label: "Tags", content: result.tags ?? [], isTags: true },
-        { id: "description", label: "Description", content: result.description ?? "" },
+        { id: "title", label: "Title", fieldKey: "title", content: result.title ?? "", maxChars: 140 },
+        { id: "tags", label: "Tags", fieldKey: "tags", content: result.tags ?? [], isTags: true },
+        { id: "description", label: "Description", fieldKey: "description", content: result.description ?? "" },
       ];
     case "amazon":
       return [
-        { id: "title", label: "Title", content: result.title ?? "", maxChars: 200 },
-        { id: "bullets", label: "Bullets", content: result.bullets ?? [], isBullets: true },
-        { id: "backend", label: "Backend Keys", content: result.backendKeywords ?? "" },
-        { id: "description", label: "Description", content: result.description ?? "" },
+        { id: "title", label: "Title", fieldKey: "title", content: result.title ?? "", maxChars: 200 },
+        { id: "bullets", label: "Bullets", fieldKey: "bullets", content: result.bullets ?? [], isBullets: true },
+        { id: "backend", label: "Backend Keys", fieldKey: "backendKeywords", content: result.backendKeywords ?? "" },
+        { id: "description", label: "Description", fieldKey: "description", content: result.description ?? "" },
       ];
     case "shopify":
       return [
-        { id: "metaTitle", label: "Meta Title", content: result.metaTitle ?? "", maxChars: 60 },
-        { id: "metaDesc", label: "Meta Desc", content: result.metaDescription ?? "", maxChars: 160 },
-        { id: "productTitle", label: "Product Title", content: result.productTitle ?? "" },
-        { id: "description", label: "Description", content: result.description ?? "" },
+        { id: "metaTitle", label: "Meta Title", fieldKey: "metaTitle", content: result.metaTitle ?? "", maxChars: 60 },
+        { id: "metaDesc", label: "Meta Desc", fieldKey: "metaDescription", content: result.metaDescription ?? "", maxChars: 160 },
+        { id: "productTitle", label: "Product Title", fieldKey: "productTitle", content: result.productTitle ?? "" },
+        { id: "description", label: "Description", fieldKey: "description", content: result.description ?? "" },
       ];
     case "ebay":
       return [
-        { id: "title", label: "Title", content: result.title ?? "", maxChars: 80 },
-        { id: "description", label: "Description", content: result.description ?? "" },
+        { id: "title", label: "Title", fieldKey: "title", content: result.title ?? "", maxChars: 80 },
+        { id: "description", label: "Description", fieldKey: "description", content: result.description ?? "" },
       ];
     case "woocommerce":
       return [
-        { id: "seoTitle", label: "SEO Title", content: result.seoTitle ?? "", maxChars: 60 },
-        { id: "seoDesc", label: "SEO Desc", content: result.seoDescription ?? "", maxChars: 160 },
-        { id: "productTitle", label: "Product Title", content: result.productTitle ?? "" },
-        { id: "shortDesc", label: "Short Desc", content: result.shortDescription ?? "", maxChars: 150 },
-        { id: "description", label: "Description", content: result.description ?? "" },
+        { id: "seoTitle", label: "SEO Title", fieldKey: "seoTitle", content: result.seoTitle ?? "", maxChars: 60 },
+        { id: "seoDesc", label: "SEO Desc", fieldKey: "seoDescription", content: result.seoDescription ?? "", maxChars: 160 },
+        { id: "productTitle", label: "Product Title", fieldKey: "productTitle", content: result.productTitle ?? "" },
+        { id: "shortDesc", label: "Short Desc", fieldKey: "shortDescription", content: result.shortDescription ?? "", maxChars: 150 },
+        { id: "description", label: "Description", fieldKey: "description", content: result.description ?? "" },
       ];
     case "wix":
     case "squarespace":
       return [
-        { id: "seoTitle", label: "SEO Title", content: result.seoTitle ?? "", maxChars: 60 },
-        { id: "seoDesc", label: "SEO Desc", content: result.seoDescription ?? "", maxChars: 160 },
-        { id: "productTitle", label: "Product Title", content: result.productTitle ?? "" },
-        { id: "description", label: "Description", content: result.description ?? "" },
+        { id: "seoTitle", label: "SEO Title", fieldKey: "seoTitle", content: result.seoTitle ?? "", maxChars: 60 },
+        { id: "seoDesc", label: "SEO Desc", fieldKey: "seoDescription", content: result.seoDescription ?? "", maxChars: 160 },
+        { id: "productTitle", label: "Product Title", fieldKey: "productTitle", content: result.productTitle ?? "" },
+        { id: "description", label: "Description", fieldKey: "description", content: result.description ?? "" },
       ];
     case "tiktok":
       return [
-        { id: "title", label: "Title", content: result.title ?? "", maxChars: 100 },
-        { id: "description", label: "Description", content: result.description ?? "" },
+        { id: "title", label: "Title", fieldKey: "title", content: result.title ?? "", maxChars: 100 },
+        { id: "description", label: "Description", fieldKey: "description", content: result.description ?? "" },
       ];
     case "social":
       return [
-        { id: "caption", label: "Caption", content: result.caption ?? "", maxChars: 125 },
-        { id: "postCopy", label: "Post Copy", content: result.postCopy ?? "" },
-        { id: "hashtags", label: "Hashtags", content: result.hashtags ?? [], isTags: true },
+        { id: "caption", label: "Caption", fieldKey: "caption", content: result.caption ?? "", maxChars: 125 },
+        { id: "postCopy", label: "Post Copy", fieldKey: "postCopy", content: result.postCopy ?? "" },
+        { id: "hashtags", label: "Hashtags", fieldKey: "hashtags", content: result.hashtags ?? [], isTags: true },
       ];
   }
 }
