@@ -267,17 +267,9 @@ export async function POST(request: NextRequest) {
   }
 
   const usageData = await getUsageData(user.id);
-  if (usageData.effectivePlan === "free") {
-    return NextResponse.json(
-      {
-        error: "Listing audits are available on paid plans.",
-        code: "FEATURE_GATED",
-      },
-      { status: 402 }
-    );
-  }
   const used = usageData.audits;
-  const limit = usageData.limit;
+  // Free tier: unlimited audits — audit is the upsell hook, not a paid feature
+  const limit = usageData.effectivePlan === "free" ? null : usageData.limit;
   if (limit !== null && used >= limit) {
     return NextResponse.json(
       {

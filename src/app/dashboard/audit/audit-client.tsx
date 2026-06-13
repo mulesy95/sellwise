@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { BarChart3, Sparkles, AlertCircle, Link2, PenLine, Share2, RotateCcw, Copy, Check } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -177,7 +177,7 @@ function overallLabel(score: number) {
 
 type InputMode = "url" | "manual";
 
-export function AuditClient() {
+export function AuditClient({ plan }: { plan: string }) {
   const [mode, setMode] = useState<InputMode>("manual");
   const [platform, setPlatform] = useState<Platform>(() => (sessionStorage.getItem("sw_active_platform") as Platform) ?? "shopify");
   const [urlValue, setUrlValue] = useState("");
@@ -367,6 +367,17 @@ export function AuditClient() {
     await navigator.clipboard.writeText(buildShareUrl());
     setLinkCopied(true);
     setTimeout(() => setLinkCopied(false), 2000);
+  }
+
+  function buildOptimiseUrl() {
+    if (!lastPayload || !result) return "/dashboard/optimise";
+    const p = detectedPlatform ?? platform;
+    const parts = Object.entries(lastPayload)
+      .filter(([k]) => k !== "platform" && k !== "url")
+      .map(([k, v]) => `${k}: ${v}`)
+      .filter(([, v]) => (v as string).trim());
+    const existingContent = parts.join("\n\n").slice(0, 2000);
+    return `/dashboard/optimise?platform=${p}&existingContent=${encodeURIComponent(existingContent)}`;
   }
 
   const sections = AUDIT_SECTIONS[detectedPlatform ?? platform];
@@ -706,6 +717,24 @@ export function AuditClient() {
                       </p>
                     </div>
                   </div>
+                )}
+              </div>
+
+              {/* Optimise CTA */}
+              <div className="mt-4 pt-4 border-t border-border/50 flex items-center justify-between gap-3">
+                <p className="text-xs text-muted-foreground">
+                  Ready to fix these issues?
+                </p>
+                {plan === "free" ? (
+                  <Button size="sm" className="h-7 text-xs gap-1.5" onClick={() => setUpgradeOpen(true)}>
+                    <Sparkles className="size-3" />
+                    Optimise this listing
+                  </Button>
+                ) : (
+                  <a href={buildOptimiseUrl()} className={buttonVariants({ size: "sm", className: "h-7 text-xs gap-1.5" })}>
+                    <Sparkles className="size-3" />
+                    Optimise this listing
+                  </a>
                 )}
               </div>
 
