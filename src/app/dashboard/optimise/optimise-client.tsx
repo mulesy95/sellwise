@@ -22,6 +22,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import type { Platform } from "@/lib/platforms";
 import { ListingDiff } from "@/components/listing-diff";
+import { scoreOptimisedListing } from "@/lib/listing-score";
+import type { ScoredListing } from "@/lib/listing-score";
+import { cn } from "@/lib/utils";
 
 interface ChangeNote {
   field: string;
@@ -29,6 +32,7 @@ interface ChangeNote {
 }
 
 interface OptimisedListing {
+  id?: string;
   platform: Platform;
   title?: string;
   tags?: string[];
@@ -186,6 +190,37 @@ interface FormValues {
 }
 
 const FORM_STORAGE_KEY = "optimise:form";
+
+function ScoreDisplay({ before, after }: { before?: number; after: number }) {
+  const color = (s: number) =>
+    s >= 70 ? "text-emerald-600 dark:text-emerald-400"
+    : s >= 40 ? "text-amber-600 dark:text-amber-400"
+    : "text-red-600 dark:text-red-400";
+  const delta = before !== undefined ? after - before : null;
+  return (
+    <div className="flex items-center gap-3 rounded-lg border border-border/50 bg-muted/20 px-4 py-3">
+      {before !== undefined && (
+        <>
+          <div className="text-center">
+            <p className={cn("text-2xl font-bold tabular-nums leading-none", color(before))}>{before}</p>
+            <p className="mt-0.5 text-[10px] text-muted-foreground">Before</p>
+          </div>
+          <span className="text-muted-foreground/50">→</span>
+        </>
+      )}
+      <div className="text-center">
+        <p className={cn("text-2xl font-bold tabular-nums leading-none", color(after))}>{after}</p>
+        <p className="mt-0.5 text-[10px] text-muted-foreground">{before !== undefined ? "After" : "SEO Score"}</p>
+      </div>
+      {delta !== null && (
+        <div className={cn("text-xs font-semibold", delta >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-destructive")}>
+          {delta >= 0 ? "+" : ""}{delta}
+        </div>
+      )}
+      <div className="ml-auto text-[10px] text-muted-foreground/50">/ 100</div>
+    </div>
+  );
+}
 
 export function OptimiseClient({ plan }: { plan: string }) {
   const searchParams = useSearchParams();
@@ -388,6 +423,10 @@ export function OptimiseClient({ plan }: { plan: string }) {
   }
 
   const tabs = result ? getResultTabs(result) : [];
+  const afterScore = result ? scoreOptimisedListing(result as ScoredListing) : null;
+  const beforeScore = (result?.original && result?.platform)
+    ? scoreOptimisedListing({ platform: result.platform, ...result.original } as ScoredListing)
+    : null;
   const hopOptions = HOP_PLATFORMS.filter((p) => p.id !== platform);
 
   return (
@@ -770,17 +809,31 @@ export function OptimiseClient({ plan }: { plan: string }) {
                               </Button>
                             </div>
                             <Separator />
-                            <div className="flex items-center justify-between text-xs text-muted-foreground">
-                              <span>
-                                {(tab.content as string).length}
-                                {tab.maxChars ? ` / ${tab.maxChars} characters` : " characters"}
-                              </span>
-                              {tab.maxChars && (
-                                <span className={(tab.content as string).length <= tab.maxChars ? "text-emerald-600 dark:text-emerald-400" : "text-destructive"}>
-                                  {(tab.content as string).length <= tab.maxChars ? "✓ Within limit" : "Too long"}
-                                </span>
-                              )}
-                            </div>
+                            {tab.maxChars ? (
+                              <div className="space-y-1.5">
+                                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                  <span>{(tab.content as string).length} / {tab.maxChars} characters</span>
+                                  <span className={(tab.content as string).length <= tab.maxChars ? "text-emerald-600 dark:text-emerald-400" : "text-destructive"}>
+                                    {(tab.content as string).length <= tab.maxChars ? "✓ Within limit" : "Too long"}
+                                  </span>
+                                </div>
+                                <div className="h-1 w-full rounded-full bg-muted overflow-hidden">
+                                  <div
+                                    className={cn(
+                                      "h-full rounded-full transition-all duration-300",
+                                      (tab.content as string).length > tab.maxChars
+                                        ? "bg-destructive"
+                                        : (tab.content as string).length / tab.maxChars >= 0.9
+                                        ? "bg-amber-500"
+                                        : "bg-emerald-500"
+                                    )}
+                                    style={{ width: `${Math.min(100, ((tab.content as string).length / tab.maxChars) * 100)}%` }}
+                                  />
+                                </div>
+                              </div>
+                            ) : (
+                              <p className="text-xs text-muted-foreground">{(tab.content as string).length} characters</p>
+                            )}
                           </>
                         )}
                       </TabsContent>
@@ -788,6 +841,13 @@ export function OptimiseClient({ plan }: { plan: string }) {
                   </Tabs>
                 </CardContent>
               </Card>
+
+              {afterScore !== null && (
+                <ScoreDisplay
+                  before={beforeScore ?? undefined}
+                  after={afterScore}
+                />
+              )}
 
               {result.original && result.changes && (
                 <ListingDiff

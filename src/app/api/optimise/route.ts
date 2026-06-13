@@ -336,18 +336,24 @@ export async function POST(request: NextRequest) {
       listing = JSON.parse(match[0]);
     }
 
+    let optimisationId: string | null = null;
     try {
-      await Promise.all([
+      const [, { data: insertedRow }] = await Promise.all([
         incrementUsage(user.id, "optimisations"),
-        supabase.from("optimisations").insert({
-          user_id: user.id,
-          platform,
-          product_id: productId ?? null,
-          shop_id: shopId ?? null,
-          input: { productName, materials, style, targetBuyer, keywords },
-          output: listing,
-        }),
+        supabase
+          .from("optimisations")
+          .insert({
+            user_id: user.id,
+            platform,
+            product_id: productId ?? null,
+            shop_id: shopId ?? null,
+            input: { productName, materials, style, targetBuyer, keywords },
+            output: listing,
+          })
+          .select("id")
+          .single(),
       ]);
+      optimisationId = insertedRow?.id ?? null;
       revalidatePath("/dashboard", "layout");
 
       // Stamp first optimisation time — cron sends email after 2 hours
@@ -379,7 +385,7 @@ export async function POST(request: NextRequest) {
       console.error("Failed to increment usage:", incErr);
     }
 
-    return NextResponse.json({ ...listing, platform, used: used + 1, limit });
+    return NextResponse.json({ ...listing, platform, used: used + 1, limit, id: optimisationId });
   } catch (err) {
     if (
       err instanceof APIConnectionError ||
