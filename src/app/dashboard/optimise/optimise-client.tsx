@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Sparkles, Copy, Check, RotateCcw, RefreshCw, Download, BarChart3, ImagePlus, X, Lock, AlertCircle, ChevronDown, ThumbsUp, ThumbsDown } from "lucide-react";
+import { Sparkles, Copy, Check, RotateCcw, RefreshCw, Download, BarChart3, ImagePlus, X, Lock, AlertCircle, ChevronDown, ThumbsUp, ThumbsDown, Lightbulb, Search, ArrowLeftRight } from "lucide-react";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import { Spinner } from "@/components/ui/spinner";
 import { PlatformSelector } from "@/components/platform-selector";
@@ -226,6 +226,51 @@ function ScoreDisplay({ before, after }: { before?: number; after: number }) {
   );
 }
 
+function RescuePanel({ platform, onReset }: { platform: Platform; onReset: () => void }) {
+  return (
+    <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4 space-y-3">
+      <div className="flex items-center gap-2">
+        <Lightbulb className="size-4 text-amber-600 dark:text-amber-400 shrink-0" />
+        <p className="text-sm font-medium text-amber-700 dark:text-amber-400">
+          Score under 60 — a few things to try
+        </p>
+      </div>
+      <div className="grid gap-2 sm:grid-cols-3">
+        <a
+          href={`/dashboard/keywords?platform=${platform}`}
+          className="flex items-start gap-2 rounded-md border border-border/60 bg-background p-3 text-xs hover:border-border hover:bg-muted/30 transition-colors"
+        >
+          <Search className="size-3.5 shrink-0 mt-0.5 text-muted-foreground" />
+          <div>
+            <p className="font-medium">Research keywords first</p>
+            <p className="text-muted-foreground mt-0.5">Pull 15 keywords, then come back and add them to the form.</p>
+          </div>
+        </a>
+        <a
+          href="/dashboard/audit"
+          className="flex items-start gap-2 rounded-md border border-border/60 bg-background p-3 text-xs hover:border-border hover:bg-muted/30 transition-colors"
+        >
+          <BarChart3 className="size-3.5 shrink-0 mt-0.5 text-muted-foreground" />
+          <div>
+            <p className="font-medium">Audit the listing instead</p>
+            <p className="text-muted-foreground mt-0.5">Paste your existing listing and get a breakdown of specific fixes.</p>
+          </div>
+        </a>
+        <button
+          onClick={onReset}
+          className="flex items-start gap-2 rounded-md border border-border/60 bg-background p-3 text-xs hover:border-border hover:bg-muted/30 transition-colors text-left w-full"
+        >
+          <ArrowLeftRight className="size-3.5 shrink-0 mt-0.5 text-muted-foreground" />
+          <div>
+            <p className="font-medium">Try a different platform</p>
+            <p className="text-muted-foreground mt-0.5">Different platforms rank differently — the same product may score higher elsewhere.</p>
+          </div>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function OptimiseClient({ plan }: { plan: string }) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -314,6 +359,12 @@ export function OptimiseClient({ plan }: { plan: string }) {
     setKeywordsValue("");
     setShowListPicker(false);
     setFormValues((v) => ({ ...v, existingContent: "" }));
+  }
+
+  function handleReset() {
+    setResult(null);
+    setError(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -883,6 +934,10 @@ export function OptimiseClient({ plan }: { plan: string }) {
                   original={result.original}
                   changes={result.changes}
                 />
+              )}
+
+              {afterScore !== null && afterScore < 60 && (
+                <RescuePanel platform={platform} onReset={handleReset} />
               )}
 
               {/* Utility links */}
