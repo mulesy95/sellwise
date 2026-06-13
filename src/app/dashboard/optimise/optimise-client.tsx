@@ -485,33 +485,27 @@ export function OptimiseClient({ plan }: { plan: string }) {
   }
 
   async function copyAll() {
-    if (!result || tabs.length === 0) return;
-    const parts = tabs.map((tab) => {
+    if (!result || displayTabs.length === 0) return;
+    const parts = displayTabs.map((tab) => {
       if (tab.isTags || tab.isBullets) {
         const arr = tab.content as string[];
         return `${tab.label.toUpperCase()}:\n${arr.join(tab.isTags ? ", " : "\n")}`;
       }
-      const content = tab.fieldKey === "description"
-        ? (isDescriptionLocked ? displayDescription : (tab.content as string))
-        : (tab.content as string);
-      return `${tab.label.toUpperCase()}:\n${content}`;
+      return `${tab.label.toUpperCase()}:\n${tab.content as string}`;
     });
     await navigator.clipboard.writeText(parts.join("\n\n"));
     toast.success("Full listing copied");
   }
 
   function downloadListing() {
-    if (!result || tabs.length === 0) return;
+    if (!result || displayTabs.length === 0) return;
     const header = `SellWise — ${result.platform.charAt(0).toUpperCase() + result.platform.slice(1)} Listing\n${"═".repeat(44)}\n\n`;
-    const parts = tabs.map((tab) => {
+    const parts = displayTabs.map((tab) => {
       const divider = "─".repeat(tab.label.length);
       if (Array.isArray(tab.content)) {
         return `${tab.label}\n${divider}\n${(tab.content as string[]).join("\n")}`;
       }
-      const content = tab.fieldKey === "description"
-        ? (isDescriptionLocked ? displayDescription : (tab.content as string))
-        : (tab.content as string);
-      return `${tab.label}\n${divider}\n${content}`;
+      return `${tab.label}\n${divider}\n${tab.content as string}`;
     });
     const blob = new Blob([header + parts.join("\n\n")], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -560,6 +554,13 @@ export function OptimiseClient({ plan }: { plan: string }) {
   const displayDescription = isDescriptionLocked
     ? descriptionWords.slice(0, DESCRIPTION_WORD_LIMIT).join(" ") + "…"
     : fullDescription;
+  const displayTabs = isDescriptionLocked
+    ? tabs.map((tab) =>
+        tab.fieldKey === "description"
+          ? { ...tab, content: displayDescription }
+          : tab
+      )
+    : tabs;
 
   return (
     <div className="space-y-6">
@@ -849,7 +850,7 @@ export function OptimiseClient({ plan }: { plan: string }) {
             </Card>
           )}
 
-          {result && tabs.length > 0 && (
+          {result && displayTabs.length > 0 && (
             <>
               <Card className="border-border/50">
                 <CardHeader className="flex flex-row items-center justify-between pb-3">
@@ -887,16 +888,16 @@ export function OptimiseClient({ plan }: { plan: string }) {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <Tabs defaultValue={tabs[0].id}>
+                  <Tabs defaultValue={displayTabs[0].id}>
                     <TabsList className="w-full">
-                      {tabs.map((tab) => (
+                      {displayTabs.map((tab) => (
                         <TabsTrigger key={tab.id} value={tab.id} className="flex-1 text-xs">
                           {tab.label}
                         </TabsTrigger>
                       ))}
                     </TabsList>
 
-                    {tabs.map((tab) => (
+                    {displayTabs.map((tab) => (
                       <TabsContent key={tab.id} value={tab.id} className="mt-4 space-y-3">
                         {tab.isTags && Array.isArray(tab.content) ? (
                           <>
@@ -943,25 +944,23 @@ export function OptimiseClient({ plan }: { plan: string }) {
                         ) : (
                           <>
                             <div className="flex items-start justify-between gap-2">
-                              {tab.fieldKey === "description" ? (
+                              {tab.fieldKey === "description" && isDescriptionLocked ? (
                                 <div className="relative flex-1">
-                                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{isDescriptionLocked ? displayDescription : (tab.content as string)}</p>
-                                  {isDescriptionLocked && (
-                                    <div className="mt-2 flex flex-col items-center gap-2">
-                                      <div className="w-full h-8 bg-gradient-to-b from-transparent to-background/60 -mt-8 pointer-events-none" />
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          setLockedDesc(fullDescription);
-                                          setUpgradeOpen(true);
-                                        }}
-                                        className="flex items-center gap-1.5 rounded-md border border-border/60 bg-muted/40 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-border transition-colors"
-                                      >
-                                        <Lock className="size-3 shrink-0" />
-                                        Unlock full description
-                                      </button>
-                                    </div>
-                                  )}
+                                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{tab.content as string}</p>
+                                  <div className="mt-2 flex flex-col items-center gap-2">
+                                    <div className="w-full h-8 bg-gradient-to-b from-transparent to-background/60 -mt-8 pointer-events-none" />
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setLockedDesc(fullDescription);
+                                        setUpgradeOpen(true);
+                                      }}
+                                      className="flex items-center gap-1.5 rounded-md border border-border/60 bg-muted/40 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-border transition-colors"
+                                    >
+                                      <Lock className="size-3 shrink-0" />
+                                      Unlock full description
+                                    </button>
+                                  </div>
                                 </div>
                               ) : (
                                 <p className="flex-1 whitespace-pre-wrap text-sm leading-relaxed">
@@ -971,7 +970,7 @@ export function OptimiseClient({ plan }: { plan: string }) {
                               <Button
                                 variant="ghost"
                                 size="icon-sm"
-                                onClick={() => copyToClipboard(tab.fieldKey === "description" ? (isDescriptionLocked ? displayDescription : (tab.content as string)) : (tab.content as string), tab.id)}
+                                onClick={() => copyToClipboard(tab.content as string, tab.id)}
                               >
                                 {copiedField === tab.id ? <Check className="size-3.5 text-primary" /> : <Copy className="size-3.5" />}
                               </Button>
@@ -1019,7 +1018,7 @@ export function OptimiseClient({ plan }: { plan: string }) {
 
               {result.original && result.changes && (
                 <ListingDiff
-                  tabs={tabs}
+                  tabs={displayTabs}
                   original={result.original}
                   changes={result.changes}
                 />
