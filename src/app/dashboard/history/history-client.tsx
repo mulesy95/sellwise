@@ -230,11 +230,13 @@ function OptimisationCard({
   onArchiveToggle,
   feedbackMap,
   onFeedback,
+  submittingFeedbackId,
 }: {
   opt: Optimisation;
   onArchiveToggle: (id: string) => void;
   feedbackMap: Record<string, "up" | "down" | null>;
   onFeedback: (id: string, value: "up" | "down") => void;
+  submittingFeedbackId: string | null;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [archiving, setArchiving] = useState(false);
@@ -335,21 +337,25 @@ function OptimisationCard({
                 <span className="text-[11px]">Helpful?</span>
                 <button
                   onClick={(e) => { e.stopPropagation(); onFeedback(opt.id, "up"); }}
+                  disabled={submittingFeedbackId === opt.id}
                   className={cn(
                     "rounded p-1 transition-colors hover:text-foreground",
                     (feedbackMap[opt.id] ?? opt.feedback) === "up" && "text-emerald-500"
                   )}
                   title="This result was helpful"
+                  aria-label="This result was helpful"
                 >
                   <ThumbsUp className="size-3.5" />
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); onFeedback(opt.id, "down"); }}
+                  disabled={submittingFeedbackId === opt.id}
                   className={cn(
                     "rounded p-1 transition-colors hover:text-foreground",
                     (feedbackMap[opt.id] ?? opt.feedback) === "down" && "text-destructive"
                   )}
                   title="This result wasn't helpful"
+                  aria-label="This result wasn't helpful"
                 >
                   <ThumbsDown className="size-3.5" />
                 </button>
@@ -410,10 +416,12 @@ export function HistoryClient() {
   const [platform, setPlatform] = useState<Platform | "all">("all");
   const [showArchived, setShowArchived] = useState(false);
   const [feedbackMap, setFeedbackMap] = useState<Record<string, "up" | "down" | null>>({});
+  const [submittingFeedbackId, setSubmittingFeedbackId] = useState<string | null>(null);
 
-  async function submitFeedback(optimisationId: string, value: "up" | "down") {
+  const submitFeedback = useCallback(async (optimisationId: string, value: "up" | "down") => {
     const current = feedbackMap[optimisationId] ?? null;
     const next = current === value ? null : value;
+    setSubmittingFeedbackId(optimisationId);
     setFeedbackMap((m) => ({ ...m, [optimisationId]: next }));
     try {
       const res = await fetch("/api/feedback", {
@@ -425,8 +433,10 @@ export function HistoryClient() {
     } catch {
       setFeedbackMap((m) => ({ ...m, [optimisationId]: current }));
       toast.error("Could not save feedback");
+    } finally {
+      setSubmittingFeedbackId(null);
     }
-  }
+  }, [feedbackMap]);
 
   const fetchPage = useCallback(async (pg: number, plat: Platform | "all", replace: boolean, archived: boolean) => {
     const setter = replace ? setLoading : setLoadingMore;
@@ -556,6 +566,7 @@ export function HistoryClient() {
                 onArchiveToggle={handleArchiveToggle}
                 feedbackMap={feedbackMap}
                 onFeedback={submitFeedback}
+                submittingFeedbackId={submittingFeedbackId}
               />
             ))}
           </div>

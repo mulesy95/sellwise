@@ -248,6 +248,7 @@ export function OptimiseClient({ plan }: { plan: string }) {
   const [showListPicker, setShowListPicker] = useState(false);
   const [showMoreDetail, setShowMoreDetail] = useState(false);
   const [feedback, setFeedback] = useState<"up" | "down" | null>(null);
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const loadingStep = useLoadingStep(loading, platform);
   const canUploadImage = plan !== "free";
@@ -284,6 +285,7 @@ export function OptimiseClient({ plan }: { plan: string }) {
 
   async function submitFeedback(value: "up" | "down") {
     if (!result?.id) return;
+    setSubmittingFeedback(true);
     const previous = feedback;
     const next = feedback === value ? null : value;
     setFeedback(next);
@@ -297,6 +299,8 @@ export function OptimiseClient({ plan }: { plan: string }) {
     } catch {
       setFeedback(previous);
       toast.error("Could not save feedback");
+    } finally {
+      setSubmittingFeedback(false);
     }
   }
 
@@ -899,21 +903,25 @@ export function OptimiseClient({ plan }: { plan: string }) {
                       <span className="text-xs">Helpful?</span>
                       <button
                         onClick={() => submitFeedback("up")}
+                        disabled={submittingFeedback}
                         className={cn(
                           "rounded p-1 transition-colors hover:text-foreground",
                           feedback === "up" && "text-emerald-500"
                         )}
                         title="This result was helpful"
+                        aria-label="This result was helpful"
                       >
                         <ThumbsUp className="size-3.5" />
                       </button>
                       <button
                         onClick={() => submitFeedback("down")}
+                        disabled={submittingFeedback}
                         className={cn(
                           "rounded p-1 transition-colors hover:text-foreground",
                           feedback === "down" && "text-destructive"
                         )}
                         title="This result wasn't helpful"
+                        aria-label="This result wasn't helpful"
                       >
                         <ThumbsDown className="size-3.5" />
                       </button>
