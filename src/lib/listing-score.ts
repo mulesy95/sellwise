@@ -33,9 +33,9 @@ export function scoreOptimisedListing(listing: ScoredListing): number {
       else if (tags.length >= 7) s += 15;
       else if (tags.length > 0) s += 8;
       const w = wc(desc);
-      if (w >= 60) s += 25;
-      else if (w >= 30) s += 15;
-      else if (w >= 10) s += 8;
+      if (w >= 150) s += 25;
+      else if (w >= 80) s += 15;
+      else if (w >= 30) s += 8;
       else if (w > 0) s += 3;
       return Math.min(100, s);
     }
