@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Sparkles, Copy, Check, RotateCcw, RefreshCw, Download, BarChart3, ImagePlus, X, Lock, AlertCircle, ChevronDown } from "lucide-react";
+import { Sparkles, Copy, Check, RotateCcw, RefreshCw, Download, BarChart3, ImagePlus, X, Lock, AlertCircle, ChevronDown, ThumbsUp, ThumbsDown } from "lucide-react";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import { Spinner } from "@/components/ui/spinner";
 import { PlatformSelector } from "@/components/platform-selector";
@@ -247,6 +247,7 @@ export function OptimiseClient({ plan }: { plan: string }) {
   const [keywordsValue, setKeywordsValue] = useState(searchParams.get("keywords") ?? "");
   const [showListPicker, setShowListPicker] = useState(false);
   const [showMoreDetail, setShowMoreDetail] = useState(false);
+  const [feedback, setFeedback] = useState<"up" | "down" | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const loadingStep = useLoadingStep(loading, platform);
   const canUploadImage = plan !== "free";
@@ -279,6 +280,17 @@ export function OptimiseClient({ plan }: { plan: string }) {
   function setField(key: keyof FormValues) {
     return (e: React.ChangeEvent<HTMLInputElement>) =>
       setFormValues((v) => ({ ...v, [key]: e.target.value }));
+  }
+
+  async function submitFeedback(value: "up" | "down") {
+    if (!result?.id) return;
+    const next = feedback === value ? null : value;
+    setFeedback(next);
+    await fetch("/api/feedback", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ optimisationId: result.id, feedback: next }),
+    });
   }
 
   function handlePlatformChange(p: Platform) {
@@ -349,6 +361,7 @@ export function OptimiseClient({ plan }: { plan: string }) {
       }
       const json = await res.json();
       setResult(json);
+      setFeedback(null);
       window.dispatchEvent(new Event("sellwise:optimised"));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to optimise");
@@ -872,6 +885,34 @@ export function OptimiseClient({ plan }: { plan: string }) {
                 >
                   <BarChart3 className="size-3" />Score this listing
                 </button>
+                {result?.id && (
+                  <>
+                    <span className="text-muted-foreground/30 text-xs">·</span>
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <span className="text-xs">Helpful?</span>
+                      <button
+                        onClick={() => submitFeedback("up")}
+                        className={cn(
+                          "rounded p-1 transition-colors hover:text-foreground",
+                          feedback === "up" && "text-emerald-500"
+                        )}
+                        title="This result was helpful"
+                      >
+                        <ThumbsUp className="size-3.5" />
+                      </button>
+                      <button
+                        onClick={() => submitFeedback("down")}
+                        className={cn(
+                          "rounded p-1 transition-colors hover:text-foreground",
+                          feedback === "down" && "text-destructive"
+                        )}
+                        title="This result wasn't helpful"
+                      >
+                        <ThumbsDown className="size-3.5" />
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Platform hop */}

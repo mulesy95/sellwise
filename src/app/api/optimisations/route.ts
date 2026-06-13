@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
 
   let query = supabase
     .from("optimisations")
-    .select("id, platform, product_id, shop_id, input, output, score, created_at, is_archived", { count: "exact" })
+    .select("id, platform, product_id, shop_id, input, output, score, created_at, is_archived, feedback", { count: "exact" })
     .eq("user_id", user.id)
     .eq("is_archived", showArchived)
     .order("created_at", { ascending: false })

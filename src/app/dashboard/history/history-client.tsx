@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { History, ChevronDown, ChevronUp, Copy, Check, ExternalLink, Loader2, Archive, ArchiveRestore } from "lucide-react";
+import { History, ChevronDown, ChevronUp, Copy, Check, ExternalLink, Loader2, Archive, ArchiveRestore, ThumbsUp, ThumbsDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,6 +28,7 @@ interface Optimisation {
   score: number | null;
   created_at: string;
   is_archived: boolean;
+  feedback?: "up" | "down" | null;
 }
 
 const PLATFORM_CONFIG: Record<Platform, { label: string; className: string }> = {
@@ -224,7 +225,17 @@ function InputSummary({ input }: { input: Optimisation["input"] }) {
   );
 }
 
-function OptimisationCard({ opt, onArchiveToggle }: { opt: Optimisation; onArchiveToggle: (id: string) => void }) {
+function OptimisationCard({
+  opt,
+  onArchiveToggle,
+  feedbackMap,
+  onFeedback,
+}: {
+  opt: Optimisation;
+  onArchiveToggle: (id: string) => void;
+  feedbackMap: Record<string, "up" | "down" | null>;
+  onFeedback: (id: string, value: "up" | "down") => void;
+}) {
   const [expanded, setExpanded] = useState(false);
   const [archiving, setArchiving] = useState(false);
 
@@ -320,6 +331,29 @@ function OptimisationCard({ opt, onArchiveToggle }: { opt: Optimisation; onArchi
                 <ExternalLink className="size-3" />
                 {isShopEntry ? "Re-optimise in My Shop" : "Re-optimise"}
               </a>
+              <div className="flex items-center gap-1 text-muted-foreground ml-auto">
+                <span className="text-[11px]">Helpful?</span>
+                <button
+                  onClick={(e) => { e.stopPropagation(); onFeedback(opt.id, "up"); }}
+                  className={cn(
+                    "rounded p-1 transition-colors hover:text-foreground",
+                    (feedbackMap[opt.id] ?? opt.feedback) === "up" && "text-emerald-500"
+                  )}
+                  title="This result was helpful"
+                >
+                  <ThumbsUp className="size-3.5" />
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); onFeedback(opt.id, "down"); }}
+                  className={cn(
+                    "rounded p-1 transition-colors hover:text-foreground",
+                    (feedbackMap[opt.id] ?? opt.feedback) === "down" && "text-destructive"
+                  )}
+                  title="This result wasn't helpful"
+                >
+                  <ThumbsDown className="size-3.5" />
+                </button>
+              </div>
             </div>
           </div>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -375,6 +409,18 @@ export function HistoryClient() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [platform, setPlatform] = useState<Platform | "all">("all");
   const [showArchived, setShowArchived] = useState(false);
+  const [feedbackMap, setFeedbackMap] = useState<Record<string, "up" | "down" | null>>({});
+
+  async function submitFeedback(optimisationId: string, value: "up" | "down") {
+    const current = feedbackMap[optimisationId] ?? null;
+    const next = current === value ? null : value;
+    setFeedbackMap((m) => ({ ...m, [optimisationId]: next }));
+    await fetch("/api/feedback", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ optimisationId, feedback: next }),
+    });
+  }
 
   const fetchPage = useCallback(async (pg: number, plat: Platform | "all", replace: boolean, archived: boolean) => {
     const setter = replace ? setLoading : setLoadingMore;
@@ -390,6 +436,11 @@ export function HistoryClient() {
       setTotal(data.total);
       setHasMore(data.hasMore);
       setPage(pg);
+      const initial: Record<string, "up" | "down" | null> = {};
+      for (const o of data.optimisations as Optimisation[]) {
+        if (o.feedback) initial[o.id] = o.feedback;
+      }
+      setFeedbackMap((m) => replace ? initial : { ...m, ...initial });
     } catch {
       toast.error("Could not load history");
     } finally {
@@ -493,7 +544,13 @@ export function HistoryClient() {
         <>
           <div className="space-y-2">
             {optimisations.map((opt) => (
-              <OptimisationCard key={opt.id} opt={opt} onArchiveToggle={handleArchiveToggle} />
+              <OptimisationCard
+                key={opt.id}
+                opt={opt}
+                onArchiveToggle={handleArchiveToggle}
+                feedbackMap={feedbackMap}
+                onFeedback={submitFeedback}
+              />
             ))}
           </div>
 
