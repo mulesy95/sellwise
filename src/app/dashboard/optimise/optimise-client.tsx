@@ -284,13 +284,20 @@ export function OptimiseClient({ plan }: { plan: string }) {
 
   async function submitFeedback(value: "up" | "down") {
     if (!result?.id) return;
+    const previous = feedback;
     const next = feedback === value ? null : value;
     setFeedback(next);
-    await fetch("/api/feedback", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ optimisationId: result.id, feedback: next }),
-    });
+    try {
+      const res = await fetch("/api/feedback", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ optimisationId: result.id, feedback: next }),
+      });
+      if (!res.ok) throw new Error();
+    } catch {
+      setFeedback(previous);
+      toast.error("Could not save feedback");
+    }
   }
 
   function handlePlatformChange(p: Platform) {

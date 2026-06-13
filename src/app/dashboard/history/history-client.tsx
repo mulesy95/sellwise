@@ -415,11 +415,17 @@ export function HistoryClient() {
     const current = feedbackMap[optimisationId] ?? null;
     const next = current === value ? null : value;
     setFeedbackMap((m) => ({ ...m, [optimisationId]: next }));
-    await fetch("/api/feedback", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ optimisationId, feedback: next }),
-    });
+    try {
+      const res = await fetch("/api/feedback", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ optimisationId, feedback: next }),
+      });
+      if (!res.ok) throw new Error();
+    } catch {
+      setFeedbackMap((m) => ({ ...m, [optimisationId]: current }));
+      toast.error("Could not save feedback");
+    }
   }
 
   const fetchPage = useCallback(async (pg: number, plat: Platform | "all", replace: boolean, archived: boolean) => {
