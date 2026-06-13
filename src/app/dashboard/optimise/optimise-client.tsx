@@ -237,7 +237,7 @@ function RescuePanel({ platform, onReset }: { platform: Platform; onReset: () =>
       </div>
       <div className="grid gap-2 sm:grid-cols-3">
         <a
-          href={`/dashboard/keywords?platform=${platform}`}
+          href="/dashboard/keywords"
           className="flex items-start gap-2 rounded-md border border-border/60 bg-background p-3 text-xs hover:border-border hover:bg-muted/30 transition-colors"
         >
           <Search className="size-3.5 shrink-0 mt-0.5 text-muted-foreground" />
@@ -263,7 +263,7 @@ function RescuePanel({ platform, onReset }: { platform: Platform; onReset: () =>
           <ArrowLeftRight className="size-3.5 shrink-0 mt-0.5 text-muted-foreground" />
           <div>
             <p className="font-medium">Try a different platform</p>
-            <p className="text-muted-foreground mt-0.5">Different platforms rank differently — the same product may score higher elsewhere.</p>
+            <p className="text-muted-foreground mt-0.5">We'll scroll you back to the top so you can pick a different platform and re-run.</p>
           </div>
         </button>
       </div>
