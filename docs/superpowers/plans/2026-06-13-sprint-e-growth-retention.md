@@ -2,9 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Bring sellers back every week and bring new sellers in via SEO and social proof. Three mechanisms: a public listing health check at `/check` (no signup required, Shopify only), a Monday/Friday weekly email digest, and an anonymised community wins feed on the dashboard.
+**Goal:** Bring sellers back every week and bring new sellers in via SEO and social proof. Three mechanisms: a public listing health check at `/check` (no signup required, Shopify only), a Monday/Friday weekly email digest, and a platform-anonymous aggregate activity stat on the dashboard.
 
-**Architecture:** `/check` is a new unauthenticated page + API route that uses the existing `fetchShopifyProduct` and Anthropic audit logic without requiring auth. The weekly digest is a new Vercel cron + email template. The community wins feed is a new `community_wins` table with an opt-in flow triggered when a user achieves a score of 80+.
+**Architecture:** `/check` is a new unauthenticated page + API route that uses the existing `fetchShopifyProduct` and Anthropic audit logic without requiring auth. The weekly digest is a new Vercel cron + email template. The activity stat shows total listings improved across all SellWise sellers this week — no platform breakdown, no individual scores, no competitive intel.
+
+**Note on community wins (why not):** Sellers on the same platform compete directly. Showing "An Etsy seller just scored 91" tells a direct competitor that someone in their niche is sharpening their listings. Even fully anonymised per-platform wins leak competitive intelligence. Aggregate totals (e.g. "1,247 listings improved this week") deliver the same social proof — the tool is working for a lot of people — without tipping off competitors.
 
 **Tech Stack:** Next.js 16 App Router, React 19, TypeScript, Tailwind 4, shadcn/ui, Supabase, Resend, Anthropic SDK
 
@@ -16,19 +18,15 @@
 
 **Create:**
 - `supabase/migrations/20260613150000_add_weekly_digest_to_profiles.sql`
-- `supabase/migrations/20260613160000_add_community_wins.sql`
 - `src/app/check/page.tsx` — public health check page (no auth)
 - `src/app/check/check-client.tsx` — client component for the form + result
 - `src/app/api/check/route.ts` — unauthenticated audit endpoint
 - `src/app/api/cron/weekly-digest/route.ts` — cron handler
 - `src/lib/emails/weekly-digest.ts` — email template
-- `src/app/api/community-wins/route.ts` — GET (public feed) + POST (opt-in)
-- `src/components/community-wins-widget.tsx` — dashboard widget
 
 **Modify:**
 - `vercel.json` — add weekly-digest cron schedule
-- `src/app/dashboard/page.tsx` — add `CommunityWinsWidget`
-- `src/app/dashboard/optimise/optimise-client.tsx` — opt-in prompt when score >= 80
+- `src/app/dashboard/page.tsx` — add aggregate activity stat (server-side query, no separate component)
 
 ---
 
@@ -583,204 +581,48 @@ git commit -m "feat: weekly digest email every Monday for active paid users"
 
 ---
 
-### Task 3: Community wins feed
+### Task 3: Aggregate activity stats on dashboard
 
 **Files:**
-- Create: `supabase/migrations/20260613160000_add_community_wins.sql`
-- Create: `src/app/api/community-wins/route.ts`
-- Create: `src/components/community-wins-widget.tsx`
-- Modify: `src/app/dashboard/optimise/optimise-client.tsx`
 - Modify: `src/app/dashboard/page.tsx`
 
-**Context:** When a seller achieves a score of 80+, show an opt-in toast: "Nice score. Want to add it to the community wins board?" If they tap Yes, a record is posted to the `community_wins` table with the platform, score, and category (anonymised — no product name, no user identity). The dashboard shows the last 5 community wins from the past 7 days: "A Shopify seller just scored 91." This is social proof per Art of Game Design Lens #84 (Friendship) and #86 (Community).
+**Context:** Show a single aggregate stat on the dashboard to deliver social proof that the product is working — without leaking competitive intel. No per-platform breakdown, no individual scores. Just total listings improved across all SellWise sellers in the last 7 days.
 
-The opt-in is one-time per optimisation. Storing the win is anonymous — only platform, score, and a rounded timestamp (day, not hour) are stored. No user ID stored in the community_wins table.
+This is a server-side query in the dashboard's server component (no API route, no separate client component). The stat renders inline in the existing dashboard stats row.
 
-- [ ] **Step 1: Create the DB migration**
+The value: "X,XXX listings improved this week" — tells a seller "this tool is actively used and it's working for a lot of people" without telling a competitor how many sellers in *their* specific niche are using it.
 
-Create `supabase/migrations/20260613160000_add_community_wins.sql`:
+- [ ] **Step 1: Add the weekly count query in dashboard/page.tsx**
 
-```sql
-create table public.community_wins (
-  id          uuid primary key default gen_random_uuid(),
-  platform    text not null,
-  score       int not null check (score >= 0 and score <= 100),
-  created_at  timestamptz not null default now()
-);
+In `src/app/dashboard/page.tsx`, after the existing Supabase queries (usage, shops), add a count of all optimisations created in the last 7 days across all users. Use the admin client for this cross-user query:
 
--- Public read, no auth required
-alter table public.community_wins enable row level security;
-
-create policy "community_wins: public read"
-  on public.community_wins for select
-  using (true);
-
--- Only authenticated users can insert
-create policy "community_wins: authenticated insert"
-  on public.community_wins for insert
-  with check (auth.role() = 'authenticated');
-```
-
-Apply:
-```bash
-npx supabase db push
-```
-
-- [ ] **Step 2: Create the API route**
-
-Create `src/app/api/community-wins/route.ts`:
-
-```typescript
-import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+```tsx
 import { createAdminClient } from "@/lib/supabase/admin";
-import { z } from "zod";
 
-const postSchema = z.object({
-  platform: z.enum(["etsy", "amazon", "shopify", "ebay", "woocommerce", "wix", "squarespace", "tiktok", "social"]),
-  score: z.number().int().min(0).max(100),
-});
-
-// GET — fetch last 5 wins from the past 7 days (public, no auth)
-export async function GET() {
-  const admin = createAdminClient();
-  const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-
-  const { data, error } = await admin
-    .from("community_wins")
-    .select("platform, score, created_at")
-    .gte("created_at", since)
-    .order("score", { ascending: false })
-    .limit(5);
-
-  if (error) return NextResponse.json({ wins: [] });
-  return NextResponse.json({ wins: data ?? [] });
-}
-
-// POST — opt-in, add a win (auth required)
-export async function POST(req: NextRequest) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
-
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
-
-  const parsed = postSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid input" }, { status: 400 });
-  }
-
-  const admin = createAdminClient();
-  const { error } = await admin
-    .from("community_wins")
-    .insert({ platform: parsed.data.platform, score: parsed.data.score });
-
-  if (error) return NextResponse.json({ error: "Failed to save" }, { status: 500 });
-  return NextResponse.json({ ok: true });
-}
+// Inside the server component, after existing queries:
+const admin = createAdminClient();
+const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+const { count: weeklyOptimisations } = await admin
+  .from("optimisations")
+  .select("id", { count: "exact", head: true })
+  .gte("created_at", since);
 ```
 
-- [ ] **Step 3: Create the dashboard widget**
+- [ ] **Step 2: Render the stat**
 
-Create `src/components/community-wins-widget.tsx`:
+In the dashboard JSX, find the stats row (usage bar + quick actions area). Below the usage bar or in the stats grid, add:
 
 ```tsx
-"use client";
-
-import { useEffect, useState } from "react";
-import { PLATFORM_LABELS } from "@/lib/platforms";
-import type { Platform } from "@/lib/platforms";
-
-interface Win {
-  platform: Platform;
-  score: number;
-  created_at: string;
-}
-
-function scoreColour(score: number) {
-  if (score >= 80) return "text-emerald-500";
-  if (score >= 60) return "text-amber-500";
-  return "text-red-500";
-}
-
-export function CommunityWinsWidget() {
-  const [wins, setWins] = useState<Win[]>([]);
-
-  useEffect(() => {
-    fetch("/api/community-wins")
-      .then((r) => r.json())
-      .then((d) => setWins(d.wins ?? []))
-      .catch(() => setWins([]));
-  }, []);
-
-  if (wins.length === 0) return null;
-
-  return (
-    <div className="rounded-xl border border-border/50 bg-muted/20 p-4 space-y-3">
-      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-        Community wins this week
-      </p>
-      <div className="space-y-1.5">
-        {wins.map((win, i) => (
-          <div key={i} className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">
-              A {PLATFORM_LABELS[win.platform] ?? win.platform} seller just scored
-            </span>
-            <span className={`font-semibold tabular-nums ${scoreColour(win.score)}`}>
-              {win.score}/100
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+{(weeklyOptimisations ?? 0) >= 10 && (
+  <p className="text-xs text-muted-foreground text-center">
+    {(weeklyOptimisations ?? 0).toLocaleString()} listings improved by SellWise sellers this week.
+  </p>
+)}
 ```
 
-- [ ] **Step 4: Add opt-in toast in optimise-client.tsx**
+The `>= 10` guard means the stat only shows once there is enough activity to be meaningful — it doesn't show "3 listings improved" in the early days.
 
-In `src/app/dashboard/optimise/optimise-client.tsx`, find the section where the result is set after the API call succeeds. After `setResult(data)` (and after the feedback state reset), add:
-
-```tsx
-// Offer community opt-in for high scores
-if (data.score && data.score >= 80) {
-  toast("Nice score.", {
-    description: "Add it to the community wins board?",
-    action: {
-      label: "Yes",
-      onClick: () => {
-        fetch("/api/community-wins", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ platform: data.platform, score: data.score }),
-        }).catch(() => {});
-      },
-    },
-  });
-}
-```
-
-Note: `toast` with `action` is Sonner's API. The existing codebase already uses Sonner (`import { toast } from "sonner"`). Check that the import is present — it should be.
-
-- [ ] **Step 5: Add CommunityWinsWidget to dashboard**
-
-In `src/app/dashboard/page.tsx`, import and render the widget. Find a logical place (below the quick actions grid or at the bottom of the main column) and add:
-
-```tsx
-import { CommunityWinsWidget } from "@/components/community-wins-widget";
-
-// In the JSX, at the bottom of the main content area:
-<CommunityWinsWidget />
-```
-
-The widget returns `null` when there are no wins, so it's safe to always render.
-
-- [ ] **Step 6: Type-check**
+- [ ] **Step 3: Type-check**
 
 ```bash
 npx tsc --noEmit
@@ -788,19 +630,11 @@ npx tsc --noEmit
 
 Expected: no errors.
 
-- [ ] **Step 7: Build check**
+- [ ] **Step 4: Commit**
 
 ```bash
-npm run build
-```
-
-Expected: build succeeds.
-
-- [ ] **Step 8: Commit**
-
-```bash
-git add supabase/migrations/20260613160000_add_community_wins.sql src/app/api/community-wins/route.ts src/components/community-wins-widget.tsx src/app/dashboard/optimise/optimise-client.tsx src/app/dashboard/page.tsx
-git commit -m "feat: community wins feed with opt-in from high-score optimisation results"
+git add src/app/dashboard/page.tsx
+git commit -m "feat: aggregate weekly activity stat on dashboard (social proof, no competitive intel)"
 ```
 
 ---
@@ -828,10 +662,10 @@ git push
 | Deduplication via weekly_digest_sent_week | Task 2 |
 | Skip users with 0 optimisations that week | Task 2 |
 | Monday 9am AEST cron schedule | Task 2 |
-| Community wins table (anonymised, no user ID) | Task 3 |
-| Opt-in toast when score >= 80 | Task 3 |
-| Dashboard widget shows last 5 wins this week | Task 3 |
+| Aggregate weekly activity stat on dashboard | Task 3 |
+| Stat hidden until >= 10 listings (no "3 listings improved" in early days) | Task 3 |
+| No per-platform breakdown (competitive intel risk removed) | Task 3 |
 
 **Placeholder scan:** None found. All code blocks are complete.
 
-**Type consistency:** `Platform` type used from `@/lib/platforms` throughout. `Win.platform` typed as `Platform`. `PLATFORM_LABELS` is a `Record<Platform, string>` — the optional chain `?? win.platform` handles any future platform additions gracefully.
+**Type consistency:** No new types introduced in Task 3. `weeklyOptimisations` is `number | null` from Supabase count — optional chain handles null correctly.
