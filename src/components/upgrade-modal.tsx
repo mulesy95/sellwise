@@ -91,12 +91,12 @@ export function UpgradeModal({
           <div>
             <h2 id="upgrade-modal-title" className="text-base font-bold">
               {isLimit
-                ? "You've used your free optimisations this month"
+                ? "You've outgrown this plan"
                 : "This feature is on paid plans"}
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
               {isLimit
-                ? "Upgrade to keep going — and unlock everything below."
+                ? "You're ready for the next level. Here's what opens up:"
                 : "All paid plans include a 7-day free trial. No card required to start."}
             </p>
           </div>
@@ -180,7 +180,7 @@ export function UpgradeModal({
         </div>
 
         <div className="flex items-center justify-between border-t border-border mt-3 px-6 py-3">
-          <p className="text-xs text-muted-foreground">7-day free trial. Cancel anytime.</p>
+          <p className="text-xs text-muted-foreground">Start free for 7 days. No card required.</p>
           <a href="/pricing" className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">
             See all plans
           </a>
