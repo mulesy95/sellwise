@@ -9,6 +9,8 @@ export const PLAN_LIMITS: Record<string, number> = {
   studio: Infinity,
 };
 
+export type Plan = "free" | "starter" | "growth" | "studio";
+
 // Daily cap on optimisations for unlimited plans — prevents bot abuse eating margin.
 // Growth: 100/day max = ~$21.70 API cost ceiling/month. Studio: 250/day = ~$54/month.
 // Free/Starter already constrained by monthly limits so no daily cap needed.

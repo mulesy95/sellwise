@@ -21,6 +21,7 @@ import { UpgradeModal } from "@/components/upgrade-modal";
 import { PlatformSelector } from "@/components/platform-selector";
 import { cn } from "@/lib/utils";
 import { AUDIT_SECTIONS, PLATFORM_LABELS, detectPlatformFromUrl, PLATFORM_URL_EXAMPLES, type Platform } from "@/lib/platforms";
+import type { Plan } from "@/lib/usage";
 
 interface AuditResult {
   score: number;
@@ -177,7 +178,7 @@ function overallLabel(score: number) {
 
 type InputMode = "url" | "manual";
 
-export function AuditClient({ plan }: { plan: string }) {
+export function AuditClient({ plan }: { plan: Plan }) {
   const [mode, setMode] = useState<InputMode>("manual");
   const [platform, setPlatform] = useState<Platform>(() => (sessionStorage.getItem("sw_active_platform") as Platform) ?? "shopify");
   const [urlValue, setUrlValue] = useState("");
@@ -374,8 +375,8 @@ export function AuditClient({ plan }: { plan: string }) {
     const p = detectedPlatform ?? platform;
     const parts = Object.entries(lastPayload)
       .filter(([k]) => k !== "platform" && k !== "url")
-      .map(([k, v]) => `${k}: ${v}`)
-      .filter(([, v]) => (v as string).trim());
+      .filter(([, v]) => (v as string).trim())
+      .map(([k, v]) => `${k}: ${v}`);
     const existingContent = parts.join("\n\n").slice(0, 2000);
     return `/dashboard/optimise?platform=${p}&existingContent=${encodeURIComponent(existingContent)}`;
   }
