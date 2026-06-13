@@ -30,8 +30,6 @@ function renderValue(value: string | string[], isList: boolean): string {
 }
 
 export function ListingDiff({ tabs, original, changes }: ListingDiffProps) {
-  const changedFieldKeys = new Set(changes.map((c) => c.field));
-
   const diffTabs = tabs.filter((tab) => {
     const orig = original[tab.fieldKey];
     return orig !== undefined && orig !== "" && (Array.isArray(orig) ? orig.length > 0 : true);
