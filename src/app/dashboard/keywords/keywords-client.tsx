@@ -258,7 +258,7 @@ export function KeywordsClient() {
               <div>
                 <CardTitle className="text-base">{keywords.length} keywords found</CardTitle>
                 <p className="mt-0.5 text-[11px] text-muted-foreground/70">
-                  Vol = search volume · Comp = how many competitors · ↑↓ = trend
+                  Vol = search volume · Comp = competition level · ↑↓ = trend · AI estimates, not live platform data
                 </p>
               </div>
               <div className="flex items-center gap-2 shrink-0">

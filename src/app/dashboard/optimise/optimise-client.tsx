@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Sparkles, Copy, Check, RotateCcw, RefreshCw, Download, BarChart3, ImagePlus, X, Lock, AlertCircle } from "lucide-react";
+import { Sparkles, Copy, Check, RotateCcw, RefreshCw, Download, BarChart3, ImagePlus, X, Lock, AlertCircle, ChevronDown } from "lucide-react";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import { Spinner } from "@/components/ui/spinner";
 import { PlatformSelector } from "@/components/platform-selector";
@@ -211,6 +211,7 @@ export function OptimiseClient({ plan }: { plan: string }) {
   const [keywordLists, setKeywordLists] = useState<KeywordList[]>([]);
   const [keywordsValue, setKeywordsValue] = useState(searchParams.get("keywords") ?? "");
   const [showListPicker, setShowListPicker] = useState(false);
+  const [showMoreDetail, setShowMoreDetail] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const loadingStep = useLoadingStep(loading, platform);
   const canUploadImage = plan !== "free";
@@ -464,6 +465,18 @@ export function OptimiseClient({ plan }: { plan: string }) {
                   required
                 />
               </div>
+              <button
+                type="button"
+                onClick={() => setShowMoreDetail((v) => !v)}
+                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ChevronDown className={`size-3.5 transition-transform ${showMoreDetail ? "rotate-180" : ""}`} />
+                {showMoreDetail ? "Less detail" : "Add more detail"}
+                <span className="text-muted-foreground/50">(materials, style, target buyer, photo)</span>
+              </button>
+
+              {showMoreDetail && (
+                <>
               <div className="space-y-1.5">
                 <Label htmlFor="materials">Materials &amp; techniques</Label>
                 <Input
@@ -594,6 +607,8 @@ export function OptimiseClient({ plan }: { plan: string }) {
                   </button>
                 )}
               </div>
+                </>
+              )}
 
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? (
