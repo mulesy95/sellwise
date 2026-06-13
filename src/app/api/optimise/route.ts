@@ -196,6 +196,19 @@ Return only the JSON object, no markdown.`;
   }
 }
 
+function improveModeSuffix(): string {
+  return `
+
+IMPROVE MODE — The seller's existing listing is provided above. Your job is to improve it, not replace it.
+
+Additional output requirements — add these two fields to your JSON response:
+1. "original": an object containing the field values you parsed from the seller's existing listing. Use the exact same field names as your improved output (e.g. "title", "metaTitle", "description", "tags"). Only include fields you can actually parse — do not invent original values.
+2. "changes": an array of objects, one per field where you made a meaningful improvement: { "field": "title", "reason": "specific explanation of what changed and why" }. The reason must be specific — state what keyword was added, what structure was fixed, what rule was applied. Not generic phrases like "improved for SEO".
+
+If a field needed no change, do not include it in "changes".
+Do not include "original" or "changes" keys in the platform-specific JSON schema above — add them alongside those fields in your response.`;
+}
+
 function buildUserMessage(
   platform: Platform,
   inputs: {
@@ -291,7 +304,7 @@ export async function POST(request: NextRequest) {
       system: [
         {
           type: "text" as const,
-          text: buildSystemPrompt(platform),
+          text: buildSystemPrompt(platform) + (existingContent ? improveModeSuffix() : ""),
           cache_control: { type: "ephemeral" as const },
         },
       ],
