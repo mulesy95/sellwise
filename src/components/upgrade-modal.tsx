@@ -47,10 +47,12 @@ export function UpgradeModal({
   open,
   onClose,
   reason,
+  lockedDescription,
 }: {
   open: boolean;
   onClose: () => void;
   reason?: "limit" | "feature";
+  lockedDescription?: string;
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
 
@@ -109,6 +111,17 @@ export function UpgradeModal({
             <X className="size-4" />
           </button>
         </div>
+
+        {/* Blurred description preview — shown when a locked description is passed */}
+        {isLimit && lockedDescription && (
+          <div className="relative mx-6 mb-3 overflow-hidden rounded-md border border-border/50 bg-muted/20 p-3 space-y-1">
+            <p className="text-[11px] font-medium text-muted-foreground">Here's what we wrote for you</p>
+            <p className="text-sm leading-relaxed blur-[3px] select-none line-clamp-4 pointer-events-none">
+              {lockedDescription}
+            </p>
+            <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-background/90 to-transparent pointer-events-none" />
+          </div>
+        )}
 
         {/* Locked features — shown only on limit hit */}
         {isLimit && (

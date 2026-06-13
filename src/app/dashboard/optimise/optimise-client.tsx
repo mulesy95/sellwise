@@ -329,6 +329,7 @@ export function OptimiseClient({ plan }: { plan: string }) {
   const [showMoreDetail, setShowMoreDetail] = useState(false);
   const [feedback, setFeedback] = useState<"up" | "down" | null>(null);
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
+  const [lockedDesc, setLockedDesc] = useState<string | undefined>(undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const loadingStep = useLoadingStep(loading, platform);
   const canUploadImage = plan !== "free";
@@ -546,9 +547,25 @@ export function OptimiseClient({ plan }: { plan: string }) {
       ? platformHint.hint
       : null;
 
+  const DESCRIPTION_WORD_LIMIT = 80;
+  const fullDescription: string = result?.description ?? "";
+  const descriptionWords = fullDescription.trim().split(/\s+/).filter(Boolean);
+  const isDescriptionLocked = plan === "free" && result !== null && descriptionWords.length > DESCRIPTION_WORD_LIMIT;
+  const displayDescription = isDescriptionLocked
+    ? descriptionWords.slice(0, DESCRIPTION_WORD_LIMIT).join(" ") + "…"
+    : fullDescription;
+
   return (
     <div className="space-y-6">
-      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} reason="limit" />
+      <UpgradeModal
+        open={upgradeOpen}
+        onClose={() => {
+          setUpgradeOpen(false);
+          setLockedDesc(undefined);
+        }}
+        reason="limit"
+        lockedDescription={lockedDesc}
+      />
 
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
@@ -920,13 +937,35 @@ export function OptimiseClient({ plan }: { plan: string }) {
                         ) : (
                           <>
                             <div className="flex items-start justify-between gap-2">
-                              <p className="flex-1 whitespace-pre-wrap text-sm leading-relaxed">
-                                {tab.content as string}
-                              </p>
+                              {tab.fieldKey === "description" ? (
+                                <div className="relative flex-1">
+                                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{isDescriptionLocked ? displayDescription : (tab.content as string)}</p>
+                                  {isDescriptionLocked && (
+                                    <div className="mt-2 flex flex-col items-center gap-2">
+                                      <div className="w-full h-8 bg-gradient-to-b from-transparent to-background/60 -mt-8 pointer-events-none" />
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setLockedDesc(fullDescription);
+                                          setUpgradeOpen(true);
+                                        }}
+                                        className="flex items-center gap-1.5 rounded-md border border-border/60 bg-muted/40 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-border transition-colors"
+                                      >
+                                        <Lock className="size-3 shrink-0" />
+                                        Unlock full description
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <p className="flex-1 whitespace-pre-wrap text-sm leading-relaxed">
+                                  {tab.content as string}
+                                </p>
+                              )}
                               <Button
                                 variant="ghost"
                                 size="icon-sm"
-                                onClick={() => copyToClipboard(tab.content as string, tab.id)}
+                                onClick={() => copyToClipboard(tab.fieldKey === "description" ? (isDescriptionLocked ? displayDescription : (tab.content as string)) : (tab.content as string), tab.id)}
                               >
                                 {copiedField === tab.id ? <Check className="size-3.5 text-primary" /> : <Copy className="size-3.5" />}
                               </Button>
