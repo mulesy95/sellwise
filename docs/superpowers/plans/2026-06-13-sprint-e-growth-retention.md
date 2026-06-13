@@ -37,15 +37,17 @@
 - Create: `src/app/check/check-client.tsx`
 - Create: `src/app/api/check/route.ts`
 
-**Context:** The public health check page lets anonymous users paste a Shopify product URL and get a score + top 3 improvements in about 10 seconds. No login required. The API route calls Anthropic with the same audit prompt as `/api/audit` but without auth. Limit: 3 requests per IP per hour via the existing `checkRateLimit` helper. The CTA at the bottom: "Get the full fix list — create a free account."
+**Context:** The public health check page lets anonymous users paste a Shopify product URL and get a score + improvement count in about 10 seconds. No login required. The API route calls Anthropic with the same audit prompt as `/api/audit` but without auth. Limit: 3 requests per IP per hour via the existing `checkRateLimit` helper.
+
+**Intentional gate:** The page shows the score and the number of improvements found, but NOT the actual improvements. Someone who sees "Score 54 — 7 improvements found" knows their listing has problems but needs to sign up to learn what they are. Showing the fixes for free would let sellers extract the value and leave without converting. The score establishes credibility; the locked fix list creates the reason to sign up.
 
 This route must only accept Shopify URLs. Validate that the URL contains `.myshopify.com` or is a Shopify store URL (check for `/products/` path). If validation fails, return a 400 with `{ error: "Only Shopify product URLs are supported right now." }`.
 
 The result shows:
 - Score (0–100, colour-coded same as the existing audit page)
-- Top 3 improvement suggestions from the `improvements` array
-- Platform tag ("Shopify")
-- CTA: "Get the full fix list" → link to /signup with `?ref=check` param
+- Score label ("Excellent" / "Good" / "Needs work" / "Poor")
+- Count of improvements found ("7 improvements found") — NOT the improvements themselves
+- CTA: "See all 7 improvements and how to fix them" → link to /signup with `?ref=check` param
 
 - [ ] **Step 1: Create the API route**
 
@@ -271,35 +273,24 @@ export function CheckClient() {
             <p className="text-xs text-muted-foreground">out of 100</p>
           </div>
 
-          {result.improvements.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                Top improvements
-              </p>
-              {result.improvements.slice(0, 3).map((imp, i) => (
-                <div
-                  key={i}
-                  className="rounded-lg border border-border/60 p-3 space-y-1"
-                >
-                  <p className="text-xs font-medium capitalize">{imp.field.replace(/([A-Z])/g, " $1").trim()}</p>
-                  <p className="text-xs text-muted-foreground">{imp.fix}</p>
-                </div>
-              ))}
-            </div>
-          )}
-
           <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3 text-center">
-            <p className="text-sm font-medium">
-              {result.improvements.length > 3
-                ? `${result.improvements.length - 3} more improvement${result.improvements.length - 3 !== 1 ? "s" : ""} waiting.`
-                : "Want to fix these and track your progress?"}
-            </p>
+            {result.improvements.length > 0 ? (
+              <p className="text-sm font-medium">
+                {result.improvements.length} improvement{result.improvements.length !== 1 ? "s" : ""} found.
+              </p>
+            ) : (
+              <p className="text-sm font-medium">Your listing looks solid.</p>
+            )}
             <p className="text-xs text-muted-foreground">
-              Free account. Unlimited audits. Fix and re-check as many times as you need.
+              {result.improvements.length > 0
+                ? "Create a free account to see exactly what to fix — and re-check as you improve it."
+                : "Create a free account to run the full optimiser and see if there's more to gain."}
             </p>
-            <Link href="/signup?ref=check">
+            <Link href={`/signup?ref=check`}>
               <Button className="w-full">
-                Get the full fix list
+                {result.improvements.length > 0
+                  ? `See all ${result.improvements.length} improvements`
+                  : "Try the full optimiser"}
                 <ExternalLink className="size-3.5" />
               </Button>
             </Link>
@@ -656,7 +647,8 @@ git push
 | Public health check at /check, no auth | Task 1 |
 | Shopify-only validation (compliance) | Task 1 |
 | IP-based rate limit (3/hour) | Task 1 |
-| Top 3 improvements shown | Task 1 |
+| Score + improvement count shown (not the improvements themselves) | Task 1 |
+| Actual improvements locked behind signup (intentional gate) | Task 1 |
 | CTA to signup with ref=check | Task 1 |
 | Weekly digest email for paid active users | Task 2 |
 | Deduplication via weekly_digest_sent_week | Task 2 |
