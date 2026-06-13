@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Tighten the core optimiser loop: reframe upgrade prompts as progression not failure, rescue sellers who get a low score with lateral options, and add proactive form hints so sellers know what to add before they submit.
+**Goal:** Tighten the core optimiser loop: reframe upgrade prompts as progression not failure, rescue sellers who get a low score with lateral options, add proactive form hints so sellers know what to add before they submit, and close the extraction gap — free users should get enough value to trust the tool but not so much they have no reason to upgrade.
 
 **Architecture:** All changes are UI-only or copy-only. No new API routes, no DB migrations. The upgrade modal gets copy reframing. The optimise client gets two new UI sections — a "rescue" panel below low-score results, and a platform-aware hint above the submit button.
 
@@ -378,6 +378,275 @@ git commit -m "feat: input-phase form hints guide sellers toward better submissi
 
 ---
 
+### Task 4: Free tier description truncation + upgrade modal content preview
+
+**Files:**
+- Modify: `src/components/upgrade-modal.tsx` — add `lockedDescription?: string` prop; render blurred preview when `isLimit`
+- Modify: `src/app/dashboard/optimise/optimise-client.tsx` — truncate description for free users; wire locked description into modal
+
+**Context:** Free users receive a 100% complete result including the full description — 150–300 words of the hardest content to write. This enables extraction: copy everything and leave with no reason to upgrade. The fix: the description is clipped at 80 words with a gradient fade and a lock icon below. When the user clicks the lock, the upgrade modal fires — and instead of a generic "you've run out" message, it shows their specific blurred description: "Here's what we wrote for you. Upgrade to unlock it." This is the moment of maximum conversion motivation: the content exists, it looks good, they can almost read it.
+
+The `UpgradeModal` already receives `reason="limit"` from the optimiser. Changes to the modal: (1) accept a `lockedDescription` prop, (2) render a blurred preview between the header and the locked features grid when `isLimit && lockedDescription`. The `plan` prop and `setShowUpgrade` are already in scope inside `OptimiseClient`.
+
+- [ ] **Step 1: Add lockedDescription prop to UpgradeModal**
+
+In `src/components/upgrade-modal.tsx`, find the props interface or the function signature. The modal currently takes `open`, `onClose`, and `reason`. Add `lockedDescription`:
+
+```tsx
+interface UpgradeModalProps {
+  open: boolean;
+  onClose: () => void;
+  reason?: "limit" | "feature";
+  lockedDescription?: string;
+}
+
+export function UpgradeModal({ open, onClose, reason = "feature", lockedDescription }: UpgradeModalProps) {
+```
+
+- [ ] **Step 2: Render the blurred description preview in the modal**
+
+In `upgrade-modal.tsx`, find the header section (the block with `<h2 id="upgrade-modal-title">` and the subtext `<p>` below it). After the closing `</p>` of the subtext and before the locked features grid (or the plan cards section), insert:
+
+```tsx
+{isLimit && lockedDescription && (
+  <div className="relative overflow-hidden rounded-md border border-border/50 bg-muted/20 p-3 space-y-1">
+    <p className="text-[11px] font-medium text-muted-foreground">Here's what we wrote for you</p>
+    <p className="text-sm leading-relaxed blur-[3px] select-none line-clamp-4 pointer-events-none">
+      {lockedDescription}
+    </p>
+    <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-background/90 to-transparent pointer-events-none" />
+  </div>
+)}
+```
+
+- [ ] **Step 3: Compute the truncated description in OptimiseClient**
+
+In `src/app/dashboard/optimise/optimise-client.tsx`, just above the `return` statement, add:
+
+```tsx
+const DESCRIPTION_WORD_LIMIT = 80;
+const fullDescription: string = result?.description ?? "";
+const descriptionWords = fullDescription.trim().split(/\s+/).filter(Boolean);
+const isDescriptionLocked = plan === "free" && result !== null && descriptionWords.length > DESCRIPTION_WORD_LIMIT;
+const displayDescription = isDescriptionLocked
+  ? descriptionWords.slice(0, DESCRIPTION_WORD_LIMIT).join(" ") + "…"
+  : fullDescription;
+```
+
+- [ ] **Step 4: Add lockedDesc state**
+
+In `OptimiseClient`, add a state variable alongside the other `useState` calls:
+
+```tsx
+const [lockedDesc, setLockedDesc] = useState<string | undefined>(undefined);
+```
+
+- [ ] **Step 5: Replace description tab content with truncated version + lock**
+
+Find where `result.description` is rendered in the description tab (either inside `getResultTabs()` or inline in the result JSX). Replace the description output with:
+
+```tsx
+<div className="relative">
+  <p className="text-sm leading-relaxed whitespace-pre-wrap">{displayDescription}</p>
+  {isDescriptionLocked && (
+    <div className="mt-2 flex flex-col items-center gap-2">
+      <div className="w-full h-8 bg-gradient-to-b from-transparent to-background/60 -mt-8 pointer-events-none" />
+      <button
+        type="button"
+        onClick={() => {
+          setLockedDesc(fullDescription);
+          setShowUpgrade(true);
+        }}
+        className="flex items-center gap-1.5 rounded-md border border-border/60 bg-muted/40 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-border transition-colors"
+      >
+        <Lock className="size-3 shrink-0" />
+        Unlock full description
+      </button>
+    </div>
+  )}
+</div>
+```
+
+Note: `Lock` is already imported in `optimise-client.tsx`. `setShowUpgrade` is already in scope.
+
+- [ ] **Step 6: Pass lockedDesc to UpgradeModal**
+
+Find the `<UpgradeModal>` render in `optimise-client.tsx`. Update it to pass `lockedDescription` and clear it on close:
+
+```tsx
+<UpgradeModal
+  open={showUpgrade}
+  onClose={() => {
+    setShowUpgrade(false);
+    setLockedDesc(undefined);
+  }}
+  reason="limit"
+  lockedDescription={lockedDesc}
+/>
+```
+
+- [ ] **Step 7: Build check**
+
+```bash
+npm run build
+```
+
+Expected: no TypeScript errors, build succeeds.
+
+- [ ] **Step 8: Commit**
+
+```bash
+git add src/components/upgrade-modal.tsx src/app/dashboard/optimise/optimise-client.tsx
+git commit -m "feat: truncate description for free users + blurred preview in upgrade modal"
+```
+
+---
+
+### Task 5: Post-result "What next?" CTA strip
+
+**Files:**
+- Modify: `src/app/dashboard/optimise/optimise-client.tsx`
+
+**Context:** After a successful optimisation — especially a high-scoring one — sellers have nowhere obvious to go. They copy their content, close the tab, and come back days later or never. The "What next?" strip provides three clear forward actions to keep sellers in the product after a win.
+
+This is distinct from `RescuePanel` (which appears only at score < 60, amber-tinted, framed as recovery). This strip appears after EVERY result regardless of score, framed as momentum. When score < 60, both RescuePanel and WhatNextStrip will render — the RescuePanel above (recovery), the WhatNextStrip below (progression).
+
+The three actions:
+1. **Research keywords** — link to `/dashboard/keywords?platform={platform}` (pre-selects the same platform)
+2. **Audit this listing** — link to `/dashboard/audit`
+3. **Start a new listing** — `onClick` calls `handleReset()` (already added in Task 2) to clear form and scroll to top
+
+- [ ] **Step 1: Add Plus to the lucide-react import**
+
+In the `import { ... } from "lucide-react"` block at the top of `optimise-client.tsx`, add `Plus`.
+
+- [ ] **Step 2: Add the WhatNextStrip component above OptimiseClient**
+
+Add this component after the `RescuePanel` component and before the `export function OptimiseClient` declaration:
+
+```tsx
+function WhatNextStrip({ platform, onReset }: { platform: Platform; onReset: () => void }) {
+  return (
+    <div className="rounded-lg border border-border/50 bg-muted/20 p-4 space-y-3">
+      <p className="text-xs font-medium text-muted-foreground">What next?</p>
+      <div className="grid gap-2 sm:grid-cols-3">
+        <a
+          href={`/dashboard/keywords?platform=${platform}`}
+          className="flex items-center gap-2 rounded-md border border-border/60 bg-background px-3 py-2 text-xs font-medium hover:border-border hover:bg-muted/30 transition-colors"
+        >
+          <Search className="size-3.5 shrink-0 text-muted-foreground" />
+          Research keywords
+        </a>
+        <a
+          href="/dashboard/audit"
+          className="flex items-center gap-2 rounded-md border border-border/60 bg-background px-3 py-2 text-xs font-medium hover:border-border hover:bg-muted/30 transition-colors"
+        >
+          <BarChart3 className="size-3.5 shrink-0 text-muted-foreground" />
+          Audit this listing
+        </a>
+        <button
+          onClick={onReset}
+          className="flex items-center gap-2 rounded-md border border-border/60 bg-background px-3 py-2 text-xs font-medium hover:border-border hover:bg-muted/30 transition-colors text-left w-full"
+        >
+          <Plus className="size-3.5 shrink-0 text-muted-foreground" />
+          Start a new listing
+        </button>
+      </div>
+    </div>
+  );
+}
+```
+
+Note: `Search` and `BarChart3` are already imported (used by `RescuePanel`). `Plus` was added in Step 1.
+
+- [ ] **Step 3: Render WhatNextStrip after the result tabs**
+
+In the JSX result area, after the `RescuePanel` block (which already renders conditionally when `afterScore < 60`), add:
+
+```tsx
+{result !== null && (
+  <WhatNextStrip platform={platform} onReset={handleReset} />
+)}
+```
+
+- [ ] **Step 4: Build check**
+
+```bash
+npm run build
+```
+
+Expected: no errors.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/app/dashboard/optimise/optimise-client.tsx
+git commit -m "feat: what-next CTA strip shown after every optimisation result"
+```
+
+---
+
+### Task 6: Free user trial hook
+
+**Files:**
+- Modify: `src/app/dashboard/optimise/optimise-client.tsx`
+
+**Context:** A free user has just seen a real, high-quality result. This is the highest-conversion moment in the entire free experience — the user has confirmed the tool works and is holding the output in their hands. Currently the page just ends. No nudge, no next step, no reason to click anything except close the tab.
+
+Show a prominent trial banner below the result, rendered only for `plan === "free"` users when `result !== null`. It is the last element before the feedback buttons — the final call to action after value delivery.
+
+Copy: "Want to do this for every listing? Start a 7-day free trial. No card required."
+
+This is not an interruption — it appears after the content, framed as the natural next step.
+
+- [ ] **Step 1: Add TrialBanner component above OptimiseClient**
+
+Add this component after the `WhatNextStrip` component and before `export function OptimiseClient`:
+
+```tsx
+function TrialBanner() {
+  return (
+    <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+      <div className="flex-1 space-y-0.5">
+        <p className="text-sm font-medium">Want to do this for every listing?</p>
+        <p className="text-xs text-muted-foreground">Start a 7-day free trial. No card required.</p>
+      </div>
+      <a
+        href="/pricing?trial=true"
+        className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors shrink-0"
+      >
+        Start free trial
+      </a>
+    </div>
+  );
+}
+```
+
+- [ ] **Step 2: Render TrialBanner for free users**
+
+In the JSX result area, after the `WhatNextStrip` block, add:
+
+```tsx
+{result !== null && plan === "free" && <TrialBanner />}
+```
+
+- [ ] **Step 3: Build check**
+
+```bash
+npm run build
+```
+
+Expected: no errors.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add src/app/dashboard/optimise/optimise-client.tsx
+git commit -m "feat: trial conversion banner for free users after their result"
+```
+
+---
+
 ### Final: Push
 
 ```bash
@@ -398,7 +667,11 @@ git push
 | Platform-aware input hint when key field is empty | Task 3 |
 | Hint suppressed when product name < 3 words | Task 3 |
 | Hint suppressed when target field already filled | Task 3 |
+| Description truncated at 80 words for free users | Task 4 |
+| Blurred description preview shown in upgrade modal | Task 4 |
+| Post-result "What next?" CTA strip after every result | Task 5 |
+| Trial conversion banner for free users post-result | Task 6 |
 
 **Placeholder scan:** None found.
 
-**Type consistency:** `keyof FormValues` used correctly. `Platform` type used throughout.
+**Type consistency:** `keyof FormValues` used correctly. `Platform` type used throughout. `lockedDescription?: string` prop added consistently to `UpgradeModal` interface and call site. `displayDescription` and `isDescriptionLocked` computed from `result?.description` and `plan` — both already in scope.

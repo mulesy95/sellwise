@@ -433,7 +433,49 @@ useEffect(() => {
 }, [step, platforms]);
 ```
 
-- [ ] **Step 3: Render the demo result in step 3**
+- [ ] **Step 3: Prevent demo from consuming the user's free quota**
+
+The demo fires a real `/api/optimise` call. Without a guard, a free user who signs up lands on the dashboard having already spent their 1 monthly optimisation — before doing any real work.
+
+Fix in two files:
+
+**In `src/app/onboarding/onboarding-client.tsx`:** Add `demo: true` to the fetch body in the useEffect from Step 2:
+
+```tsx
+body: JSON.stringify({
+  platform: demoPlatform,
+  productName: "Handmade soy wax candle, lavender and vanilla scent",
+  materials: "100% soy wax, cotton wick, recycled glass jar",
+  style: "minimalist, clean, gift-ready",
+  targetBuyer: "gift buyers looking for a natural, eco-friendly candle",
+  demo: true,
+}),
+```
+
+**In `src/app/api/optimise/route.ts`:** Read the file to find the Zod `requestSchema`. Add the `demo` field:
+
+```typescript
+const requestSchema = z.object({
+  // ... existing fields ...
+  demo: z.boolean().optional(),
+});
+```
+
+Then destructure `demo` from the parsed body alongside the other fields:
+
+```typescript
+const { platform, productName, /* ...other fields... */, demo } = parsed;
+```
+
+Then find the `incrementUsage` call and wrap it in a guard:
+
+```typescript
+if (!demo) {
+  await incrementUsage(user.id, "optimisations");
+}
+```
+
+- [ ] **Step 4: Render the demo result in step 3**
 
 In the step 3 JSX, find the features grid. Above it (after the heading), add:
 
@@ -477,7 +519,7 @@ In the step 3 JSX, find the features grid. Above it (after the heading), add:
 )}
 ```
 
-- [ ] **Step 4: Type-check**
+- [ ] **Step 5: Type-check**
 
 ```bash
 npx tsc --noEmit
@@ -485,11 +527,11 @@ npx tsc --noEmit
 
 Expected: no errors.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
-git add src/app/onboarding/onboarding-client.tsx
-git commit -m "feat: fire demo optimisation on onboarding all-set step for gasp moment"
+git add src/app/onboarding/onboarding-client.tsx src/app/api/optimise/route.ts
+git commit -m "feat: fire demo optimisation on onboarding all-set step, exempt from free quota"
 ```
 
 ---
@@ -766,6 +808,7 @@ git push
 | Brand voice injected into keywords AI prompt | Task 3 |
 | Brand voice injected into audit AI prompt | Task 3 |
 | Gasp moment demo fires on onboarding all-set step | Task 4 |
+| Demo does not consume the free user's monthly quota | Task 4 |
 | Demo fails silently without breaking the flow | Task 4 |
 | Studio plan defaults showMoreDetail to open | Task 5 |
 | SellWise voice pass on empty/error states | Task 6 |

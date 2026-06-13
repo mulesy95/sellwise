@@ -678,6 +678,125 @@ git commit -m "feat: power level indicator on saved keyword lists"
 
 ---
 
+### Task 6: History ghost rows for free users
+
+**Files:**
+- Modify: `src/app/dashboard/history/page.tsx` — pass `plan` to client
+- Modify: `src/app/dashboard/history/history-client.tsx` — render ghost rows + upgrade CTA for free users
+
+**Context:** Free users are limited to 1 optimisation per month. On the history page they see 1 row, then nothing. This makes the page feel broken — not like a feature worth having. Ghost rows communicate that there IS more history, it's just locked — not missing. The pattern: show the real result(s), then 3 placeholder locked rows that hint at the shape of a history feed at scale, followed by a clear upgrade CTA.
+
+Ghost rows are not interactive — purely visual placeholders with blurred/skeleton content. Each shows the shape of a real row (avatar circle, blurred title, blurred score badge) with a lock icon overlay.
+
+- [ ] **Step 1: Read the history page and client**
+
+Read `src/app/dashboard/history/page.tsx` and `src/app/dashboard/history/history-client.tsx` to understand:
+- How `plan` is currently fetched or available
+- How the history rows are rendered (the map over `optimisations`)
+- What imports are already present
+
+- [ ] **Step 2: Pass plan prop to HistoryClient**
+
+In `src/app/dashboard/history/page.tsx`, ensure the user's `plan` is fetched from the profile and passed to the client. If it's already fetched for another purpose, reuse it. Otherwise add:
+
+```tsx
+// After existing profile fetch in the server component:
+const plan: string = profile?.plan ?? "free";
+
+// Pass to client component:
+<HistoryClient optimisations={optimisations} plan={plan} />
+```
+
+- [ ] **Step 3: Add plan prop to HistoryClient interface**
+
+In `history-client.tsx`, add `plan` to the props interface and destructuring:
+
+```tsx
+interface HistoryClientProps {
+  optimisations: Optimisation[];
+  plan: string;
+  // (include any other existing props)
+}
+
+export function HistoryClient({ optimisations, plan, ...rest }: HistoryClientProps) {
+```
+
+- [ ] **Step 4: Add GhostHistoryRow component**
+
+Add this component near the top of `history-client.tsx`, after the imports:
+
+```tsx
+function GhostHistoryRow() {
+  return (
+    <div className="relative flex items-center gap-3 rounded-lg border border-border/40 bg-muted/10 p-4 overflow-hidden">
+      <div className="size-8 rounded-full bg-muted/60 shrink-0" />
+      <div className="flex-1 space-y-2 min-w-0">
+        <div className="flex items-center gap-2">
+          <div className="h-3 w-24 rounded bg-muted/70 blur-[2px]" />
+          <div className="h-3 w-16 rounded bg-muted/60 blur-[2px]" />
+        </div>
+        <div className="h-3 w-3/4 rounded bg-muted/50 blur-[2px]" />
+      </div>
+      <div className="h-6 w-12 rounded-full bg-muted/60 blur-[2px] shrink-0" />
+      <div className="absolute inset-0 flex items-center justify-center bg-background/40">
+        <Lock className="size-4 text-muted-foreground/50" />
+      </div>
+    </div>
+  );
+}
+```
+
+- [ ] **Step 5: Add Lock to the lucide-react import**
+
+If `Lock` is not already imported in `history-client.tsx`, add it:
+
+```tsx
+import { Lock, /* existing imports */ } from "lucide-react";
+```
+
+- [ ] **Step 6: Render ghost rows for free users**
+
+In `history-client.tsx`, find where the optimisation rows are rendered (the map). After the closing `</div>` of the rows container, add the ghost rows block — only for `plan === "free"`:
+
+```tsx
+{plan === "free" && (
+  <div className="space-y-2 mt-2">
+    <GhostHistoryRow />
+    <GhostHistoryRow />
+    <GhostHistoryRow />
+    <div className="rounded-lg border border-border/50 bg-muted/20 p-4 text-center space-y-2">
+      <p className="text-sm font-medium">Upgrade to keep your full optimisation history</p>
+      <p className="text-xs text-muted-foreground">
+        Free plan keeps 1 result. Paid plans keep everything.
+      </p>
+      <a
+        href="/pricing"
+        className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+      >
+        See plans
+      </a>
+    </div>
+  </div>
+)}
+```
+
+- [ ] **Step 7: Build check**
+
+```bash
+npm run build
+```
+
+Expected: no TypeScript errors, build succeeds.
+
+- [ ] **Step 8: Commit**
+
+```bash
+git add src/app/dashboard/history/page.tsx src/app/dashboard/history/history-client.tsx
+git commit -m "feat: ghost rows on history page nudge free users to upgrade"
+```
+
+---
+
 ### Final: Push
 
 ```bash
@@ -698,7 +817,8 @@ git push
 | ListingHealthWidget shown per shop on dashboard | Task 3, 4 |
 | MilestoneWidget with progress bar toward next milestone | Task 3, 4 |
 | Keyword list power level (high/medium/low) from volume ratio | Task 5 |
+| History ghost rows shown to free users with upgrade CTA | Task 6 |
 
 **Placeholder scan:** None found.
 
-**Type consistency:** `HealthData`, `TrendPoint`, `MilestoneWidgetProps` all consistent across files.
+**Type consistency:** `HealthData`, `TrendPoint`, `MilestoneWidgetProps` all consistent across files. `plan: string` prop added to `HistoryClient` — no new types needed.
