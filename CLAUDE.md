@@ -424,16 +424,28 @@ shipping and returns mentioned). Respond in valid JSON only.`,
 - [x] **SEO metafield push (Studio only)** — `pushShopifyMetafields()` in `src/lib/shopify.ts`, `/api/shopify/seo` route, pushed in parallel with content from shop dashboard
 - [ ] Bulk product optimisation — GraphQL bulk mutations for all products at once (lower priority)
 
-### Phase 7 — Product Quality + Retention (MOSTLY COMPLETE 2026-05-17)
+### Phase 7 — Product Quality + Retention (COMPLETE 2026-06-13)
 
 - [x] **Results history page** — `/dashboard/history`, full before/after panels per platform, platform filter, paginated. Every `/api/optimise` call saves to `optimisations` table. Re-optimise link pre-fills form.
 - [x] **Keyword → optimiser integration** — saved list picker in optimiser pre-populates keywords input, fetches from `/api/keyword-lists`
 - [x] **Agency tier on pricing page** — $249/mo, "Contact us" mailto CTA, 5-card grid (`xl:grid-cols-5`)
-- [ ] **AI output quality audit** — run real products through all 4 platforms, assess and fix prompts. Do before launch.
+- [x] **Feedback system** — thumbs up/down on every optimisation result; `feedback` column on `optimisations` table; PATCH `/api/feedback`; buttons on history page and optimiser result
+- [x] **eBay item specifics** — AI returns `itemSpecifics` key-value map in eBay JSON output; displayed in dedicated "Item Specifics" tab; serialised for ListingDiff improve mode
 
 ### Phase 8 — New Features
 - [x] Platform Migration Tool — `/dashboard/migrate` — already built
-- [ ] Bulk Listing Optimiser — CSV upload → AI optimises all listings → download results (Growth/Studio)
+- [x] Bulk Listing Optimiser — `/dashboard/bulk` — CSV upload → AI optimises all listings → download results (Growth/Studio) — already built
+- [ ] **AI output quality audit** — run real products through all platforms, assess and fix prompts. Do before launch.
+
+### Sprints A–F — Art of Game Design engagement series (PLANNED 2026-06-13)
+Plans at `docs/superpowers/plans/2026-06-13-sprint-[a-f]-*.md`. Implement in order — some sprints have dependencies on earlier ones.
+
+- [ ] **Sprint A** — Core loop: upgrade modal reframing ("You've outgrown this plan"), rescue CTAs when score < 60, input-phase platform hints above submit button
+- [ ] **Sprint B** — Engagement mechanics: shop health apex score + trend sparkline, milestone widget, keyword list power level badge
+- [ ] **Sprint C** — Rewards + social proof: badges/streaks (DB migration), BigLiftToast on 30+ pt improvement, variable micro-notes, peer comparison top-5% badge, streak widget
+- [ ] **Sprint D** — Onboarding + persona: brand voice capture (onboarding step 2), brand voice injection into all AI prompts, demo gasp moment on all-set step, Studio layered disclosure, SellWise voice copy pass, platform filtering (show only user's platforms across all 4 tools)
+- [ ] **Sprint E** — Growth + retention: public /check Shopify health check (no auth), weekly digest email (Monday cron), aggregate activity stat on dashboard
+- [ ] **Sprint F** — Evolving brand voice: auto-derive voice from 5+ thumbs-up results (Haiku model), `brand_voice_auto` fallback column, Settings UI with Refresh button. Depends on Sprint D + feedback system.
 
 ### Phase 9 — Amazon SP-API (Future, High Complexity)
 - [ ] Amazon Seller Central OAuth via Login with Amazon (LWA)
@@ -507,3 +519,8 @@ shipping and returns mentioned). Respond in valid JSON only.`,
 | 2026-05-21 | Per-shop eBay sandbox support — ebayConfig(isSandbox) helper, is_sandbox on shops table, sandbox OAuth flow, ConnectForm "Connect sandbox account" button, sandbox env vars in Vercel |
 | 2026-05-22 | UI audit complete — nav reordered (My Shop to top), all tool defaults → Shopify, coming soon + homepage copy leads with Shopify+eBay, dashboard My Shop widget shows live health counts per shop (lazy-loaded via ShopHealthCounts), My Shop summary bar is now an interactive severity filter, calcSeoScore extracted to src/lib/seo-score.ts |
 | 2026-05-22 | UI audit 1.6 — coloured platform pill (PLATFORM_PILL in platforms.ts) on My Shop store tabs and dashboard card; dashboard card layout: store name / ● [pill] | health counts; ShopHealthCounts no longer prefixes platform name; sessionStorage platform sync across all standalone tools |
+| 2026-06-13 | Feedback system — thumbs up/down on optimisations (PATCH /api/feedback, `feedback` col on optimisations table); feedback buttons on history page and optimiser result |
+| 2026-06-13 | eBay item specifics — AI returns `itemSpecifics` key-value map; displayed in dedicated tab on eBay result; serialised to "Key: Value\n..." string for ListingDiff improve mode |
+| 2026-06-13 | Art of Game Design analysis — comprehensive interrogation of Schell's book applied to SellWise; 18+ feature recommendations across personality, feedback loops, engagement, rewards, social proof, onboarding, elder game, growth; saved to docs/superpowers/research/2026-06-13-art-of-game-design-analysis.md |
+| 2026-06-13 | Product persona decision — no separate AI persona name needed; SellWise IS the personality; the brand speaks; mascot deferred for future consideration |
+| 2026-06-13 | Sprints A–F planned — full 6-sprint implementation series covering all Art of Game Design recommendations. Plans at docs/superpowers/plans/2026-06-13-sprint-[a-f]-*.md |
