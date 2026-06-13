@@ -491,7 +491,10 @@ export function OptimiseClient({ plan }: { plan: string }) {
         const arr = tab.content as string[];
         return `${tab.label.toUpperCase()}:\n${arr.join(tab.isTags ? ", " : "\n")}`;
       }
-      return `${tab.label.toUpperCase()}:\n${tab.content as string}`;
+      const content = tab.fieldKey === "description"
+        ? (isDescriptionLocked ? displayDescription : (tab.content as string))
+        : (tab.content as string);
+      return `${tab.label.toUpperCase()}:\n${content}`;
     });
     await navigator.clipboard.writeText(parts.join("\n\n"));
     toast.success("Full listing copied");
@@ -505,7 +508,10 @@ export function OptimiseClient({ plan }: { plan: string }) {
       if (Array.isArray(tab.content)) {
         return `${tab.label}\n${divider}\n${(tab.content as string[]).join("\n")}`;
       }
-      return `${tab.label}\n${divider}\n${tab.content as string}`;
+      const content = tab.fieldKey === "description"
+        ? (isDescriptionLocked ? displayDescription : (tab.content as string))
+        : (tab.content as string);
+      return `${tab.label}\n${divider}\n${content}`;
     });
     const blob = new Blob([header + parts.join("\n\n")], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
