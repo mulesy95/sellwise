@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { scoreOptimisedListing } from "@/lib/listing-score";
+import type { Platform } from "@/lib/platforms";
 
 describe("scoreOptimisedListing", () => {
   describe("etsy", () => {
@@ -111,6 +112,12 @@ describe("scoreOptimisedListing", () => {
       const empty = scoreOptimisedListing({ platform: "social" });
       expect(full).toBeGreaterThan(empty);
       expect(full).toBeGreaterThan(60);
+    });
+  });
+
+  describe("edge cases", () => {
+    it("returns 0 for unknown platform", () => {
+      expect(scoreOptimisedListing({ platform: "unknown" as Platform })).toBe(0);
     });
   });
 });

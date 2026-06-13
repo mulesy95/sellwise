@@ -1,5 +1,7 @@
+import type { Platform } from "@/lib/platforms";
+
 export interface ScoredListing {
-  platform: string;
+  platform: Platform;
   title?: string;
   tags?: string[];
   bullets?: string[];
