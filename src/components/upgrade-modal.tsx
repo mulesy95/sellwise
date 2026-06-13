@@ -115,7 +115,7 @@ export function UpgradeModal({
         {/* Blurred description preview — shown when a locked description is passed */}
         {isLimit && lockedDescription && (
           <div className="relative mx-6 mb-3 overflow-hidden rounded-md border border-border/50 bg-muted/20 p-3 space-y-1">
-            <p className="text-[11px] font-medium text-muted-foreground">Here's what we wrote for you</p>
+            <p className="text-[11px] font-medium text-muted-foreground">Here&apos;s what we wrote for you</p>
             <p className="text-sm leading-relaxed blur-[3px] select-none line-clamp-4 pointer-events-none">
               {lockedDescription}
             </p>

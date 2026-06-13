@@ -258,7 +258,7 @@ function ScoreDisplay({ before, after }: { before?: number; after: number }) {
   );
 }
 
-function RescuePanel({ platform, onReset }: { platform: Platform; onReset: () => void }) {
+function RescuePanel({ onReset }: { onReset: () => void }) {
   return (
     <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4 space-y-3">
       <div className="flex items-center gap-2">
@@ -268,7 +268,7 @@ function RescuePanel({ platform, onReset }: { platform: Platform; onReset: () =>
         </p>
       </div>
       <div className="grid gap-2 sm:grid-cols-3">
-        <a
+        <Link
           href="/dashboard/keywords"
           className="flex items-start gap-2 rounded-md border border-border/60 bg-background p-3 text-xs hover:border-border hover:bg-muted/30 transition-colors"
         >
@@ -277,8 +277,8 @@ function RescuePanel({ platform, onReset }: { platform: Platform; onReset: () =>
             <p className="font-medium">Research keywords first</p>
             <p className="text-muted-foreground mt-0.5">Pull 15 keywords, then come back and add them to the form.</p>
           </div>
-        </a>
-        <a
+        </Link>
+        <Link
           href="/dashboard/audit"
           className="flex items-start gap-2 rounded-md border border-border/60 bg-background p-3 text-xs hover:border-border hover:bg-muted/30 transition-colors"
         >
@@ -287,7 +287,7 @@ function RescuePanel({ platform, onReset }: { platform: Platform; onReset: () =>
             <p className="font-medium">Audit the listing instead</p>
             <p className="text-muted-foreground mt-0.5">Paste your existing listing and get a breakdown of specific fixes.</p>
           </div>
-        </a>
+        </Link>
         <button
           onClick={onReset}
           className="flex items-start gap-2 rounded-md border border-border/60 bg-background p-3 text-xs hover:border-border hover:bg-muted/30 transition-colors text-left w-full"
@@ -295,7 +295,7 @@ function RescuePanel({ platform, onReset }: { platform: Platform; onReset: () =>
           <ArrowLeftRight className="size-3.5 shrink-0 mt-0.5 text-muted-foreground" />
           <div>
             <p className="font-medium">Try a different platform</p>
-            <p className="text-muted-foreground mt-0.5">We'll scroll you back to the top so you can pick a different platform and re-run.</p>
+            <p className="text-muted-foreground mt-0.5">We&apos;ll scroll you back to the top so you can pick a different platform and re-run.</p>
           </div>
         </button>
       </div>
@@ -1074,7 +1074,7 @@ export function OptimiseClient({ plan }: { plan: string }) {
               )}
 
               {afterScore !== null && afterScore < 60 && (
-                <RescuePanel platform={platform} onReset={handleReset} />
+                <RescuePanel onReset={handleReset} />
               )}
 
               {result !== null && (
