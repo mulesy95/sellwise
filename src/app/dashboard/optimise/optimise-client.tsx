@@ -21,6 +21,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import type { Platform } from "@/lib/platforms";
+import { ListingDiff } from "@/components/listing-diff";
 
 interface ChangeNote {
   field: string;
@@ -181,6 +182,7 @@ interface FormValues {
   materials: string;
   style: string;
   targetBuyer: string;
+  existingContent: string;
 }
 
 const FORM_STORAGE_KEY = "optimise:form";
@@ -196,6 +198,7 @@ export function OptimiseClient({ plan }: { plan: string }) {
     materials: searchParams.get("materials") ?? "",
     style: searchParams.get("style") ?? "",
     targetBuyer: searchParams.get("targetBuyer") ?? "",
+    existingContent: searchParams.get("existingContent") ?? "",
   });
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<OptimisedListing | null>(null);
@@ -247,6 +250,7 @@ export function OptimiseClient({ plan }: { plan: string }) {
     setResult(null);
     setKeywordsValue("");
     setShowListPicker(false);
+    setFormValues((v) => ({ ...v, existingContent: "" }));
   }
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -421,6 +425,31 @@ export function OptimiseClient({ plan }: { plan: string }) {
               }}
               className="space-y-4"
             >
+              {/* Existing listing textarea */}
+              <div className="space-y-1.5">
+                <Label htmlFor="existingContent">
+                  Your existing listing{" "}
+                  <span className="text-muted-foreground font-normal">(optional — paste to improve)</span>
+                </Label>
+                <textarea
+                  id="existingContent"
+                  name="existingContent"
+                  rows={5}
+                  placeholder={"Paste your current title, description, tags — everything you have.\nThe AI will improve what's there, not invent anything new."}
+                  value={formValues.existingContent}
+                  onChange={(e) => setFormValues((v) => ({ ...v, existingContent: e.target.value }))}
+                  className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none font-mono text-xs leading-relaxed"
+                />
+                {formValues.existingContent.trim() ? (
+                  <p className="text-[11px] text-emerald-600 dark:text-emerald-400">
+                    Improve mode — AI will rewrite against this content only.
+                  </p>
+                ) : (
+                  <p className="text-[11px] text-muted-foreground/60">
+                    Without this, the AI generates a draft — review carefully before publishing.
+                  </p>
+                )}
+              </div>
               <div className="space-y-1.5">
                 <Label htmlFor="productName">
                   Product name / what it is{" "}
@@ -624,7 +653,14 @@ export function OptimiseClient({ plan }: { plan: string }) {
             <>
               <Card className="border-border/50">
                 <CardHeader className="flex flex-row items-center justify-between pb-3">
-                  <CardTitle className="text-base">Optimised listing</CardTitle>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    {result.original ? "Improved listing" : "Generated draft"}
+                    {!result.original && (
+                      <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-400/40 bg-amber-500/5">
+                        Verify before publishing
+                      </Badge>
+                    )}
+                  </CardTitle>
                   <div className="flex items-center gap-1">
                     <Button variant="outline" size="sm" onClick={copyAll} className="h-7 gap-1 text-xs">
                       <Copy className="size-3" />Copy all
@@ -737,6 +773,14 @@ export function OptimiseClient({ plan }: { plan: string }) {
                   </Tabs>
                 </CardContent>
               </Card>
+
+              {result.original && result.changes && (
+                <ListingDiff
+                  tabs={tabs}
+                  original={result.original}
+                  changes={result.changes}
+                />
+              )}
 
               {/* Utility links */}
               <div className="flex items-center gap-4 px-1">
