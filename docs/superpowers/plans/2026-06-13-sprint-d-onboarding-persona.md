@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Capture each seller's brand voice during onboarding, inject it into every AI prompt so listings don't sound identical across sellers, and create a "gasp moment" by showing a real AI result during onboarding before the seller has to do any work.
+**Goal:** Capture each seller's brand voice during onboarding, inject it into every AI prompt so listings don't sound identical across sellers, create a "gasp moment" by showing a real AI result during onboarding before the seller has to do any work, and filter the platform selector across all tools to only show the platforms the seller actually uses.
 
-**Architecture:** New `brand_voice` column on `profiles`. Onboarding gets a third step (brand voice capture) inserted between the existing step 1 (category/platform) and current step 2 (all-set). The all-set step gains a live demo optimisation that fires automatically. All three AI routes (optimise, audit, keywords) read `brand_voice` from the user's profile and append it to the system prompt. Layered disclosure: on Studio plan the "Add more detail" toggle in the optimiser is open by default.
+**Architecture:** New `brand_voice` column on `profiles`. Onboarding gets a third step (brand voice capture) inserted between the existing step 1 (category/platform) and current step 2 (all-set). The all-set step gains a live demo optimisation that fires automatically. All three AI routes (optimise, audit, keywords) read `brand_voice` from the user's profile and append it to the system prompt. Layered disclosure: on Studio plan the "Add more detail" toggle in the optimiser is open by default. Platform filtering: each tool's server component reads `onboarding_platforms` from the user's profile and passes it to the client, which filters the visible platforms with a "Show all" escape hatch.
 
 **Tech Stack:** Next.js 16 App Router, React 19, TypeScript, Tailwind 4, shadcn/ui, Supabase, Anthropic SDK
 
@@ -21,7 +21,11 @@
 - `src/app/api/optimise/route.ts` — read profile `brand_voice`, append to system prompt
 - `src/app/api/keywords/route.ts` — read profile `brand_voice`, append to system prompt
 - `src/app/api/audit/route.ts` — read profile `brand_voice`, append to system prompt
-- `src/app/dashboard/optimise/optimise-client.tsx` — open `showMoreDetail` by default for Studio plan
+- `src/app/dashboard/optimise/optimise-client.tsx` — open `showMoreDetail` by default for Studio plan; platform filtering
+- `src/app/dashboard/optimise/page.tsx` — pass `preferredPlatforms` to client
+- `src/app/dashboard/keywords/page.tsx` + client — pass + apply `preferredPlatforms`
+- `src/app/dashboard/audit/page.tsx` + client — pass + apply `preferredPlatforms`
+- `src/app/dashboard/migrate/page.tsx` + client — pass + apply `preferredPlatforms`
 
 ---
 
@@ -599,6 +603,148 @@ git commit -m "copy: SellWise voice pass on optimiser and dashboard empty/error 
 
 ---
 
+### Task 7: Platform filtering — hide unused platforms across all tools
+
+**Files:**
+- Modify: `src/app/dashboard/optimise/page.tsx` — fetch and pass `preferredPlatforms`
+- Modify: `src/app/dashboard/optimise/optimise-client.tsx` — accept prop, filter platform selector
+- Modify: `src/app/dashboard/keywords/page.tsx` — fetch and pass `preferredPlatforms`
+- Modify: `src/app/dashboard/keywords/keywords-client.tsx` (or equivalent) — accept prop, filter selector
+- Modify: `src/app/dashboard/audit/page.tsx` — fetch and pass `preferredPlatforms`
+- Modify: `src/app/dashboard/audit/audit-client.tsx` (or equivalent) — accept prop, filter selector
+- Modify: `src/app/dashboard/migrate/page.tsx` — fetch and pass `preferredPlatforms`
+- Modify: `src/app/dashboard/migrate/migrate-client.tsx` (or equivalent) — accept prop, filter selector
+
+**Context:** The platform selector appears in four tools — optimiser, keywords, audit, and migration. As more platforms are added, the list grows. A seller who only sells on Shopify and eBay doesn't want to wade through TikTok Shop, WooCommerce, Wix, and Squarespace on every tool.
+
+Solution: each tool's server component reads `onboarding_platforms` from the user's profile and passes it as `preferredPlatforms` to the client. When non-empty, only those platforms appear in the selector by default. A small "Show all" link below the selector expands to the full list. If `onboarding_platforms` is null or empty (user skipped onboarding or deselected everything), all platforms show — safe fallback.
+
+The filtering logic is identical in every client — show preferred platforms or all when `showAll` is toggled. No shared helper needed; it's three lines per component.
+
+**Important:** Read each page and client file before modifying to understand the exact platform selector structure — it may differ between tools (tabs vs dropdown vs toggle group).
+
+- [ ] **Step 1: Read all four page + client files**
+
+Read each of the following to understand the current platform selector implementation before making any changes:
+- `src/app/dashboard/optimise/page.tsx`
+- `src/app/dashboard/optimise/optimise-client.tsx` (already partially known — platform is a `useState<Platform>` with tab buttons)
+- `src/app/dashboard/keywords/page.tsx`
+- The keywords client file (check filename — may be `keywords-client.tsx` or inline in `page.tsx`)
+- `src/app/dashboard/audit/page.tsx`
+- The audit client file
+- `src/app/dashboard/migrate/page.tsx`
+- The migrate client file
+
+- [ ] **Step 2: Fetch preferredPlatforms in each server component**
+
+In each of the four `page.tsx` files, add a profile fetch after the existing auth/profile queries:
+
+```typescript
+import { createClient } from "@/lib/supabase/server";
+import type { Platform } from "@/lib/platforms";
+
+// Inside the server component:
+const supabase = await createClient();
+const { data: { user } } = await supabase.auth.getUser();
+// (user auth likely already present — add only what's missing)
+
+const { data: profile } = await supabase
+  .from("profiles")
+  .select("onboarding_platforms")
+  .eq("id", user.id)
+  .single();
+
+const preferredPlatforms: Platform[] = Array.isArray(profile?.onboarding_platforms)
+  ? (profile.onboarding_platforms as Platform[])
+  : [];
+```
+
+Then pass `preferredPlatforms={preferredPlatforms}` to the client component.
+
+- [ ] **Step 3: Add preferredPlatforms prop to each client component**
+
+In each client component, add the prop to the component signature:
+
+```tsx
+interface OptimiseClientProps {
+  // ... existing props ...
+  preferredPlatforms: Platform[];
+}
+
+export function OptimiseClient({ ..., preferredPlatforms }: OptimiseClientProps) {
+```
+
+(Adjust the component name and existing props for each file.)
+
+- [ ] **Step 4: Add showAll state and filtered platform list**
+
+In each client component, add a `showAll` state alongside the existing state:
+
+```tsx
+const [showAllPlatforms, setShowAllPlatforms] = useState(false);
+```
+
+Then compute the visible platforms:
+
+```tsx
+const visiblePlatforms: Platform[] =
+  showAllPlatforms || preferredPlatforms.length === 0
+    ? PLATFORMS
+    : preferredPlatforms;
+```
+
+`PLATFORMS` is already imported from `@/lib/platforms` in these files.
+
+- [ ] **Step 5: Filter the platform selector rendering**
+
+In each client component, find where the platform selector iterates over platforms (likely `PLATFORMS.map(...)` or similar). Replace the source array with `visiblePlatforms`. Then, immediately after the platform selector, add the toggle link — but only when there are hidden platforms:
+
+```tsx
+{preferredPlatforms.length > 0 && !showAllPlatforms && (
+  <button
+    type="button"
+    onClick={() => setShowAllPlatforms(true)}
+    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+  >
+    Show all platforms
+  </button>
+)}
+{showAllPlatforms && preferredPlatforms.length > 0 && (
+  <button
+    type="button"
+    onClick={() => setShowAllPlatforms(false)}
+    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+  >
+    Show my platforms only
+  </button>
+)}
+```
+
+- [ ] **Step 6: Type-check**
+
+```bash
+npx tsc --noEmit
+```
+
+Expected: no errors.
+
+- [ ] **Step 7: Build check**
+
+```bash
+npm run build
+```
+
+Expected: build succeeds.
+
+- [ ] **Step 8: Commit**
+
+```bash
+git add src/app/dashboard/optimise/page.tsx src/app/dashboard/optimise/optimise-client.tsx src/app/dashboard/keywords/ src/app/dashboard/audit/ src/app/dashboard/migrate/
+git commit -m "feat: filter platform selector to user's platforms, with Show all toggle"
+```
+
+---
+
 ### Final: Push
 
 ```bash
@@ -623,7 +769,10 @@ git push
 | Demo fails silently without breaking the flow | Task 4 |
 | Studio plan defaults showMoreDetail to open | Task 5 |
 | SellWise voice pass on empty/error states | Task 6 |
+| Platform selector filtered to user's platforms in all 4 tools | Task 7 |
+| Show all / Show my platforms only toggle | Task 7 |
+| Safe fallback: show all when no preferred platforms set | Task 7 |
 
 **Placeholder scan:** None found. All code blocks are complete.
 
-**Type consistency:** `brand_voice` from DB used as `brandVoice` in JS/TS throughout. `demoResult` type is `{ title: string; score: number }` — matches what `/api/optimise` returns. `plan === "studio"` comparison matches the plan enum in the codebase (`'free' | 'starter' | 'growth' | 'studio'`).
+**Type consistency:** `brand_voice` from DB used as `brandVoice` in JS/TS throughout. `demoResult` type is `{ title: string; score: number }` — matches what `/api/optimise` returns. `plan === "studio"` comparison matches the plan enum (`'free' | 'starter' | 'growth' | 'studio'`). `preferredPlatforms: Platform[]` typed consistently — `onboarding_platforms` is stored as `jsonb` in Supabase and cast to `Platform[]` at the boundary.
