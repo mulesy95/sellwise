@@ -669,7 +669,10 @@ function OptimisePanel({
         body: JSON.stringify({
           platform,
           productName: product.title,
-          existingContent: existingText.slice(0, 800),
+          existingContent: [
+            `Title: ${product.title}`,
+            existingText && `Description: ${existingText.slice(0, 700)}`,
+          ].filter(Boolean).join("\n\n"),
           productId: product.id,
           shopId,
           ...(uploadedImage
