@@ -214,7 +214,7 @@ function buildUserMessage(
     style && `Style/aesthetic: ${style}`,
     targetBuyer && `Target buyer/occasion: ${targetBuyer}`,
     keywords && `Keywords to include: ${keywords}`,
-    platform === "shopify" && existingContent && `Existing description (improve this, keep accurate product details):\n${existingContent}`,
+    existingContent && `Existing listing (improve this — use only the product details present here):\n${existingContent}`,
   ]
     .filter(Boolean)
     .join("\n");
