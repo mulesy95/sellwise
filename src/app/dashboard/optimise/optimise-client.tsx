@@ -135,6 +135,37 @@ const PLATFORM_DESCRIPTIONS: Record<Platform, string> = {
   social: "Get a scroll-stopping caption, full post copy, and hashtags for Instagram, Facebook, or Pinterest.",
 };
 
+const PLATFORM_HINTS: Partial<Record<Platform, { field: keyof FormValues; hint: string }>> = {
+  etsy: {
+    field: "targetBuyer",
+    hint: "Adding a target buyer (e.g. \"birthday gift for mum\") helps rank for occasion searches on Etsy.",
+  },
+  amazon: {
+    field: "materials",
+    hint: "Adding materials or key features improves keyword matching for Amazon purchase-intent searches.",
+  },
+  shopify: {
+    field: "style",
+    hint: "Adding style or aesthetic details improves Google SEO relevance for your product page.",
+  },
+  ebay: {
+    field: "materials",
+    hint: "Adding brand, model, or condition improves matching with eBay's item-specific filters.",
+  },
+  woocommerce: {
+    field: "style",
+    hint: "Describing the style or use case helps Google match the right search queries.",
+  },
+  tiktok: {
+    field: "targetBuyer",
+    hint: "Adding who this is for helps the description connect with the right TikTok audience.",
+  },
+  social: {
+    field: "targetBuyer",
+    hint: "Describing who this is for makes the caption and hashtags more targeted.",
+  },
+};
+
 const LOADING_STEPS: Record<Platform, string[]> = {
   etsy: ["Analysing your product…", "Researching Etsy keywords…", "Writing your title…", "Crafting your 13 tags…", "Writing your description…"],
   amazon: ["Analysing your product…", "Researching Amazon keywords…", "Writing your title…", "Crafting bullet points…", "Writing your description…"],
@@ -508,6 +539,13 @@ export function OptimiseClient({ plan }: { plan: string }) {
     : null;
   const hopOptions = HOP_PLATFORMS.filter((p) => p.id !== platform);
 
+  const productWordCount = formValues.productName.trim().split(/\s+/).filter(Boolean).length;
+  const platformHint = PLATFORM_HINTS[platform];
+  const activeHint =
+    productWordCount >= 3 && platformHint && !formValues[platformHint.field]
+      ? platformHint.hint
+      : null;
+
   return (
     <div className="space-y-6">
       <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} reason="limit" />
@@ -728,6 +766,12 @@ export function OptimiseClient({ plan }: { plan: string }) {
                 </>
               )}
 
+              {activeHint && (
+                <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
+                  <Lightbulb className="size-3.5 shrink-0 mt-0.5 text-amber-500" />
+                  {activeHint}
+                </p>
+              )}
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? (
                   <><Spinner size="sm" className="mr-2" />Optimising…</>
