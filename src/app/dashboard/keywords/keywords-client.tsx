@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Search,
   TrendingUp,
@@ -128,6 +129,7 @@ const PLATFORM_DESCRIPTIONS: Record<Platform, string> = {
 };
 
 export function KeywordsClient({ preferredPlatforms }: { preferredPlatforms: Platform[] }) {
+  const searchParams = useSearchParams();
   const [platform, setPlatform] = useState<Platform>(() => (sessionStorage.getItem("sw_active_platform") as Platform) ?? "shopify");
   const [loading, setLoading] = useState(false);
   const [keywords, setKeywords] = useState<Keyword[]>([]);
@@ -139,6 +141,8 @@ export function KeywordsClient({ preferredPlatforms }: { preferredPlatforms: Pla
   const [showSaveInput, setShowSaveInput] = useState(false);
   const [savedLists, setSavedLists] = useState<SavedList[]>([]);
   const [showAllPlatforms, setShowAllPlatforms] = useState(false);
+  const [seedValue, setSeedValue] = useState("");
+  const didInitRef = useRef(false);
 
   const visiblePlatforms: Platform[] =
     showAllPlatforms || preferredPlatforms.length === 0
@@ -158,6 +162,18 @@ export function KeywordsClient({ preferredPlatforms }: { preferredPlatforms: Pla
       .then((r) => r.json())
       .then((d) => setSavedLists(d.lists ?? []))
       .catch(() => setSavedLists([]));
+  }, []);
+
+  useEffect(() => {
+    if (didInitRef.current) return;
+    didInitRef.current = true;
+    const seed = searchParams.get("seed");
+    const urlPlatform = searchParams.get("platform") as Platform | null;
+    if (seed) setSeedValue(seed);
+    if (urlPlatform && PLATFORMS.includes(urlPlatform)) {
+      setPlatform(urlPlatform);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function handlePlatformChange(p: Platform) {
@@ -195,9 +211,7 @@ export function KeywordsClient({ preferredPlatforms }: { preferredPlatforms: Pla
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const keyword = (
-      e.currentTarget.elements.namedItem("keyword") as HTMLInputElement
-    ).value.trim();
+    const keyword = seedValue.trim();
     if (!keyword) return;
 
     setLoading(true);
@@ -285,6 +299,8 @@ export function KeywordsClient({ preferredPlatforms }: { preferredPlatforms: Pla
               <Input
                 id="keyword"
                 name="keyword"
+                value={seedValue}
+                onChange={(e) => setSeedValue(e.target.value)}
                 placeholder={PLATFORM_PLACEHOLDERS[platform]}
                 required
               />
