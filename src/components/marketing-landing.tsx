@@ -101,12 +101,12 @@ export function MarketingLanding({ currency = "USD" }: { currency?: "USD" | "AUD
           {/* Left: headline + CTA */}
           <div className="flex-1 text-center md:text-left mb-10 md:mb-0">
             <h1 className="text-[30px] md:text-5xl lg:text-[56px] font-extrabold text-foreground leading-[1.15] mb-4">
-              Post listings that buyers
+              Your listings deserve
               <br />
-              actually find.
+              to be found.
             </h1>
             <p className="text-sm md:text-base text-muted-foreground mb-5 max-w-[360px] mx-auto md:mx-0 leading-relaxed">
-              Describe your product. We&apos;ll write it to rank, wherever you sell.
+              Most seller listings don&apos;t rank — not because the products are bad, but because the copy doesn&apos;t follow each platform&apos;s algorithm. Describe your product and we&apos;ll fix that in 30 seconds.
             </p>
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-1.5 mb-6">
               {PLATFORMS.map((platform) => (
@@ -118,11 +118,19 @@ export function MarketingLanding({ currency = "USD" }: { currency?: "USD" | "AUD
                 </span>
               ))}
             </div>
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-              <Link href="/signup" className={buttonVariants({ size: "lg" })}>
-                Try free for 7 days
+            <div className="flex flex-col items-center md:items-start gap-3">
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
+                <Link href="/signup" className={buttonVariants({ size: "lg" })}>
+                  Try free for 7 days
+                </Link>
+                <span className="text-xs text-muted-foreground">No card needed</span>
+              </div>
+              <Link
+                href="/check"
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
+              >
+                Already selling? Check your listing score free — no account needed →
               </Link>
-              <span className="text-xs text-muted-foreground">No card needed</span>
             </div>
           </div>
 
@@ -160,6 +168,30 @@ export function MarketingLanding({ currency = "USD" }: { currency?: "USD" | "AUD
                   <p className="text-[11px] text-muted-foreground leading-relaxed">{SAMPLE_OUTPUT.description}</p>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section className="border-t border-border px-5 md:px-10 py-10 bg-muted/10">
+        <div className="max-w-3xl mx-auto text-center">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-6">How it works</p>
+          <div className="grid gap-6 sm:grid-cols-3">
+            <div className="space-y-2">
+              <div className="flex items-center justify-center size-8 rounded-full bg-primary/10 text-primary font-bold text-sm mx-auto">1</div>
+              <p className="text-sm font-semibold text-foreground">Describe your product</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">Paste your title, a few details, and the platform you sell on. Takes about 2 minutes.</p>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-center size-8 rounded-full bg-primary/10 text-primary font-bold text-sm mx-auto">2</div>
+              <p className="text-sm font-semibold text-foreground">Get an optimised listing</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">SellWise writes your title, tags, description, and keywords to that platform&apos;s exact ranking rules — in under 30 seconds.</p>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-center size-8 rounded-full bg-primary/10 text-primary font-bold text-sm mx-auto">3</div>
+              <p className="text-sm font-semibold text-foreground">Copy or push it live</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">Copy the result with one click, or connect your Shopify or eBay store and push directly — no copy-paste.</p>
             </div>
           </div>
         </div>
@@ -239,6 +271,18 @@ export function MarketingLanding({ currency = "USD" }: { currency?: "USD" | "AUD
         </div>
       </section>
 
+      {/* FAILURE STAKES */}
+      <div className="border-t border-border px-5 md:px-10 py-5 bg-muted/5">
+        <div className="max-w-3xl mx-auto text-center space-y-1">
+          <p className="text-sm font-medium text-foreground">
+            Every week with underoptimised listings is a week of sales going to competitors who&apos;ve done the work.
+          </p>
+          <p className="text-xs text-muted-foreground">
+            SellWise knows each platform&apos;s ranking algorithm — Etsy&apos;s 13-tag rule, eBay&apos;s 80-character title limit, Shopify&apos;s meta fields — and writes your listings to follow them exactly.
+          </p>
+        </div>
+      </div>
+
       {/* /CHECK TEASER */}
       <div className="border-t border-border bg-muted/30 px-5 md:px-10 py-4">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-2 text-center">
@@ -257,9 +301,14 @@ export function MarketingLanding({ currency = "USD" }: { currency?: "USD" | "AUD
       {/* FEATURES */}
       <section id="features" className="border-t border-border px-5 md:px-10 py-12">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-lg md:text-xl font-bold text-foreground text-center mb-8">
-            Everything you need to rank
-          </h2>
+          <div className="text-center mb-8">
+            <h2 className="text-lg md:text-xl font-bold text-foreground">
+              Everything you need to rank
+            </h2>
+            <p className="mt-1 text-xs text-muted-foreground max-w-lg mx-auto">
+              Built for the specific rules of each platform — not a generic AI that doesn&apos;t know the difference between an Etsy tag and a Shopify meta description.
+            </p>
+          </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto">
             {FEATURES.map(({ icon: Icon, title, desc }) => (
               <div key={title} className="flex flex-col items-center text-center sm:items-start sm:text-left">
@@ -304,7 +353,7 @@ export function MarketingLanding({ currency = "USD" }: { currency?: "USD" | "AUD
                 {p.symbol}{p.growth}
                 <span className="text-xs font-normal text-muted-foreground">/mo</span>
               </p>
-              <p className="text-xs text-muted-foreground">Unlimited + all features</p>
+              <p className="text-xs text-muted-foreground">Unlimited + keywords + audit + 1 store</p>
             </div>
             <div className="bg-card rounded-lg p-3.5 border border-border">
               <p className="text-xs font-semibold text-foreground">Studio</p>
@@ -312,7 +361,7 @@ export function MarketingLanding({ currency = "USD" }: { currency?: "USD" | "AUD
                 {p.symbol}{p.studio}
                 <span className="text-xs font-normal text-muted-foreground">/mo</span>
               </p>
-              <p className="text-xs text-muted-foreground">Unlimited + shop connect</p>
+              <p className="text-xs text-muted-foreground">Unlimited + connect unlimited stores</p>
             </div>
           </div>
 
@@ -332,14 +381,22 @@ export function MarketingLanding({ currency = "USD" }: { currency?: "USD" | "AUD
       <section className="border-t border-border px-5 md:px-10 py-12 text-center">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-xl md:text-3xl font-bold text-foreground mb-2">
-            Get your first listing in 30 seconds.
+            Stop leaving sales on the table.
           </h2>
           <p className="text-xs md:text-sm text-muted-foreground mb-6">
-            No setup, no card needed. Just describe your product and go.
+            Get your first optimised listing in 30 seconds. No card needed.
           </p>
-          <Link href="/signup" className={buttonVariants({ size: "lg" })}>
-            Start for free
-          </Link>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link href="/signup" className={buttonVariants({ size: "lg" })}>
+              Try free for 7 days
+            </Link>
+            <Link
+              href="/check"
+              className={buttonVariants({ size: "lg", variant: "outline" })}
+            >
+              Check a listing score free
+            </Link>
+          </div>
         </div>
       </section>
 
