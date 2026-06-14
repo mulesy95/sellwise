@@ -69,6 +69,40 @@ function keywordCoveragePenalty(listing: ScoredListing, userKeywords: string): n
   return 20;
 }
 
+const STOP_WORDS = new Set([
+  "a", "an", "the", "and", "or", "but", "in", "on", "at", "to", "for",
+  "of", "with", "by", "from", "is", "it", "its", "this", "that", "are",
+  "be", "as", "was", "has", "have", "had", "not", "no", "so", "if",
+  "your", "our", "my", "their", "you", "we", "i",
+]);
+
+function etsyTagUniqueness(tags: string[]): number {
+  if (tags.length === 0) return 0;
+  const wordCount: Record<string, number> = {};
+  for (const tag of tags) {
+    const words = tag.toLowerCase().split(/\s+/).filter((w) => w.length > 2 && !STOP_WORDS.has(w));
+    for (const word of words) {
+      wordCount[word] = (wordCount[word] ?? 0) + 1;
+    }
+  }
+  const repeatedWords = Object.values(wordCount).filter((c) => c > 1).length;
+  return Math.min(repeatedWords * 5, 15); // -5 per repeated word, max -15
+}
+
+function titleDescriptionOverlap(title: string, description: string): number {
+  if (!title || !description) return 0;
+  const titleWords = title
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((w) => w.length > 3 && !STOP_WORDS.has(w));
+  if (titleWords.length === 0) return 0;
+  const descWords = new Set(
+    description.toLowerCase().split(/\s+/).filter((w) => w.length > 3)
+  );
+  const overlap = titleWords.filter((w) => descWords.has(w)).length;
+  return overlap / titleWords.length > 0.6 ? 10 : 0; // -10 if > 60% overlap
+}
+
 export function scoreOptimisedListing(listing: ScoredListing, ctx?: ScoreContext): number {
   let s = 0;
 
@@ -89,6 +123,8 @@ export function scoreOptimisedListing(listing: ScoredListing, ctx?: ScoreContext
       else if (w >= 80) s += 15;
       else if (w >= 30) s += 8;
       else if (w > 0) s += 3;
+      s -= etsyTagUniqueness(tags);
+      s -= titleDescriptionOverlap(title, desc);
       break;
     }
     case "amazon": {
@@ -104,6 +140,7 @@ export function scoreOptimisedListing(listing: ScoredListing, ctx?: ScoreContext
       else if (bullets.length > 0) s += 10;
       if (backend.length >= 100) s += 30;
       else if (backend.length > 0) s += 15;
+      s -= titleDescriptionOverlap(listing.title ?? "", listing.description ?? "");
       break;
     }
     case "shopify": {
@@ -120,6 +157,7 @@ export function scoreOptimisedListing(listing: ScoredListing, ctx?: ScoreContext
       if (w >= 150) s += 30;
       else if (w >= 80) s += 20;
       else if (w >= 30) s += 10;
+      s -= titleDescriptionOverlap(listing.metaTitle ?? "", listing.description ?? "");
       break;
     }
     case "ebay": {
@@ -133,6 +171,7 @@ export function scoreOptimisedListing(listing: ScoredListing, ctx?: ScoreContext
       else if (w >= 50) s += 35;
       else if (w >= 20) s += 20;
       else if (w > 0) s += 10;
+      s -= titleDescriptionOverlap(listing.title ?? "", listing.description ?? "");
       break;
     }
     case "woocommerce":
@@ -151,6 +190,7 @@ export function scoreOptimisedListing(listing: ScoredListing, ctx?: ScoreContext
       if (w >= 150) s += 30;
       else if (w >= 80) s += 20;
       else if (w >= 30) s += 10;
+      s -= titleDescriptionOverlap(listing.seoTitle ?? "", listing.description ?? "");
       break;
     }
     case "tiktok": {
