@@ -8,6 +8,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { checkLimit, incrementUsage } from "@/lib/usage";
 import { rewardReferral } from "@/lib/referral";
 import type { Platform } from "@/lib/platforms";
+import { scoreOptimisedListing } from "@/lib/listing-score";
+import type { ScoredListing } from "@/lib/listing-score";
 
 const client = new Anthropic();
 
@@ -410,7 +412,34 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ ...listing, platform, used: used + 1, limit, id: optimisationId });
+    // Peer comparison — is this score in the top 5% for this platform this week?
+    let topPercent = false;
+    try {
+      const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      const { data: recentScores } = await supabase
+        .from("optimisations")
+        .select("score")
+        .eq("platform", platform)
+        .gte("created_at", weekAgo)
+        .not("score", "is", null);
+
+      if (recentScores && recentScores.length >= 20) {
+        const scores = recentScores
+          .map((r) => r.score as number)
+          .sort((a, b) => a - b);
+        const p95index = Math.floor(scores.length * 0.95);
+        const p95 = scores[p95index];
+        const currentScore = scoreOptimisedListing({
+          platform,
+          ...listing,
+        } as ScoredListing);
+        topPercent = currentScore >= p95;
+      }
+    } catch {
+      // Non-critical — silently ignore
+    }
+
+    return NextResponse.json({ ...listing, platform, used: used + 1, limit, id: optimisationId, topPercent });
   } catch (err) {
     if (
       err instanceof APIConnectionError ||

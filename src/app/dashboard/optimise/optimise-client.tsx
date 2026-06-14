@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Sparkles, Copy, Check, RotateCcw, RefreshCw, Download, BarChart3, ImagePlus, X, Lock, AlertCircle, ChevronDown, ThumbsUp, ThumbsDown, Lightbulb, Search, ArrowLeftRight, Plus } from "lucide-react";
+import { Sparkles, Copy, Check, RotateCcw, RefreshCw, Download, BarChart3, ImagePlus, X, Lock, AlertCircle, ChevronDown, ThumbsUp, ThumbsDown, Lightbulb, Search, ArrowLeftRight, Plus, TrendingUp } from "lucide-react";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import { Spinner } from "@/components/ui/spinner";
 import { PlatformSelector } from "@/components/platform-selector";
@@ -22,6 +22,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import type { Platform } from "@/lib/platforms";
+import { PLATFORM_LABELS } from "@/lib/platforms";
 import { ListingDiff } from "@/components/listing-diff";
 import { scoreOptimisedListing } from "@/lib/listing-score";
 import type { ScoredListing } from "@/lib/listing-score";
@@ -53,6 +54,7 @@ interface OptimisedListing {
   description?: string;
   original?: Record<string, string | string[]>;
   changes?: ChangeNote[];
+  topPercent?: boolean;
 }
 
 interface TabConfig {
@@ -1103,6 +1105,12 @@ export function OptimiseClient({ plan }: { plan: string }) {
                       </p>
                     ) : null;
                   })()}
+                  {result?.topPercent && (
+                    <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                      <TrendingUp className="size-3" />
+                      Top 5% on {PLATFORM_LABELS[platform]} this week
+                    </div>
+                  )}
                 </>
               )}
 
