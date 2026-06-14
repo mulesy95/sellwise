@@ -1,4 +1,5 @@
 import type { Platform } from "@/lib/platforms";
+import { BANNED_WORDS } from "@/lib/banned-words";
 
 export interface ScoredListing {
   platform: Platform;
@@ -19,12 +20,6 @@ export interface ScoredListing {
 export interface ScoreContext {
   userKeywords?: string;
 }
-
-const BANNED = [
-  "unique", "stunning", "beautiful", "beautifully", "perfect", "perfectly",
-  "seamlessly", "elevate", "elevating", "enhance", "enhancing",
-  "exceptional", "premium", "top-notch",
-];
 
 function wc(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length;
@@ -51,7 +46,7 @@ function allOutputText(listing: ScoredListing): string {
 function bannedWordPenalty(listing: ScoredListing): number {
   const text = allOutputText(listing).toLowerCase();
   let hits = 0;
-  for (const word of BANNED) {
+  for (const word of BANNED_WORDS) {
     const re = new RegExp(`\\b${word.replace("-", "\\-")}\\b`, "i");
     if (re.test(text)) hits++;
   }
