@@ -42,6 +42,9 @@ const WRITING_RULES = `Writing rules:
 - Use the exact product name as given. Do not paraphrase, shorten, or reinterpret it.
 - NEVER use em dashes (—), en dashes (–), or ellipses (…)
 - Write like a real person: short sentences, plain punctuation (commas, full stops, exclamation marks only)
+- Address the buyer directly as "you" throughout — not "customers", "shoppers", or "buyers"
+- Use active voice — "Burns for 45 hours" not "A burn time of 45 hours is provided"
+- Never open any description with "This is...", "Introducing...", "Meet...", "Looking for...", or "Are you..."
 - No buzzwords or their adverb/adjective forms: unique, stunning, beautiful, beautifully, perfect, perfectly, seamlessly, elevate, elevating, enhance, enhancing, exceptional, premium, top-notch`;
 
 function buildSystemPrompt(platform: Platform): string {
