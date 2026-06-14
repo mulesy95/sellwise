@@ -246,7 +246,7 @@ interface FormValues {
 
 const FORM_STORAGE_KEY = "optimise:form";
 
-function useCountUp(target: number, duration = 800): number {
+function useCountUp(target: number, duration = 1100): number {
   const [count, setCount] = useState(0);
   const rafRef = useRef<number | null>(null);
 

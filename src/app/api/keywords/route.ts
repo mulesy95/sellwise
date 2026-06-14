@@ -191,6 +191,7 @@ export async function POST(request: NextRequest) {
     const message = await client.messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: 1024,
+      temperature: 0,
       system: [{ type: "text" as const, text: buildSystemPrompt(platform) + brandVoiceSuffix, cache_control: { type: "ephemeral" as const } }],
       messages: [{ role: "user", content: `Seed keyword: ${keyword}` }],
     });
