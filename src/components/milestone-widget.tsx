@@ -1,10 +1,10 @@
 import { Trophy } from "lucide-react";
 
 const MILESTONES = [
-  { count: 10, label: "Veteran", description: "Veteran seller badge" },
-  { count: 50, label: "Pro Seller", description: "Pro Seller badge" },
-  { count: 100, label: "Power User", description: "Unlimited keyword saves" },
-  { count: 250, label: "Elite Seller", description: "Elite Seller badge" },
+  { count: 10, label: "Veteran" },
+  { count: 50, label: "Pro Seller" },
+  { count: 100, label: "Power User" },
+  { count: 250, label: "Elite Seller" },
 ];
 
 interface MilestoneWidgetProps {
@@ -36,7 +36,6 @@ export function MilestoneWidget({ optimisationCount }: MilestoneWidgetProps) {
           style={{ width: `${pct}%` }}
         />
       </div>
-      <p className="text-[10px] text-muted-foreground">{next.description}</p>
     </div>
   );
 }
