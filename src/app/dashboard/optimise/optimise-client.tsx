@@ -510,6 +510,7 @@ export function OptimiseClient({ plan }: { plan: string }) {
       setResult(json);
       setFeedback(null);
       window.dispatchEvent(new Event("sellwise:optimised"));
+      void fetch("/api/streak", { method: "POST" }).catch(() => null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to optimise");
     } finally {
