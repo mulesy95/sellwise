@@ -25,6 +25,7 @@ import type { Platform } from "@/lib/platforms";
 import { ListingDiff } from "@/components/listing-diff";
 import { scoreOptimisedListing } from "@/lib/listing-score";
 import type { ScoredListing } from "@/lib/listing-score";
+import { showBigLiftToast } from "@/components/big-lift-toast";
 import { cn } from "@/lib/utils";
 
 interface ChangeNote {
@@ -509,6 +510,20 @@ export function OptimiseClient({ plan }: { plan: string }) {
       const json = await res.json();
       setResult(json);
       setFeedback(null);
+
+      // Big Lift toast — fires on re-optimisation (existingContent provided) when score improves 30+
+      const newAfterScore = scoreOptimisedListing(json as ScoredListing);
+      const newBeforeScore =
+        json.original != null
+          ? scoreOptimisedListing({
+              platform: json.platform as Platform,
+              ...(json.original as Record<string, unknown>),
+            } as ScoredListing)
+          : null;
+      if (newBeforeScore !== null && newAfterScore - newBeforeScore >= 30) {
+        showBigLiftToast(newAfterScore - newBeforeScore);
+      }
+
       window.dispatchEvent(new Event("sellwise:optimised"));
       void fetch("/api/streak", { method: "POST" }).catch(() => null);
     } catch (err) {
