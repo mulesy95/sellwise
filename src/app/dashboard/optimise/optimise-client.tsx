@@ -24,8 +24,8 @@ import { toast } from "sonner";
 import type { Platform } from "@/lib/platforms";
 import { PLATFORMS, PLATFORM_LABELS } from "@/lib/platforms";
 import { ListingDiff } from "@/components/listing-diff";
-import { scoreOptimisedListing } from "@/lib/listing-score";
-import type { ScoredListing } from "@/lib/listing-score";
+import { scoreOptimisedListing, scoreWithBreakdown } from "@/lib/listing-score";
+import type { ScoredListing, ScoreDeduction } from "@/lib/listing-score";
 import { showBigLiftToast } from "@/components/big-lift-toast";
 import { cn } from "@/lib/utils";
 import { getFieldHint } from "@/lib/field-hints";
@@ -300,16 +300,71 @@ function ScoreDisplay({ before, after }: { before?: number; after: number }) {
   );
 }
 
-function RescuePanel({ onReset }: { onReset: () => void }) {
+function ScoreDeductionsList({ deductions }: { deductions: ScoreDeduction[] }) {
+  if (deductions.length === 0) return null;
+  return (
+    <div className="space-y-1.5 px-1">
+      {deductions.map((d, i) => (
+        <div key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
+          <span className="shrink-0 font-medium text-destructive/80">−{d.points}</span>
+          <span>{d.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function serialiseResult(result: OptimisedListing): string {
+  const parts: string[] = [];
+  if (result.title) parts.push(`Title: ${result.title}`);
+  if (result.metaTitle) parts.push(`Meta Title: ${result.metaTitle}`);
+  if (result.metaDescription) parts.push(`Meta Description: ${result.metaDescription}`);
+  if (result.productTitle) parts.push(`Product Title: ${result.productTitle}`);
+  if (result.seoTitle) parts.push(`SEO Title: ${result.seoTitle}`);
+  if (result.seoDescription) parts.push(`SEO Description: ${result.seoDescription}`);
+  if (result.tags?.length) parts.push(`Tags: ${result.tags.join(", ")}`);
+  if (result.bullets?.length) parts.push(`Bullet Points:\n${result.bullets.map((b, i) => `${i + 1}. ${b}`).join("\n")}`);
+  if (result.backendKeywords) parts.push(`Backend Keywords: ${result.backendKeywords}`);
+  if (result.description) parts.push(`Description:\n${result.description}`);
+  if (result.caption) parts.push(`Caption: ${result.caption}`);
+  if (result.postCopy) parts.push(`Post Copy:\n${result.postCopy}`);
+  if (result.hashtags?.length) parts.push(`Hashtags: ${result.hashtags.join(" ")}`);
+  return parts.join("\n\n");
+}
+
+function buildImproveInstruction(deductions: ScoreDeduction[]): string {
+  if (deductions.length === 0) return "";
+  return `\n\n---\nPlease specifically address these issues in your revision:\n${deductions.map((d) => `- ${d.label}`).join("\n")}`;
+}
+
+function RescuePanel({ deductions, onImprove, onReset }: {
+  deductions: ScoreDeduction[];
+  onImprove: () => void;
+  onReset: () => void;
+}) {
   return (
     <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4 space-y-3">
       <div className="flex items-center gap-2">
         <Lightbulb className="size-4 text-amber-600 dark:text-amber-400 shrink-0" />
         <p className="text-sm font-medium text-amber-700 dark:text-amber-400">
-          Score under 60 — a few things to try
+          Score under 60 — here&apos;s what to fix
         </p>
       </div>
-      <div className="grid gap-2 sm:grid-cols-3">
+      <div className="grid gap-2 sm:grid-cols-2">
+        <button
+          onClick={onImprove}
+          className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-background p-3 text-xs hover:border-amber-500/50 hover:bg-amber-500/5 transition-colors text-left w-full"
+        >
+          <RefreshCw className="size-3.5 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+          <div>
+            <p className="font-medium text-amber-700 dark:text-amber-400">Improve this listing</p>
+            <p className="text-muted-foreground mt-0.5">
+              {deductions.length > 0
+                ? `We'll pre-fill the form with the specific fixes needed and re-run.`
+                : "We'll load the output back into the form so you can refine it."}
+            </p>
+          </div>
+        </button>
         <Link
           href="/dashboard/keywords"
           className="flex items-start gap-2 rounded-md border border-border/60 bg-background p-3 text-xs hover:border-border hover:bg-muted/30 transition-colors"
@@ -317,29 +372,9 @@ function RescuePanel({ onReset }: { onReset: () => void }) {
           <Search className="size-3.5 shrink-0 mt-0.5 text-muted-foreground" />
           <div>
             <p className="font-medium">Research keywords first</p>
-            <p className="text-muted-foreground mt-0.5">Pull 15 keywords, then come back and add them to the form.</p>
+            <p className="text-muted-foreground mt-0.5">Pull 15 keywords, come back and add them to get a higher score.</p>
           </div>
         </Link>
-        <Link
-          href="/dashboard/audit"
-          className="flex items-start gap-2 rounded-md border border-border/60 bg-background p-3 text-xs hover:border-border hover:bg-muted/30 transition-colors"
-        >
-          <BarChart3 className="size-3.5 shrink-0 mt-0.5 text-muted-foreground" />
-          <div>
-            <p className="font-medium">Audit the listing instead</p>
-            <p className="text-muted-foreground mt-0.5">Paste your existing listing and get a breakdown of specific fixes.</p>
-          </div>
-        </Link>
-        <button
-          onClick={onReset}
-          className="flex items-start gap-2 rounded-md border border-border/60 bg-background p-3 text-xs hover:border-border hover:bg-muted/30 transition-colors text-left w-full"
-        >
-          <ArrowLeftRight className="size-3.5 shrink-0 mt-0.5 text-muted-foreground" />
-          <div>
-            <p className="font-medium">Try a different platform</p>
-            <p className="text-muted-foreground mt-0.5">We&apos;ll scroll you back to the top so you can pick a different platform and re-run.</p>
-          </div>
-        </button>
       </div>
     </div>
   );
@@ -349,20 +384,13 @@ function WhatNextStrip({ onReset }: { onReset: () => void }) {
   return (
     <div className="rounded-lg border border-border/50 bg-muted/20 p-4 space-y-3">
       <p className="text-xs font-medium text-muted-foreground">What next?</p>
-      <div className="grid gap-2 sm:grid-cols-3">
+      <div className="grid gap-2 sm:grid-cols-2">
         <Link
           href="/dashboard/keywords"
           className="flex items-center gap-2 rounded-md border border-border/60 bg-background px-3 py-2 text-xs font-medium hover:border-border hover:bg-muted/30 transition-colors"
         >
           <Search className="size-3.5 shrink-0 text-muted-foreground" />
           Research keywords
-        </Link>
-        <Link
-          href="/dashboard/audit"
-          className="flex items-center gap-2 rounded-md border border-border/60 bg-background px-3 py-2 text-xs font-medium hover:border-border hover:bg-muted/30 transition-colors"
-        >
-          <BarChart3 className="size-3.5 shrink-0 text-muted-foreground" />
-          Audit this listing
         </Link>
         <button
           onClick={onReset}
@@ -798,7 +826,20 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
   }
 
   const tabs = result ? getResultTabs(result) : [];
-  const afterScore = result ? scoreOptimisedListing(result as ScoredListing, { userKeywords: keywordsValue }) : null;
+  const scoreResult = result ? scoreWithBreakdown(result as ScoredListing, { userKeywords: keywordsValue }) : null;
+  const afterScore = scoreResult?.score ?? null;
+  const afterDeductions = scoreResult?.deductions ?? [];
+
+  const handleImprove = () => {
+    if (!result) return;
+    const serialised = serialiseResult(result);
+    const hints = buildImproveInstruction(afterDeductions);
+    setFormValues((v) => ({ ...v, existingContent: serialised + hints }));
+    setResult(null);
+    setError(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const beforeScore = (result?.original && result?.platform)
     ? scoreOptimisedListing({ platform: result.platform, ...result.original } as ScoredListing)
     : null;
@@ -1394,6 +1435,7 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
                     before={beforeScore ?? undefined}
                     after={afterScore}
                   />
+                  <ScoreDeductionsList deductions={afterDeductions} />
                   {(() => {
                     const note = getMicroNote(result?.id, afterScore);
                     return note ? (
@@ -1420,7 +1462,11 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
               )}
 
               {afterScore !== null && afterScore < 60 && (
-                <RescuePanel onReset={handleReset} />
+                <RescuePanel
+                  deductions={afterDeductions}
+                  onImprove={handleImprove}
+                  onReset={handleReset}
+                />
               )}
 
               {result !== null && (
