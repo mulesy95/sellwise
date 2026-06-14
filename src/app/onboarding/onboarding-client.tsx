@@ -69,15 +69,17 @@ export function OnboardingClient({ firstName }: { firstName: string | null }) {
   const [categories, setCategories] = useState<string[]>([]);
   const [platforms, setPlatforms] = useState<Platform[]>([]);
   const [brandVoice, setBrandVoice] = useState("");
-  const [demoResult, setDemoResult] = useState<{ title: string; score: number } | null>(null);
+  const [demoResult, setDemoResult] = useState<{ title: string; metaDescription: string | null; score: number } | null>(null);
   const [demoLoading, setDemoLoading] = useState(false);
+  const [demoFailed, setDemoFailed] = useState(false);
 
   useEffect(() => {
     if (step !== 3) return;
     const demoPlatform: string = platforms[0] ?? "shopify";
     setDemoLoading(true);
+    setDemoFailed(false);
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10_000);
+    const timeout = setTimeout(() => controller.abort(), 25_000);
 
     fetch("/api/optimise", {
       method: "POST",
@@ -95,12 +97,13 @@ export function OnboardingClient({ firstName }: { firstName: string | null }) {
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (!data) return;
-        const title: string = data.metaTitle ?? data.title ?? "";
+        const title: string = data.metaTitle ?? data.productTitle ?? data.title ?? "";
+        const metaDescription: string | null = data.metaDescription ?? null;
         const score: number = scoreOptimisedListing(data as ScoredListing);
-        if (title) setDemoResult({ title, score });
+        if (title) setDemoResult({ title, metaDescription, score });
       })
       .catch(() => {
-        // silent fail — demo is best-effort
+        setDemoFailed(true);
       })
       .finally(() => {
         clearTimeout(timeout);
@@ -322,10 +325,17 @@ export function OnboardingClient({ firstName }: { firstName: string | null }) {
               </div>
             )}
 
+            {!demoLoading && demoFailed && !demoResult && (
+              <div className="rounded-xl border border-border/50 bg-muted/30 p-4 text-center space-y-1">
+                <p className="text-sm font-medium">AI is warming up — your first result will be fast.</p>
+                <p className="text-xs text-muted-foreground">Head to the optimiser and try your own product.</p>
+              </div>
+            )}
+
             {!demoLoading && demoResult && (
-              <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <p className="text-xs font-medium text-muted-foreground">Demo title</p>
+              <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3 text-left">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Sample output</p>
                   <span
                     className={cn(
                       "shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold",
@@ -336,12 +346,21 @@ export function OnboardingClient({ firstName }: { firstName: string | null }) {
                         : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
                     )}
                   >
-                    Score {demoResult.score}
+                    {demoResult.score} / 100
                   </span>
                 </div>
-                <p className="text-sm font-medium leading-snug">{demoResult.title}</p>
-                <p className="text-xs text-muted-foreground">
-                  This is what SellWise would write for a product like yours.
+                <div className="space-y-0.5">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Title</p>
+                  <p className="text-sm font-medium leading-snug">{demoResult.title}</p>
+                </div>
+                {demoResult.metaDescription && (
+                  <div className="space-y-0.5">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Meta description</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{demoResult.metaDescription}</p>
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground/70">
+                  Generated live. This is what SellWise writes for your listings.
                 </p>
               </div>
             )}
@@ -380,7 +399,7 @@ export function OnboardingClient({ firstName }: { firstName: string | null }) {
             </div>
 
             <p className="text-xs text-muted-foreground/70">
-              Free plan: 3 optimisations per month. Upgrade anytime for unlimited access.
+              Your 7-day Growth trial is active — unlimited optimisations, no card needed.
             </p>
 
             <Button className="w-full" onClick={finish}>
