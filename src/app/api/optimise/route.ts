@@ -19,7 +19,7 @@ const requestSchema = z.object({
   materials: z.string().max(300).optional().default(""),
   style: z.string().max(200).optional().default(""),
   targetBuyer: z.string().max(200).optional().default(""),
-  keywords: z.string().max(300).optional().default(""),
+  keywords: z.string().max(600).optional().default(""),
   imageBase64: z.string().optional(),
   imageMediaType: z.enum(["image/jpeg", "image/png", "image/gif", "image/webp"]).optional(),
   imageUrl: z.string().url().refine((u) => u.startsWith("https://"), "imageUrl must use HTTPS").optional(),
@@ -372,6 +372,8 @@ export async function POST(request: NextRequest) {
       listing = JSON.parse(match[0]);
     }
 
+    const savedScore = scoreOptimisedListing({ platform, ...listing } as ScoredListing);
+
     let optimisationId: string | null = null;
     if (!demo) {
       try {
@@ -386,6 +388,7 @@ export async function POST(request: NextRequest) {
               shop_id: shopId ?? null,
               input: { productName, materials, style, targetBuyer, keywords },
               output: listing,
+              score: savedScore,
             })
             .select("id")
             .single(),
