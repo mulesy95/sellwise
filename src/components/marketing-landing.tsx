@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Sparkles, Search, BarChart3, ArrowLeftRight, Store } from "lucide-react";
+import { Sparkles, Search, BarChart3, ArrowLeftRight, Store, Brain } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 
 const SAMPLE_OUTPUT = {
@@ -34,6 +34,11 @@ const FEATURES = [
     icon: Store,
     title: "Store Connect",
     desc: "Connect your Shopify or eBay store and optimise listings directly from your dashboard — no copy-paste needed.",
+  },
+  {
+    icon: Brain,
+    title: "Learns your voice",
+    desc: "Approve results you like and SellWise picks up your tone. After a few optimisations, it writes the way you do.",
   },
 ];
 
@@ -140,6 +145,21 @@ export function MarketingLanding({ currency = "USD" }: { currency?: "USD" | "AUD
         </div>
       </section>
 
+      {/* /CHECK TEASER */}
+      <div className="border-t border-border bg-muted/30 px-5 md:px-10 py-4">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-2 text-center">
+          <p className="text-xs text-muted-foreground">
+            Already have a Shopify listing? Check its SEO score in 10 seconds — no account needed.
+          </p>
+          <Link
+            href="/check"
+            className="text-xs font-semibold text-primary hover:opacity-80 transition-opacity shrink-0"
+          >
+            Free listing health check →
+          </Link>
+        </div>
+      </div>
+
       {/* FEATURES */}
       <section id="features" className="border-t border-border px-5 md:px-10 py-12">
         <div className="max-w-6xl mx-auto">
@@ -174,7 +194,7 @@ export function MarketingLanding({ currency = "USD" }: { currency?: "USD" | "AUD
             <div className="bg-card rounded-lg p-3.5 border border-border">
               <p className="text-xs font-semibold text-foreground">Free</p>
               <p className="text-xl font-bold text-foreground my-1">{p.symbol}0</p>
-              <p className="text-xs text-muted-foreground">3 optimisations / month</p>
+              <p className="text-xs text-muted-foreground">1 optimisation / month</p>
             </div>
             <div className="bg-card rounded-lg p-3.5 border border-border">
               <p className="text-xs font-semibold text-foreground">Starter</p>
