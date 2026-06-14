@@ -552,28 +552,33 @@ export function HistoryClient() {
         </Card>
       ) : optimisations.length === 0 ? (
         <Card className="flex min-h-64 items-center justify-center border-border/30 border-dashed">
-          <CardContent className="text-center py-12">
+          <CardContent className="text-center py-12 max-w-xs mx-auto">
             <History className="mx-auto mb-3 size-8 text-muted-foreground/40" />
-            <p className="text-sm text-muted-foreground font-medium">No optimisations yet</p>
-            <p className="mt-1 text-xs text-muted-foreground/70">
-              {showArchived
-                ? "No archived optimisations."
-                : platform !== "all"
-                  ? `No ${PLATFORM_CONFIG[platform as Platform].label} optimisations found.`
-                  : "Run the Listing Optimiser and your results will appear here."}
-            </p>
             {showArchived ? (
-              <button onClick={() => setShowArchived(false)} className="mt-3 text-xs text-primary hover:underline">
-                Back to active
-              </button>
+              <>
+                <p className="text-sm text-muted-foreground font-medium">No archived optimisations</p>
+                <button onClick={() => setShowArchived(false)} className="mt-3 text-xs text-primary hover:underline">
+                  Back to active
+                </button>
+              </>
             ) : platform !== "all" ? (
-              <button onClick={() => setPlatform("all")} className="mt-3 text-xs text-primary hover:underline">
-                Show all platforms
-              </button>
+              <>
+                <p className="text-sm text-muted-foreground font-medium">No {PLATFORM_CONFIG[platform as Platform].label} results yet</p>
+                <p className="mt-1 text-xs text-muted-foreground/70">Run the optimiser on a {PLATFORM_CONFIG[platform as Platform].label} listing to see it here.</p>
+                <button onClick={() => setPlatform("all")} className="mt-3 text-xs text-primary hover:underline">
+                  Show all platforms
+                </button>
+              </>
             ) : (
-              <a href="/dashboard/optimise" className="mt-3 inline-block text-xs text-primary hover:underline">
-                Go to Optimiser
-              </a>
+              <>
+                <p className="text-sm font-medium text-foreground">Your results will live here</p>
+                <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">
+                  Every listing you optimise is saved with the original input and AI output side by side — so you can copy, compare, and re-run any time.
+                </p>
+                <a href="/dashboard/optimise" className="mt-4 inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline">
+                  Optimise your first listing
+                </a>
+              </>
             )}
           </CardContent>
         </Card>

@@ -1640,7 +1640,9 @@ function ConnectForm() {
         </div>
         <div>
           <h2 className="font-semibold">Connect a store</h2>
-          <p className="text-xs text-muted-foreground">Choose your platform to get started.</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            See SEO scores for every listing and optimise without copy-paste. Changes push back to your store in one click.
+          </p>
         </div>
       </div>
 

@@ -445,17 +445,22 @@ export function KeywordsClient({ preferredPlatforms }: { preferredPlatforms: Pla
       )}
 
       {!loading && keywords.length === 0 && !error && (
-        <Card className="flex min-h-48 items-center justify-center border-border/30 border-dashed">
-          <CardContent className="text-center">
-            <Search className="mx-auto mb-3 size-8 text-muted-foreground/40" />
-            <p className="text-sm text-muted-foreground">
-              Type a product keyword above and click <span className="font-medium text-foreground">Research</span>.
+        <div className="rounded-xl border border-border/40 bg-muted/20 p-6 text-center space-y-3">
+          <div className="mx-auto flex size-10 items-center justify-center rounded-full bg-primary/10">
+            <Search className="size-5 text-primary" />
+          </div>
+          <div>
+            <p className="text-sm font-medium">Find keywords buyers actually search for</p>
+            <p className="mt-1 text-xs text-muted-foreground leading-relaxed max-w-xs mx-auto">
+              Enter a product type above and we&apos;ll return 15 keywords with volume, competition, and trend signals — specific to {platform}.
             </p>
-            <p className="mt-1 text-xs text-muted-foreground/70">
-              You'll get 15 keywords ranked by search volume and competition.
+          </div>
+          {savedLists.length > 0 && (
+            <p className="text-xs text-muted-foreground/60">
+              You have {savedLists.length} saved list{savedLists.length !== 1 ? "s" : ""} — use them in the optimiser via the keyword picker.
             </p>
-          </CardContent>
-        </Card>
+          )}
+        </div>
       )}
 
       {savedLists.length > 0 && (
