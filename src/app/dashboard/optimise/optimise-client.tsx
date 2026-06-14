@@ -246,7 +246,30 @@ interface FormValues {
 
 const FORM_STORAGE_KEY = "optimise:form";
 
+function useCountUp(target: number, duration = 800): number {
+  const [count, setCount] = useState(0);
+  const rafRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    const start = Date.now();
+    const tick = () => {
+      const elapsed = Date.now() - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+      setCount(Math.round(target * eased));
+      if (progress < 1) rafRef.current = requestAnimationFrame(tick);
+    };
+    setCount(0);
+    rafRef.current = requestAnimationFrame(tick);
+    return () => { if (rafRef.current !== null) cancelAnimationFrame(rafRef.current); };
+  }, [target, duration]);
+
+  return count;
+}
+
 function ScoreDisplay({ before, after }: { before?: number; after: number }) {
+  const displayAfter = useCountUp(after);
   const color = (s: number) =>
     s >= 70 ? "text-emerald-600 dark:text-emerald-400"
     : s >= 40 ? "text-amber-600 dark:text-amber-400"
@@ -264,7 +287,7 @@ function ScoreDisplay({ before, after }: { before?: number; after: number }) {
         </>
       )}
       <div className="text-center">
-        <p className={cn("text-2xl font-bold tabular-nums leading-none", color(after))}>{after}</p>
+        <p className={cn("text-2xl font-bold tabular-nums leading-none", color(displayAfter))}>{displayAfter}</p>
         <p className="mt-0.5 text-[10px] text-muted-foreground">{before !== undefined ? "After" : "SEO Score"}</p>
       </div>
       {delta !== null && (
@@ -398,6 +421,7 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
   const [lockedDesc, setLockedDesc] = useState<string | undefined>(undefined);
   const [showAllPlatforms, setShowAllPlatforms] = useState(false);
+  const [animReveal, setAnimReveal] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   type SuggestionState = { text: string; loading: boolean };
@@ -494,6 +518,18 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
       suggestionAbortRefs.current.targetBuyer?.abort();
     };
   }, []);
+
+  // Staggered reveal animation — fires each time a new result arrives
+  useEffect(() => {
+    if (!result) { setAnimReveal(0); return; }
+    setAnimReveal(0);
+    const tabs = getResultTabs(result);
+    const timers = tabs.map((_, i) =>
+      setTimeout(() => setAnimReveal(i + 1), i * 60)
+    );
+    return () => timers.forEach(clearTimeout);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result]);
 
   function setField(key: keyof FormValues) {
     return (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -1232,8 +1268,15 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
                       ))}
                     </TabsList>
 
-                    {displayTabs.map((tab) => (
-                      <TabsContent key={tab.id} value={tab.id} className="mt-4 space-y-3">
+                    {displayTabs.map((tab, tabIdx) => (
+                      <TabsContent key={tab.id} value={tab.id} className="mt-4 focus-visible:outline-none">
+                        <div
+                          style={{ transitionDelay: `${tabIdx * 60}ms` }}
+                          className={cn(
+                            "space-y-3 transition-all duration-300",
+                            animReveal > tabIdx ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
+                          )}
+                        >
                         {tab.isTags && Array.isArray(tab.content) ? (
                           <>
                             <div className="flex items-start justify-between gap-2">
@@ -1338,6 +1381,7 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
                             )}
                           </>
                         )}
+                        </div>
                       </TabsContent>
                     ))}
                   </Tabs>
