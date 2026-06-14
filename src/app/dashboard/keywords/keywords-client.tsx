@@ -130,7 +130,7 @@ const PLATFORM_DESCRIPTIONS: Record<Platform, string> = {
 
 export function KeywordsClient({ preferredPlatforms }: { preferredPlatforms: Platform[] }) {
   const searchParams = useSearchParams();
-  const [platform, setPlatform] = useState<Platform>(() => (sessionStorage.getItem("sw_active_platform") as Platform) ?? "shopify");
+  const [platform, setPlatform] = useState<Platform>("shopify");
   const [loading, setLoading] = useState(false);
   const [keywords, setKeywords] = useState<Keyword[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -148,6 +148,13 @@ export function KeywordsClient({ preferredPlatforms }: { preferredPlatforms: Pla
     showAllPlatforms || preferredPlatforms.length === 0
       ? PLATFORMS
       : preferredPlatforms;
+
+  // Read sessionStorage on mount (must be in useEffect — not in useState — to avoid SSR crash)
+  useEffect(() => {
+    const saved = sessionStorage.getItem("sw_active_platform") as Platform | null;
+    if (saved && PLATFORMS.includes(saved)) setPlatform(saved);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Reset platform if current selection is hidden
   useEffect(() => {

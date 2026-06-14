@@ -373,9 +373,8 @@ function TrialBanner() {
 export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; preferredPlatforms: Platform[] }) {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const initPlatform = (searchParams.get("platform") ?? sessionStorage.getItem("sw_active_platform") ?? "shopify") as Platform;
 
-  const [platform, setPlatform] = useState<Platform>(initPlatform);
+  const [platform, setPlatform] = useState<Platform>((searchParams.get("platform") ?? "shopify") as Platform);
   const [formValues, setFormValues] = useState<FormValues>({
     productName: searchParams.get("productName") ?? "",
     materials: searchParams.get("materials") ?? "",
@@ -407,6 +406,10 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
     targetBuyer: { text: "", loading: false },
   });
   const suggestionCache = useRef<Map<string, string>>(new Map());
+  const suggestionAbortRefs = useRef<Record<"style" | "targetBuyer", AbortController | null>>({
+    style: null,
+    targetBuyer: null,
+  });
 
   const visiblePlatforms: Platform[] =
     showAllPlatforms || preferredPlatforms.length === 0
@@ -422,6 +425,37 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
   }, [showAllPlatforms]);
   const loadingStep = useLoadingStep(loading, platform);
   const canUploadImage = plan !== "free";
+
+  // Read sessionStorage on mount to sync platform (must be in useEffect — not render body — to avoid SSR crash)
+  useEffect(() => {
+    if (!searchParams.get("platform")) {
+      const saved = sessionStorage.getItem("sw_active_platform") as Platform | null;
+      if (saved && PLATFORMS.includes(saved)) setPlatform(saved);
+    }
+    // Also check for prefill written by audit "Optimise this listing" (FIX 4)
+    const prefill = sessionStorage.getItem("sw:optimise:prefill");
+    if (prefill) {
+      try {
+        const data = JSON.parse(prefill) as Record<string, string>;
+        sessionStorage.removeItem("sw:optimise:prefill");
+        if (data.platform && PLATFORMS.includes(data.platform as Platform)) {
+          setPlatform(data.platform as Platform);
+        }
+        setFormValues((v) => ({
+          ...v,
+          productName: data.productName ?? v.productName,
+          materials: data.materials ?? v.materials,
+          style: data.style ?? v.style,
+          targetBuyer: data.targetBuyer ?? v.targetBuyer,
+          existingContent: data.existingContent ?? v.existingContent,
+        }));
+        if (data.keywords) setKeywordsValue(data.keywords);
+      } catch {
+        // ignore bad prefill data
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Restore form from localStorage only when no URL params pre-fill
   useEffect(() => {
@@ -452,6 +486,14 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
     setSuggestions({ style: { text: "", loading: false }, targetBuyer: { text: "", loading: false } });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formValues.productName, platform]);
+
+  // Abort in-flight suggestion requests on unmount
+  useEffect(() => {
+    return () => {
+      suggestionAbortRefs.current.style?.abort();
+      suggestionAbortRefs.current.targetBuyer?.abort();
+    };
+  }, []);
 
   function setField(key: keyof FormValues) {
     return (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -502,21 +544,25 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
       return;
     }
     const reader = new FileReader();
-    reader.onload = (ev) => {
+    reader.onload = async (ev) => {
       const dataUrl = ev.target?.result as string;
-      compressImage(dataUrl).then(({ dataUrl: compressed, b64, mediaType }) => {
-        setImagePreview(compressed);
-        setImageBase64(b64);
-        setImageMediaType(mediaType);
+      const result = await compressImage(dataUrl).catch(() => {
+        toast.error("Could not read the image. Try a different file.");
+        return null;
       });
+      if (!result) return;
+      setImagePreview(result.dataUrl);
+      setImageBase64(result.b64);
+      setImageMediaType(result.mediaType);
     };
     reader.readAsDataURL(file);
     e.target.value = "";
   }
 
   function compressImage(dataUrl: string): Promise<{ dataUrl: string; b64: string; mediaType: ImageMediaType }> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const img = new Image();
+      img.onerror = () => reject(new Error("Failed to load image"));
       img.onload = () => {
         const MAX_DIM = 1568; // Anthropic's recommended max dimension
         let { width, height } = img;
@@ -562,6 +608,10 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
       }));
       return;
     }
+    // Abort any previous in-flight request for this field
+    suggestionAbortRefs.current[field]?.abort();
+    const controller = new AbortController();
+    suggestionAbortRefs.current[field] = controller;
     setSuggestions((prev) => ({ ...prev, [field]: { text: "", loading: true } }));
     try {
       const res = await fetch("/api/suggest", {
@@ -573,14 +623,16 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
           field,
           currentValue: field === "style" ? formValues.style : formValues.targetBuyer,
         }),
+        signal: controller.signal,
       });
       if (!res.ok) throw new Error();
       const data = await res.json();
-      if (data.suggestion) {
+      if (data.suggestion && !controller.signal.aborted) {
         suggestionCache.current.set(cacheKey, data.suggestion);
         setSuggestions((prev) => ({ ...prev, [field]: { text: data.suggestion, loading: false } }));
       }
-    } catch {
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") return;
       setSuggestions((prev) => ({ ...prev, [field]: { text: "", loading: false } }));
     }
   }

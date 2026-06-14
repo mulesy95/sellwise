@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { BarChart3, Sparkles, AlertCircle, Link2, PenLine, Share2, RotateCcw, Copy, Check } from "lucide-react";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -274,8 +275,9 @@ function overallLabel(score: number) {
 type InputMode = "url" | "manual";
 
 export function AuditClient({ plan, preferredPlatforms }: { plan: Plan; preferredPlatforms: Platform[] }) {
+  const router = useRouter();
   const [mode, setMode] = useState<InputMode>("manual");
-  const [platform, setPlatform] = useState<Platform>(() => (sessionStorage.getItem("sw_active_platform") as Platform) ?? "shopify");
+  const [platform, setPlatform] = useState<Platform>("shopify");
   const [urlValue, setUrlValue] = useState("");
   const [detectedPlatform, setDetectedPlatform] = useState<Platform | null>(null);
   const [loading, setLoading] = useState(false);
@@ -306,6 +308,10 @@ export function AuditClient({ plan, preferredPlatforms }: { plan: Plan; preferre
   }, [showAllPlatforms]);
 
   useEffect(() => {
+    // Read active platform from sessionStorage on mount (must be here to avoid SSR crash)
+    const savedPlatform = sessionStorage.getItem("sw_active_platform") as Platform | null;
+    if (savedPlatform && PLATFORMS.includes(savedPlatform)) setPlatform(savedPlatform);
+
     const raw = sessionStorage.getItem("audit:prefill");
     if (!raw) return;
     sessionStorage.removeItem("audit:prefill");
@@ -479,15 +485,28 @@ export function AuditClient({ plan, preferredPlatforms }: { plan: Plan; preferre
     setTimeout(() => setLinkCopied(false), 2000);
   }
 
-  function buildOptimiseUrl() {
-    if (!lastPayload || !result) return "/dashboard/optimise";
+  function handleReoptimise() {
+    if (!lastPayload || !result) {
+      router.push("/dashboard/optimise");
+      return;
+    }
     const p = detectedPlatform ?? platform;
     const parts = Object.entries(lastPayload)
       .filter(([k]) => k !== "platform" && k !== "url")
       .filter(([, v]) => (v as string).trim())
       .map(([k, v]) => `${k}: ${v}`);
-    const existingContent = parts.join("\n\n").slice(0, 2000);
-    return `/dashboard/optimise?platform=${p}&existingContent=${encodeURIComponent(existingContent)}`;
+    const existingContent = parts.join("\n\n");
+    try {
+      sessionStorage.setItem(
+        "sw:optimise:prefill",
+        JSON.stringify({ platform: p, existingContent })
+      );
+    } catch {
+      // sessionStorage unavailable — fall back to URL with truncated content
+      router.push(`/dashboard/optimise?platform=${p}&existingContent=${encodeURIComponent(existingContent.slice(0, 500))}`);
+      return;
+    }
+    router.push("/dashboard/optimise");
   }
 
   const sections = AUDIT_SECTIONS[detectedPlatform ?? platform];
@@ -852,10 +871,10 @@ export function AuditClient({ plan, preferredPlatforms }: { plan: Plan; preferre
                     Optimise this listing
                   </Button>
                 ) : (
-                  <a href={buildOptimiseUrl()} className={buttonVariants({ size: "sm", className: "h-7 text-xs gap-1.5" })}>
+                  <Button size="sm" className="h-7 text-xs gap-1.5" onClick={handleReoptimise}>
                     <Sparkles className="size-3" />
                     Optimise this listing
-                  </a>
+                  </Button>
                 )}
               </div>
 
