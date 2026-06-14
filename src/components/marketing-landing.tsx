@@ -47,6 +47,26 @@ const PRICES = {
   AUD: { symbol: "A$", starter: "32", growth: "45", studio: "120" },
 };
 
+const BEFORE_AFTER = {
+  product: "Handmade lavender soy candle, relaxation gift",
+  before: {
+    title: "lavender candle handmade",
+    tags: ["lavender", "candle", "handmade", "gift", "home"],
+    descSnippet: "A lovely lavender scented candle made by hand. Perfect for gifts and home decor.",
+  },
+  after: {
+    title: "Handmade Lavender Soy Candle Gift for Her, Birthday Gift for Mum, Natural Scented Candle",
+    tags: [
+      "lavender candle gift", "gift for mum", "birthday gift for her",
+      "natural soy candle", "handmade candle", "relaxation gift",
+      "mothers day gift", "aromatherapy candle", "hand poured candle",
+      "gift for women", "soy wax candle", "calming candle gift",
+      "self care gift her",
+    ],
+    descSnippet: "For the person who needs an hour to themselves. A hand-poured soy candle in a weighted glass jar, scented with real dried lavender. Burns clean for 45 hours.",
+  },
+};
+
 const PLATFORMS = ["Shopify", "eBay", "Amazon", "Etsy", "WooCommerce", "Wix", "Squarespace", "TikTok Shop", "Social"];
 
 export function MarketingLanding({ currency = "USD" }: { currency?: "USD" | "AUD" }) {
@@ -142,6 +162,80 @@ export function MarketingLanding({ currency = "USD" }: { currency?: "USD" | "AUD
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* BEFORE / AFTER */}
+      <section className="border-t border-border px-5 md:px-10 py-12 bg-muted/20">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-8">
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-2">See the difference</p>
+            <h2 className="text-lg md:text-xl font-bold text-foreground">
+              Same product. Completely different listing.
+            </h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Input: &ldquo;{BEFORE_AFTER.product}&rdquo; &mdash; Platform: Etsy
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4 max-w-4xl mx-auto">
+            {/* Before */}
+            <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="rounded-full bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-[10px] font-semibold px-2 py-0.5">Before</span>
+                <span className="text-xs text-muted-foreground">Without SellWise</span>
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Title <span className="normal-case font-normal text-red-500/70">({BEFORE_AFTER.before.title.length} / 140 chars)</span></p>
+                  <p className="text-xs text-foreground">{BEFORE_AFTER.before.title}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Tags <span className="normal-case font-normal text-red-500/70">({BEFORE_AFTER.before.tags.length} / 13 tags)</span></p>
+                  <div className="flex flex-wrap gap-1">
+                    {BEFORE_AFTER.before.tags.map((t) => (
+                      <span key={t} className="rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">{t}</span>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Description</p>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">{BEFORE_AFTER.before.descSnippet}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* After */}
+            <div className="rounded-xl border border-primary/30 bg-primary/5 p-5 space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-[10px] font-semibold px-2 py-0.5">After</span>
+                <span className="text-xs text-muted-foreground">With SellWise</span>
+                <span className="ml-auto text-[11px] font-bold text-emerald-600 dark:text-emerald-400">94 / 100</span>
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Title <span className="normal-case font-normal text-emerald-600/70 dark:text-emerald-400/70">({BEFORE_AFTER.after.title.length} / 140 chars)</span></p>
+                  <p className="text-xs text-foreground font-medium">{BEFORE_AFTER.after.title}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Tags <span className="normal-case font-normal text-emerald-600/70 dark:text-emerald-400/70">({BEFORE_AFTER.after.tags.length} / 13 tags)</span></p>
+                  <div className="flex flex-wrap gap-1">
+                    {BEFORE_AFTER.after.tags.map((t) => (
+                      <span key={t} className="rounded border border-primary/20 bg-primary/5 px-1.5 py-0.5 text-[10px] text-primary/80">{t}</span>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Description</p>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">{BEFORE_AFTER.after.descSnippet}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p className="mt-6 text-center text-xs text-muted-foreground/60">
+            Generated in under 10 seconds. No editing required.
+          </p>
         </div>
       </section>
 
