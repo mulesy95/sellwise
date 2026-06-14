@@ -675,7 +675,7 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
       setFeedback(null);
 
       // Big Lift toast — fires on re-optimisation (existingContent provided) when score improves 30+
-      const newAfterScore = scoreOptimisedListing(json as ScoredListing);
+      const newAfterScore = scoreOptimisedListing(json as ScoredListing, { userKeywords: keywordsValue });
       const newBeforeScore =
         json.original != null
           ? scoreOptimisedListing({
@@ -762,7 +762,7 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
   }
 
   const tabs = result ? getResultTabs(result) : [];
-  const afterScore = result ? scoreOptimisedListing(result as ScoredListing) : null;
+  const afterScore = result ? scoreOptimisedListing(result as ScoredListing, { userKeywords: keywordsValue }) : null;
   const beforeScore = (result?.original && result?.platform)
     ? scoreOptimisedListing({ platform: result.platform, ...result.original } as ScoredListing)
     : null;

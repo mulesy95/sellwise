@@ -372,7 +372,7 @@ export async function POST(request: NextRequest) {
       listing = JSON.parse(match[0]);
     }
 
-    const savedScore = scoreOptimisedListing({ platform, ...listing } as ScoredListing);
+    const savedScore = scoreOptimisedListing({ platform, ...listing } as ScoredListing, { userKeywords: keywords });
 
     let optimisationId: string | null = null;
     if (!demo) {
