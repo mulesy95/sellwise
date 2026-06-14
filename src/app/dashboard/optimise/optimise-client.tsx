@@ -125,6 +125,21 @@ function getResultTabs(result: OptimisedListing): TabConfig[] {
   }
 }
 
+const HIGH_SCORE_NOTES: string[] = [
+  "That title is front-loaded well — the algorithm will notice.",
+  "Strong keyword density without reading like a keyword list.",
+  "The description opens on the right detail.",
+  "Clean and specific — exactly what platform search rewards.",
+  "Good structure. The first line does the heavy lifting.",
+];
+
+function getMicroNote(id: string | undefined, score: number): string | null {
+  if (!id || score < 80) return null;
+  const hash = id.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
+  if (hash % 10 > 2) return null; // ~70% suppressed, ~30% shown
+  return HIGH_SCORE_NOTES[hash % HIGH_SCORE_NOTES.length];
+}
+
 const PLATFORM_DESCRIPTIONS: Record<Platform, string> = {
   etsy: "Get an SEO-optimised title, 13 tags, and description.",
   amazon: "Get a keyword-rich title, 5 bullet points, backend keywords, and description.",
@@ -1075,10 +1090,20 @@ export function OptimiseClient({ plan }: { plan: string }) {
               </Card>
 
               {afterScore !== null && (
-                <ScoreDisplay
-                  before={beforeScore ?? undefined}
-                  after={afterScore}
-                />
+                <>
+                  <ScoreDisplay
+                    before={beforeScore ?? undefined}
+                    after={afterScore}
+                  />
+                  {(() => {
+                    const note = getMicroNote(result?.id, afterScore);
+                    return note ? (
+                      <p className="text-xs text-muted-foreground/70 italic px-1">
+                        {note}
+                      </p>
+                    ) : null;
+                  })()}
+                </>
               )}
 
               {result.original && result.changes && (
