@@ -13,7 +13,7 @@ const FEATURES = [
   {
     icon: Sparkles,
     title: "Listing Optimiser",
-    desc: "Describe your product and get AI-written titles, tags, bullets, and descriptions — formatted for whichever platform you sell on.",
+    desc: "Get AI-written titles, tags, bullets, and descriptions built to each platform's exact format — Etsy's 13 tags, eBay's 80-character title, Amazon's 5 bullet points, Shopify's SEO meta fields.",
   },
   {
     icon: Search,
@@ -38,7 +38,7 @@ const FEATURES = [
   {
     icon: Brain,
     title: "Learns your voice",
-    desc: "Approve results you like and SellWise picks up your tone. After a few optimisations, it writes the way you do.",
+    desc: "After 5 results you approve, SellWise auto-derives your brand voice and applies it to every listing from that point on.",
   },
 ];
 

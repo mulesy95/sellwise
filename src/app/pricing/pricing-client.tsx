@@ -30,15 +30,15 @@ const features = {
     "Unlimited keyword research",
     "Unlimited listing audits",
     "Optimisation history with before / after scores",
-    "Brand voice — SellWise learns your writing style from results you approve",
-    "Bulk optimiser — upload CSV, download results",
+    "Brand voice — auto-derived from 5 results you approve, applied to every listing",
+    "Bulk optimiser — upload a CSV and optimise up to 200 listings at once",
     "Connect 1 store — view SEO scores and optimise",
     "Priority support",
   ],
   studio: [
     "Everything in Growth",
     "Connect unlimited Shopify and eBay stores",
-    "Push optimised listings live — no copy-paste",
+    "Push optimised listings live to Shopify and eBay — no copy-paste",
     "SEO titles and descriptions pushed to Shopify automatically",
     "Revert any listing to its previous version",
     "Dedicated support",
@@ -54,19 +54,19 @@ const features = {
 };
 
 const USD_PLANS = [
-  { id: "free" as const,    name: "Free",    monthly: 0,   annual: 0,    description: "Start optimising free" },
-  { id: "starter" as const, name: "Starter", monthly: 19,  annual: 190,  description: "For part-time sellers" },
-  { id: "growth" as const,  name: "Growth",  monthly: 29,  annual: 290,  description: "For serious sellers" },
-  { id: "studio" as const,  name: "Studio",  monthly: 79,  annual: 790,  description: "Connect and automate" },
-  { id: "agency" as const,  name: "Agency",  monthly: 249, annual: 2490, description: "For agencies and power sellers" },
+  { id: "free" as const,    name: "Free",    monthly: 0,   annual: 0,    description: "1 optimisation a month, no card needed" },
+  { id: "starter" as const, name: "Starter", monthly: 19,  annual: 190,  description: "50 listings optimised every month" },
+  { id: "growth" as const,  name: "Growth",  monthly: 29,  annual: 290,  description: "Unlimited listings, no daily caps" },
+  { id: "studio" as const,  name: "Studio",  monthly: 79,  annual: 790,  description: "Connect stores and push listings live" },
+  { id: "agency" as const,  name: "Agency",  monthly: 249, annual: 2490, description: "For agencies and large catalogues" },
 ];
 
 const AUD_PLANS = [
-  { id: "free" as const,    name: "Free",    monthly: 0,   annual: 0,    description: "Start optimising free" },
-  { id: "starter" as const, name: "Starter", monthly: 32,  annual: 320,  description: "For part-time sellers" },
-  { id: "growth" as const,  name: "Growth",  monthly: 45,  annual: 450,  description: "For serious sellers" },
-  { id: "studio" as const,  name: "Studio",  monthly: 120, annual: 1200, description: "Connect and automate" },
-  { id: "agency" as const,  name: "Agency",  monthly: 379, annual: 3790, description: "For agencies and power sellers" },
+  { id: "free" as const,    name: "Free",    monthly: 0,   annual: 0,    description: "1 optimisation a month, no card needed" },
+  { id: "starter" as const, name: "Starter", monthly: 32,  annual: 320,  description: "50 listings optimised every month" },
+  { id: "growth" as const,  name: "Growth",  monthly: 45,  annual: 450,  description: "Unlimited listings, no daily caps" },
+  { id: "studio" as const,  name: "Studio",  monthly: 120, annual: 1200, description: "Connect stores and push listings live" },
+  { id: "agency" as const,  name: "Agency",  monthly: 379, annual: 3790, description: "For agencies and large catalogues" },
 ];
 
 export function PricingClient({ currency = "USD" }: { currency?: Currency }) {
