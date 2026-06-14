@@ -12,10 +12,10 @@ export function trialNudgeEmail(firstName: string | null, email: string): { subj
         Your free trial ends soon, ${name}
       </h1>
       <p style="margin:0 0 16px;font-size:15px;color:#444444;line-height:1.6">
-        Your 7-day Growth trial ends in 2 days. After that you'll drop to the Free plan: 3 optimisations per month, no keyword research, no competitor analysis.
+        Your 7-day Growth trial ends in 2 days. After that you'll drop to the Free plan — 1 optimisation per month, no keyword research, no listing audits.
       </p>
       <p style="margin:0 0 28px;font-size:15px;color:#444444;line-height:1.6">
-        Upgrade now to keep everything running without interruption.
+        Upgrade now to keep everything running.
       </p>
       <a href="${appUrl}/pricing"
          style="display:inline-block;background:#f0873b;color:#1a1a1a;text-decoration:none;font-size:14px;font-weight:700;padding:13px 24px;border-radius:8px">
@@ -27,7 +27,14 @@ export function trialNudgeEmail(firstName: string | null, email: string): { subj
       <p style="margin:0 0 12px;font-size:11px;font-weight:600;color:#999999;text-transform:uppercase;letter-spacing:0.06em">
         What you'll keep with Growth at $29/mo
       </p>
-      ${["Unlimited listing optimisations", "Unlimited keyword research", "Unlimited listing audits", "Optimisation history", "Priority support"].map(f => `
+      ${[
+        "Unlimited listing optimisations",
+        "Unlimited keyword research",
+        "Unlimited listing audits",
+        "Optimisation history with before &amp; after scores",
+        "Brand voice — SellWise learns your style from results you approve",
+        "Priority support",
+      ].map(f => `
       <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:8px" role="presentation">
         <tr>
           <td width="20" valign="top">
@@ -37,7 +44,7 @@ export function trialNudgeEmail(firstName: string | null, email: string): { subj
         </tr>
       </table>`).join("")}
       <p style="margin:16px 0 0;font-size:13px;color:#777777">
-        Or try <a href="${appUrl}/pricing" style="color:#f0873b;text-decoration:none">Starter at $19/mo</a>. 50 optimisations plus all features.
+        Or try <a href="${appUrl}/pricing" style="color:#f0873b;text-decoration:none">Starter at $19/mo</a>. 50 optimisations plus all tools.
       </p>
     </td></tr>
   `, accountUnsubscribeUrl(email));
