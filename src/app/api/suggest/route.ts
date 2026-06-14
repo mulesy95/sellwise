@@ -1,3 +1,4 @@
+import { checkRateLimit } from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
@@ -66,6 +67,9 @@ export async function POST(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
 
+  const { allowed: rl } = checkRateLimit(`suggest:${user.id}`, 60, 60_000);
+  if (!rl) return NextResponse.json({ error: "Too many requests." }, { status: 429 });
+
   let body: unknown;
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
 
@@ -82,7 +86,8 @@ export async function POST(request: NextRequest) {
     });
     const suggestion = message.content[0].type === "text" ? message.content[0].text.trim() : "";
     return NextResponse.json({ suggestion });
-  } catch {
+  } catch (err) {
+    console.error("Suggest API error:", err);
     return NextResponse.json({ error: "Failed to generate suggestion" }, { status: 500 });
   }
 }
