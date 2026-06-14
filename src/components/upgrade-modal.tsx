@@ -129,7 +129,7 @@ export function UpgradeModal({
             <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-3">
               What unlocks on paid plans
             </p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {LOCKED_FEATURES.map(({ icon: Icon, label, hint }) => (
                 <div key={label} className="flex items-start gap-2">
                   <div className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md bg-background border border-border">
@@ -146,7 +146,7 @@ export function UpgradeModal({
         )}
 
         {/* Plan cards */}
-        <div className="grid grid-cols-2 gap-3 px-6 pb-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 px-6 pb-2">
           {PLANS.map((plan) => (
             <div
               key={plan.name}

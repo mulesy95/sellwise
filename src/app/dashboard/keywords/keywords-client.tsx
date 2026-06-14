@@ -392,7 +392,7 @@ export function KeywordsClient({ preferredPlatforms }: { preferredPlatforms: Pla
       {keywords.length > 0 && !loading && (
         <Card className="border-border/50">
           <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-start justify-between gap-2">
               <div>
                 <CardTitle className="text-base">{keywords.length} keywords found</CardTitle>
                 <p className="mt-0.5 text-[11px] text-muted-foreground/70">
