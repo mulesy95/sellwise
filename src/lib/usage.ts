@@ -39,7 +39,7 @@ export async function getUsageData(userId: string) {
   const [{ data: profile }, { data: usage }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("plan, trial_ends_at, referral_bonus_ends_at")
+      .select("plan, trial_ends_at, referral_bonus_ends_at, optimisation_streak, weekly_goal")
       .eq("id", userId)
       .single(),
     supabase
@@ -53,6 +53,8 @@ export async function getUsageData(userId: string) {
   const storedPlan = profile?.plan ?? "free";
   const trialEndsAt = profile?.trial_ends_at ?? null;
   const referralBonusEndsAt = profile?.referral_bonus_ends_at ?? null;
+  const optimisationStreak = profile?.optimisation_streak ?? 0;
+  const weeklyGoal = profile?.weekly_goal ?? 5;
   const inTrial = storedPlan === "free" && isInTrial(trialEndsAt);
   const hasReferralBonus = storedPlan === "free" && isInTrial(referralBonusEndsAt);
   // Trial → Growth limits; referral bonus → Starter limits
@@ -72,6 +74,8 @@ export async function getUsageData(userId: string) {
     trialEndsAt,
     hasReferralBonus,
     referralBonusEndsAt,
+    optimisationStreak,
+    weeklyGoal,
     limit: limit === Infinity ? null : limit,
     dailyLimit: dailyLimit === Infinity ? null : dailyLimit,
     dailyOptimisations,

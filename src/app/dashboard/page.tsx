@@ -98,6 +98,12 @@ export default async function DashboardPage() {
             ? "You're all set. Optimise your first listing to get started."
             : "What would you like to optimise today?"}
         </p>
+        {!isNewUser && usage && usage.optimisationStreak > 0 && (
+          <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-700 dark:text-amber-400">
+            <span>🔥</span>
+            {usage.optimisationStreak} week streak
+          </div>
+        )}
       </div>
 
       {/* First-run CTA */}
