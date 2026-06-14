@@ -393,7 +393,7 @@ export function OptimiseClient({ plan }: { plan: string }) {
   const [keywordLists, setKeywordLists] = useState<KeywordList[]>([]);
   const [keywordsValue, setKeywordsValue] = useState(searchParams.get("keywords") ?? "");
   const [showListPicker, setShowListPicker] = useState(false);
-  const [showMoreDetail, setShowMoreDetail] = useState(false);
+  const [showMoreDetail, setShowMoreDetail] = useState(plan === "studio");
   const [feedback, setFeedback] = useState<"up" | "down" | null>(null);
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
   const [lockedDesc, setLockedDesc] = useState<string | undefined>(undefined);
@@ -544,7 +544,7 @@ export function OptimiseClient({ plan }: { plan: string }) {
       window.dispatchEvent(new Event("sellwise:optimised"));
       void fetch("/api/streak", { method: "POST" }).catch(() => null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to optimise");
+      setError(err instanceof Error ? err.message : "Something went wrong. Try again, if it keeps happening, check your connection.");
     } finally {
       setLoading(false);
     }
