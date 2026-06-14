@@ -398,11 +398,14 @@ export function AuditClient({ plan, preferredPlatforms }: { plan: Plan; preferre
       if (!res.ok) {
         const err = await res.json();
         if (res.status === 402) { setUpgradeOpen(true); return; }
-        throw new Error(err.error ?? "Something went wrong");
+        const code = err.error ?? "";
+        if (code === "FEATURE_GATED") throw new Error("Listing audit is available on paid plans. Upgrade to unlock it.");
+        if (code === "AI_UNAVAILABLE") throw new Error("Our AI is temporarily unavailable. Please try again in a moment.");
+        throw new Error(code || "Something went wrong. Please try again — if it keeps happening, check our status page.");
       }
       setResult(await res.json());
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to run audit");
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }

@@ -289,13 +289,16 @@ export function KeywordsClient({ preferredPlatforms }: { preferredPlatforms: Pla
           setUpgradeOpen(true);
           return;
         }
-        throw new Error(err.error ?? "Something went wrong");
+        const code = err.error ?? "";
+        if (code === "FEATURE_GATED") throw new Error("Keyword research is available on paid plans. Upgrade to unlock it.");
+        if (code === "AI_UNAVAILABLE") throw new Error("Our AI is temporarily unavailable. Please try again in a moment.");
+        throw new Error(code || "Something went wrong. Please try again — if it keeps happening, check our status page.");
       }
 
       const data = await res.json();
       setKeywords(data.keywords ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch keywords");
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
