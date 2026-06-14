@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Search,
   TrendingUp,
@@ -10,6 +10,7 @@ import {
   Check,
   AlertCircle,
   BookmarkPlus,
+  BookOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +34,14 @@ interface Keyword {
   volume: "high" | "medium" | "low";
   competition: "high" | "medium" | "low";
   trend: "up" | "stable" | "down";
+}
+
+interface SavedList {
+  id: string;
+  name: string;
+  platform: string;
+  keywords: string[];
+  volumeData: Array<{ volume: string }>;
 }
 
 const volumeConfig = {
@@ -69,6 +78,21 @@ const competitionConfig = {
       "bg-green-500/15 text-green-700 dark:text-green-400 border-green-500/20",
   },
 };
+
+function computePowerLevel(keywords: Array<{ volume: string }>): "high" | "medium" | "low" {
+  if (keywords.length === 0) return "low";
+  const highCount = keywords.filter((k) => k.volume === "high").length;
+  const ratio = highCount / keywords.length;
+  if (ratio >= 0.5) return "high";
+  if (ratio >= 0.2) return "medium";
+  return "low";
+}
+
+const POWER_LEVEL_CONFIG = {
+  high: { label: "High power", className: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/20" },
+  medium: { label: "Med power", className: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/20" },
+  low: { label: "Low power", className: "bg-muted text-muted-foreground border-border" },
+} as const;
 
 const TrendIcon = ({ trend }: { trend: "up" | "stable" | "down" }) => {
   if (trend === "up")
@@ -112,6 +136,14 @@ export function KeywordsClient() {
   const [saving, setSaving] = useState(false);
   const [saveListName, setSaveListName] = useState("");
   const [showSaveInput, setShowSaveInput] = useState(false);
+  const [savedLists, setSavedLists] = useState<SavedList[]>([]);
+
+  useEffect(() => {
+    fetch("/api/keyword-lists")
+      .then((r) => r.json())
+      .then((d) => setSavedLists(d.lists ?? []))
+      .catch(() => setSavedLists([]));
+  }, []);
 
   function handlePlatformChange(p: Platform) {
     setPlatform(p);
@@ -134,6 +166,11 @@ export function KeywordsClient() {
       toast.success(`"${name}" saved to your keyword lists`);
       setShowSaveInput(false);
       setSaveListName("");
+      // Refresh saved lists
+      fetch("/api/keyword-lists")
+        .then((r) => r.json())
+        .then((d) => setSavedLists(d.lists ?? []))
+        .catch(() => {});
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to save list");
     } finally {
@@ -370,6 +407,37 @@ export function KeywordsClient() {
             <p className="mt-1 text-xs text-muted-foreground/70">
               You'll get 15 keywords ranked by search volume and competition.
             </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {savedLists.length > 0 && (
+        <Card className="border-border/50">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <BookOpen className="size-4 text-muted-foreground" />
+              Saved keyword lists
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="divide-y divide-border/50">
+              {savedLists.map((list) => {
+                const level = computePowerLevel(list.volumeData ?? []);
+                const cfg = POWER_LEVEL_CONFIG[level];
+                return (
+                  <div key={list.id} className="flex items-center gap-3 px-6 py-3">
+                    <span className="flex-1 text-sm font-medium">{list.name}</span>
+                    <span className="text-xs text-muted-foreground">{list.keywords.length} keywords</span>
+                    <Badge
+                      variant="outline"
+                      className={`text-[10px] h-5 px-1.5 font-semibold ${cfg.className}`}
+                    >
+                      {cfg.label}
+                    </Badge>
+                  </div>
+                );
+              })}
+            </div>
           </CardContent>
         </Card>
       )}

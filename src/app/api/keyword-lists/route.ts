@@ -56,13 +56,17 @@ export async function GET(req: NextRequest) {
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // Return keyword strings only (not the full objects with volume/competition)
-  const lists = (data ?? []).map((list) => ({
-    id: list.id,
-    name: list.name,
-    platform: list.platform,
-    keywords: (list.keywords as { keyword: string }[]).map((k) => k.keyword),
-  }));
+  // Return keyword strings for backwards compatibility, plus volumeData for power level computation
+  const lists = (data ?? []).map((list) => {
+    const fullKeywords = list.keywords as { keyword: string; volume: string }[];
+    return {
+      id: list.id,
+      name: list.name,
+      platform: list.platform,
+      keywords: fullKeywords.map((k) => k.keyword),
+      volumeData: fullKeywords.map((k) => ({ volume: k.volume })),
+    };
+  });
 
   return NextResponse.json({ lists });
 }

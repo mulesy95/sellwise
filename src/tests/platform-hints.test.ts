@@ -59,3 +59,31 @@ describe("input-phase hint logic", () => {
     expect(result).toBeNull(); // wix not in test map
   });
 });
+
+// Power level tests
+function computePowerLevel_test(keywords: Array<{ volume: string }>): string {
+  if (keywords.length === 0) return "low";
+  const highCount = keywords.filter((k) => k.volume === "high").length;
+  const ratio = highCount / keywords.length;
+  if (ratio >= 0.5) return "high";
+  if (ratio >= 0.2) return "medium";
+  return "low";
+}
+
+describe("keyword list power level", () => {
+  it("returns high when 50%+ keywords are high volume", () => {
+    expect(computePowerLevel_test([{ volume: "high" }, { volume: "high" }, { volume: "low" }])).toBe("high");
+  });
+
+  it("returns medium when 20-49% keywords are high volume", () => {
+    expect(computePowerLevel_test([{ volume: "high" }, { volume: "low" }, { volume: "low" }, { volume: "low" }, { volume: "low" }])).toBe("medium");
+  });
+
+  it("returns low when less than 20% keywords are high volume", () => {
+    expect(computePowerLevel_test([{ volume: "low" }, { volume: "low" }, { volume: "low" }])).toBe("low");
+  });
+
+  it("returns low for empty list", () => {
+    expect(computePowerLevel_test([])).toBe("low");
+  });
+});
