@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Sparkles, Copy, Check, RotateCcw, RefreshCw, Download, BarChart3, ImagePlus, X, Lock, AlertCircle, ChevronDown, ThumbsUp, ThumbsDown, Lightbulb, Search, ArrowLeftRight, Plus, TrendingUp } from "lucide-react";
+import { Sparkles, Copy, Check, RotateCcw, RefreshCw, Download, BarChart3, ImagePlus, X, Lock, AlertCircle, ChevronDown, ThumbsUp, ThumbsDown, Lightbulb, Search, ArrowLeftRight, Plus, TrendingUp, ExternalLink } from "lucide-react";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import { Spinner } from "@/components/ui/spinner";
 import { PlatformSelector } from "@/components/platform-selector";
@@ -28,6 +28,7 @@ import { scoreOptimisedListing } from "@/lib/listing-score";
 import type { ScoredListing } from "@/lib/listing-score";
 import { showBigLiftToast } from "@/components/big-lift-toast";
 import { cn } from "@/lib/utils";
+import { getFieldHint } from "@/lib/field-hints";
 
 interface ChangeNote {
   field: string;
@@ -400,6 +401,13 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
   const [showAllPlatforms, setShowAllPlatforms] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  type SuggestionState = { text: string; loading: boolean };
+  const [suggestions, setSuggestions] = useState<Record<"style" | "targetBuyer", SuggestionState>>({
+    style: { text: "", loading: false },
+    targetBuyer: { text: "", loading: false },
+  });
+  const suggestionCache = useRef<Map<string, string>>(new Map());
+
   const visiblePlatforms: Platform[] =
     showAllPlatforms || preferredPlatforms.length === 0
       ? PLATFORMS
@@ -440,6 +448,11 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
       .catch(() => setKeywordLists([]));
   }, [platform]);
 
+  useEffect(() => {
+    setSuggestions({ style: { text: "", loading: false }, targetBuyer: { text: "", loading: false } });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formValues.productName, platform]);
+
   function setField(key: keyof FormValues) {
     return (e: React.ChangeEvent<HTMLInputElement>) =>
       setFormValues((v) => ({ ...v, [key]: e.target.value }));
@@ -472,6 +485,7 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
     setKeywordsValue("");
     setShowListPicker(false);
     setFormValues((v) => ({ ...v, existingContent: "" }));
+    setSuggestions({ style: { text: "", loading: false }, targetBuyer: { text: "", loading: false } });
   }
 
   function handleReset() {
@@ -535,6 +549,40 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
   function clearImage() {
     setImagePreview(null);
     setImageBase64(null);
+  }
+
+  async function fetchSuggestion(field: "style" | "targetBuyer") {
+    const productName = formValues.productName.trim();
+    if (!productName) return;
+    const cacheKey = `${platform}:${field}:${productName.toLowerCase()}`;
+    if (suggestionCache.current.has(cacheKey)) {
+      setSuggestions((prev) => ({
+        ...prev,
+        [field]: { text: suggestionCache.current.get(cacheKey)!, loading: false },
+      }));
+      return;
+    }
+    setSuggestions((prev) => ({ ...prev, [field]: { text: "", loading: true } }));
+    try {
+      const res = await fetch("/api/suggest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          platform,
+          productName,
+          field,
+          currentValue: field === "style" ? formValues.style : formValues.targetBuyer,
+        }),
+      });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      if (data.suggestion) {
+        suggestionCache.current.set(cacheKey, data.suggestion);
+        setSuggestions((prev) => ({ ...prev, [field]: { text: data.suggestion, loading: false } }));
+      }
+    } catch {
+      setSuggestions((prev) => ({ ...prev, [field]: { text: "", loading: false } }));
+    }
   }
 
   function buildPayload(targetPlatform?: Platform): Record<string, unknown> {
@@ -781,6 +829,7 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
                   onChange={setField("productName")}
                   required
                 />
+                <p className="text-[11px] text-muted-foreground/70">{getFieldHint(platform, "productName")}</p>
               </div>
               <button
                 type="button"
@@ -803,9 +852,31 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
                   value={formValues.materials}
                   onChange={setField("materials")}
                 />
+                <p className="text-[11px] text-muted-foreground/70">{getFieldHint(platform, "materials")}</p>
+                {imagePreview && (
+                  <div className="flex items-start gap-2 rounded-md border border-amber-500/20 bg-amber-500/5 px-2.5 py-2">
+                    <AlertCircle className="size-3 text-amber-500 shrink-0 mt-0.5" />
+                    <p className="text-[11px] text-amber-700 dark:text-amber-400">
+                      We use your stated materials — double-check this field is correct before optimising.
+                    </p>
+                  </div>
+                )}
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="style">Style &amp; aesthetic</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="style">Style &amp; aesthetic</Label>
+                  {formValues.productName.trim() && (
+                    <button
+                      type="button"
+                      onClick={() => fetchSuggestion("style")}
+                      disabled={suggestions.style.loading}
+                      className="flex items-center gap-1 text-[11px] text-primary hover:opacity-80 disabled:opacity-40 transition-opacity"
+                    >
+                      <Sparkles className="size-3" />
+                      Suggest
+                    </button>
+                  )}
+                </div>
                 <Input
                   id="style"
                   name="style"
@@ -813,9 +884,46 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
                   value={formValues.style}
                   onChange={setField("style")}
                 />
+                {!suggestions.style.loading && !suggestions.style.text && (
+                  <p className="text-[11px] text-muted-foreground/70">{getFieldHint(platform, "style")}</p>
+                )}
+                {suggestions.style.loading && (
+                  <p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+                    <Spinner size="sm" />
+                    Generating suggestion...
+                  </p>
+                )}
+                {suggestions.style.text && !suggestions.style.loading && (
+                  <div className="flex items-start gap-2 rounded-md border border-primary/15 bg-primary/5 px-2.5 py-2">
+                    <p className="text-[11px] text-muted-foreground flex-1">{suggestions.style.text}</p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormValues((v) => ({ ...v, style: suggestions.style.text }));
+                        setSuggestions((prev) => ({ ...prev, style: { text: "", loading: false } }));
+                      }}
+                      className="text-[11px] text-primary font-semibold hover:opacity-80 shrink-0 transition-opacity"
+                    >
+                      Use this
+                    </button>
+                  </div>
+                )}
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="targetBuyer">Target buyer / occasion</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="targetBuyer">Target buyer / occasion</Label>
+                  {formValues.productName.trim() && (
+                    <button
+                      type="button"
+                      onClick={() => fetchSuggestion("targetBuyer")}
+                      disabled={suggestions.targetBuyer.loading}
+                      className="flex items-center gap-1 text-[11px] text-primary hover:opacity-80 disabled:opacity-40 transition-opacity"
+                    >
+                      <Sparkles className="size-3" />
+                      Suggest
+                    </button>
+                  )}
+                </div>
                 <Input
                   id="targetBuyer"
                   name="targetBuyer"
@@ -823,6 +931,30 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
                   value={formValues.targetBuyer}
                   onChange={setField("targetBuyer")}
                 />
+                {!suggestions.targetBuyer.loading && !suggestions.targetBuyer.text && (
+                  <p className="text-[11px] text-muted-foreground/70">{getFieldHint(platform, "targetBuyer")}</p>
+                )}
+                {suggestions.targetBuyer.loading && (
+                  <p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+                    <Spinner size="sm" />
+                    Generating suggestion...
+                  </p>
+                )}
+                {suggestions.targetBuyer.text && !suggestions.targetBuyer.loading && (
+                  <div className="flex items-start gap-2 rounded-md border border-primary/15 bg-primary/5 px-2.5 py-2">
+                    <p className="text-[11px] text-muted-foreground flex-1">{suggestions.targetBuyer.text}</p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormValues((v) => ({ ...v, targetBuyer: suggestions.targetBuyer.text }));
+                        setSuggestions((prev) => ({ ...prev, targetBuyer: { text: "", loading: false } }));
+                      }}
+                      className="text-[11px] text-primary font-semibold hover:opacity-80 shrink-0 transition-opacity"
+                    >
+                      Use this
+                    </button>
+                  </div>
+                )}
               </div>
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
@@ -864,6 +996,20 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
                   onChange={(e) => setKeywordsValue(e.target.value)}
                   placeholder="e.g. unique mug, pottery gift, handmade gift"
                 />
+                <div className="flex items-center justify-between">
+                  <p className="text-[11px] text-muted-foreground/70">{getFieldHint(platform, "keywords")}</p>
+                  {formValues.productName.trim() && (
+                    <Link
+                      href={`/dashboard/keywords?seed=${encodeURIComponent(formValues.productName.trim())}&platform=${platform}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-[11px] text-primary hover:opacity-80 shrink-0 transition-opacity"
+                    >
+                      <ExternalLink className="size-3" />
+                      Research keywords
+                    </Link>
+                  )}
+                </div>
               </div>
 
               {/* Product photo */}
