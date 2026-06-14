@@ -483,21 +483,53 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("Image must be under 10 MB");
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error("Image must be under 20 MB");
       return;
     }
     const reader = new FileReader();
     reader.onload = (ev) => {
       const dataUrl = ev.target?.result as string;
-      const [header, b64] = dataUrl.split(",");
-      const type = (header.match(/:(.*?);/)?.[1] ?? "image/jpeg") as ImageMediaType;
-      setImagePreview(dataUrl);
-      setImageBase64(b64);
-      setImageMediaType(type);
+      compressImage(dataUrl).then(({ dataUrl: compressed, b64, mediaType }) => {
+        setImagePreview(compressed);
+        setImageBase64(b64);
+        setImageMediaType(mediaType);
+      });
     };
     reader.readAsDataURL(file);
     e.target.value = "";
+  }
+
+  function compressImage(dataUrl: string): Promise<{ dataUrl: string; b64: string; mediaType: ImageMediaType }> {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX_DIM = 1568; // Anthropic's recommended max dimension
+        let { width, height } = img;
+        if (width > MAX_DIM || height > MAX_DIM) {
+          const ratio = Math.min(MAX_DIM / width, MAX_DIM / height);
+          width = Math.floor(width * ratio);
+          height = Math.floor(height * ratio);
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, 0, 0, width, height);
+        // Target ~3.5MB base64 budget (Anthropic max is 5MB, leave headroom for the rest of the request)
+        const TARGET_BYTES = 3.5 * 1024 * 1024;
+        let quality = 0.85;
+        let compressed = canvas.toDataURL("image/jpeg", quality);
+        // Each base64 char ≈ 0.75 bytes
+        while (compressed.length * 0.75 > TARGET_BYTES && quality > 0.3) {
+          quality = Math.round((quality - 0.1) * 10) / 10;
+          compressed = canvas.toDataURL("image/jpeg", quality);
+        }
+        const b64 = compressed.split(",")[1];
+        resolve({ dataUrl: compressed, b64, mediaType: "image/jpeg" });
+      };
+      img.src = dataUrl;
+    });
   }
 
   function clearImage() {

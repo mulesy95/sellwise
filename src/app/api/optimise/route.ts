@@ -466,14 +466,18 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ ...listing, platform, used: used + 1, limit, id: optimisationId, topPercent });
   } catch (err) {
-    if (
-      err instanceof APIConnectionError ||
-
-      (err instanceof APIError && err.status >= 500)
-    ) {
+    if (err instanceof APIConnectionError || (err instanceof APIError && err.status >= 500)) {
       return NextResponse.json(
         { error: "AI is temporarily unavailable. Please try again in a moment.", code: "AI_UNAVAILABLE" },
         { status: 503 }
+      );
+    }
+    if (err instanceof APIError && (err.status === 400 || err.status === 422)) {
+      const msg = (err as { message?: string }).message ?? "";
+      const isImage = msg.toLowerCase().includes("image") || msg.toLowerCase().includes("media");
+      return NextResponse.json(
+        { error: isImage ? "Failed to process the image. Try a smaller image or remove it and try again." : "Invalid request. Check your inputs and try again." },
+        { status: 422 }
       );
     }
     console.error("Optimise API error:", err);
