@@ -20,7 +20,7 @@ import { toast } from "sonner";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import { PlatformSelector } from "@/components/platform-selector";
 import { cn } from "@/lib/utils";
-import { AUDIT_SECTIONS, PLATFORM_LABELS, detectPlatformFromUrl, PLATFORM_URL_EXAMPLES, type Platform } from "@/lib/platforms";
+import { PLATFORMS, AUDIT_SECTIONS, PLATFORM_LABELS, detectPlatformFromUrl, PLATFORM_URL_EXAMPLES, type Platform } from "@/lib/platforms";
 import type { Plan } from "@/lib/usage";
 
 interface AuditResult {
@@ -178,7 +178,7 @@ function overallLabel(score: number) {
 
 type InputMode = "url" | "manual";
 
-export function AuditClient({ plan }: { plan: Plan }) {
+export function AuditClient({ plan, preferredPlatforms }: { plan: Plan; preferredPlatforms: Platform[] }) {
   const [mode, setMode] = useState<InputMode>("manual");
   const [platform, setPlatform] = useState<Platform>(() => (sessionStorage.getItem("sw_active_platform") as Platform) ?? "shopify");
   const [urlValue, setUrlValue] = useState("");
@@ -195,6 +195,20 @@ export function AuditClient({ plan }: { plan: Plan }) {
   const [previousScore, setPreviousScore] = useState<number | null>(null);
   const [prefillValues, setPrefillValues] = useState<Record<string, string>>({});
   const [formKey, setFormKey] = useState(0);
+  const [showAllPlatforms, setShowAllPlatforms] = useState(false);
+
+  const visiblePlatforms: Platform[] =
+    showAllPlatforms || preferredPlatforms.length === 0
+      ? PLATFORMS
+      : preferredPlatforms;
+
+  // Reset platform if current selection is hidden
+  useEffect(() => {
+    if (!visiblePlatforms.includes(platform)) {
+      setPlatform(visiblePlatforms[0]);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showAllPlatforms]);
 
   useEffect(() => {
     const raw = sessionStorage.getItem("audit:prefill");
@@ -467,9 +481,20 @@ export function AuditClient({ plan }: { plan: Plan }) {
               </form>
             ) : (
               <>
-                <div className="mb-4">
-                  <PlatformSelector value={platform} onChange={handlePlatformChange} />
+                <div className="mb-2">
+                  <PlatformSelector value={platform} onChange={handlePlatformChange} visiblePlatforms={visiblePlatforms} />
                 </div>
+                {preferredPlatforms.length > 0 && (
+                  <div className="mb-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowAllPlatforms((v) => !v)}
+                      className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {showAllPlatforms ? "Show my platforms only" : "Show all platforms"}
+                    </button>
+                  </div>
+                )}
                 <form key={formKey} onSubmit={handleManualSubmit} className="space-y-4">
                   {FORM_CONFIGS[platform].map((field) => (
                     <div key={field.name} className="space-y-1.5">

@@ -28,6 +28,7 @@ import { toast } from "sonner";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import { PlatformSelector } from "@/components/platform-selector";
 import type { Platform } from "@/lib/platforms";
+import { PLATFORMS } from "@/lib/platforms";
 
 interface Keyword {
   keyword: string;
@@ -126,7 +127,7 @@ const PLATFORM_DESCRIPTIONS: Record<Platform, string> = {
   social: "Find hashtags and discovery terms for Instagram, Pinterest, and Facebook.",
 };
 
-export function KeywordsClient() {
+export function KeywordsClient({ preferredPlatforms }: { preferredPlatforms: Platform[] }) {
   const [platform, setPlatform] = useState<Platform>(() => (sessionStorage.getItem("sw_active_platform") as Platform) ?? "shopify");
   const [loading, setLoading] = useState(false);
   const [keywords, setKeywords] = useState<Keyword[]>([]);
@@ -137,6 +138,20 @@ export function KeywordsClient() {
   const [saveListName, setSaveListName] = useState("");
   const [showSaveInput, setShowSaveInput] = useState(false);
   const [savedLists, setSavedLists] = useState<SavedList[]>([]);
+  const [showAllPlatforms, setShowAllPlatforms] = useState(false);
+
+  const visiblePlatforms: Platform[] =
+    showAllPlatforms || preferredPlatforms.length === 0
+      ? PLATFORMS
+      : preferredPlatforms;
+
+  // Reset platform if current selection is hidden
+  useEffect(() => {
+    if (!visiblePlatforms.includes(platform)) {
+      setPlatform(visiblePlatforms[0]);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showAllPlatforms]);
 
   useEffect(() => {
     fetch("/api/keyword-lists")
@@ -242,7 +257,16 @@ export function KeywordsClient() {
         </p>
       </div>
 
-      <PlatformSelector value={platform} onChange={handlePlatformChange} />
+      <PlatformSelector value={platform} onChange={handlePlatformChange} visiblePlatforms={visiblePlatforms} />
+      {preferredPlatforms.length > 0 && (
+        <button
+          type="button"
+          onClick={() => setShowAllPlatforms((v) => !v)}
+          className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+        >
+          {showAllPlatforms ? "Show my platforms only" : "Show all platforms"}
+        </button>
+      )}
 
       <Card className="border-border/50">
         <CardHeader className="pb-4">

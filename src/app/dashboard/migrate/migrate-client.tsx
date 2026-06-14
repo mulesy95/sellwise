@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Copy, Check, Sparkles, AlertCircle, ArrowLeftRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -19,7 +19,7 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import { PlatformSelector } from "@/components/platform-selector";
-import { PLATFORM_LABELS, type Platform } from "@/lib/platforms";
+import { PLATFORMS, PLATFORM_LABELS, type Platform } from "@/lib/platforms";
 
 // ─── Source field configs ─────────────────────────────────────────────────────
 
@@ -149,7 +149,7 @@ interface MigrateResult {
   limit: number | null;
 }
 
-export function MigrateClient() {
+export function MigrateClient({ preferredPlatforms }: { preferredPlatforms: Platform[] }) {
   const [source, setSource] = useState<Platform>(() => (sessionStorage.getItem("sw_active_platform") as Platform) ?? "shopify");
   const [target, setTarget] = useState<Platform>("ebay");
   const [loading, setLoading] = useState(false);
@@ -157,6 +157,26 @@ export function MigrateClient() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [showAllPlatforms, setShowAllPlatforms] = useState(false);
+
+  const visiblePlatforms: Platform[] =
+    showAllPlatforms || preferredPlatforms.length === 0
+      ? PLATFORMS
+      : preferredPlatforms;
+
+  // Reset source platform if current selection is hidden
+  useEffect(() => {
+    if (!visiblePlatforms.includes(source)) {
+      const newSource = visiblePlatforms[0];
+      setSource(newSource);
+      // Also fix target if it's the same as the new source
+      if (newSource === target) {
+        const others = visiblePlatforms.filter((x) => x !== newSource);
+        if (others.length > 0) setTarget(others[0]);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showAllPlatforms]);
 
   function handleSourceChange(p: Platform) {
     setSource(p);
@@ -259,7 +279,7 @@ export function MigrateClient() {
             <div className="space-y-2">
               <div className="space-y-1">
                 <p className="text-xs font-medium text-muted-foreground">From</p>
-                <PlatformSelector value={source} onChange={handleSourceChange} />
+                <PlatformSelector value={source} onChange={handleSourceChange} visiblePlatforms={visiblePlatforms} />
               </div>
               <div className="flex items-center gap-2">
                 <div className="flex-1 border-t border-border/50" />
@@ -280,8 +300,18 @@ export function MigrateClient() {
                   value={target}
                   onChange={handleTargetChange}
                   exclude={[source]}
+                  visiblePlatforms={visiblePlatforms}
                 />
               </div>
+              {preferredPlatforms.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllPlatforms((v) => !v)}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showAllPlatforms ? "Show my platforms only" : "Show all platforms"}
+                </button>
+              )}
             </div>
             <CardDescription className="text-xs mt-3">
               Paste your {PLATFORM_LABELS[source]} listing below — any combination of fields works.

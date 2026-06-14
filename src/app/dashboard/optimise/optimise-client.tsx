@@ -22,7 +22,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import type { Platform } from "@/lib/platforms";
-import { PLATFORM_LABELS } from "@/lib/platforms";
+import { PLATFORMS, PLATFORM_LABELS } from "@/lib/platforms";
 import { ListingDiff } from "@/components/listing-diff";
 import { scoreOptimisedListing } from "@/lib/listing-score";
 import type { ScoredListing } from "@/lib/listing-score";
@@ -369,7 +369,7 @@ function TrialBanner() {
   );
 }
 
-export function OptimiseClient({ plan }: { plan: string }) {
+export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; preferredPlatforms: Platform[] }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const initPlatform = (searchParams.get("platform") ?? sessionStorage.getItem("sw_active_platform") ?? "shopify") as Platform;
@@ -397,7 +397,21 @@ export function OptimiseClient({ plan }: { plan: string }) {
   const [feedback, setFeedback] = useState<"up" | "down" | null>(null);
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
   const [lockedDesc, setLockedDesc] = useState<string | undefined>(undefined);
+  const [showAllPlatforms, setShowAllPlatforms] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const visiblePlatforms: Platform[] =
+    showAllPlatforms || preferredPlatforms.length === 0
+      ? PLATFORMS
+      : preferredPlatforms;
+
+  // Reset platform if current selection is hidden
+  useEffect(() => {
+    if (!visiblePlatforms.includes(platform)) {
+      setPlatform(visiblePlatforms[0]);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showAllPlatforms]);
   const loadingStep = useLoadingStep(loading, platform);
   const canUploadImage = plan !== "free";
 
@@ -666,7 +680,16 @@ export function OptimiseClient({ plan }: { plan: string }) {
         </p>
       </div>
 
-      <PlatformSelector value={platform} onChange={handlePlatformChange} />
+      <PlatformSelector value={platform} onChange={handlePlatformChange} visiblePlatforms={visiblePlatforms} />
+      {preferredPlatforms.length > 0 && (
+        <button
+          type="button"
+          onClick={() => setShowAllPlatforms((v) => !v)}
+          className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+        >
+          {showAllPlatforms ? "Show my platforms only" : "Show all platforms"}
+        </button>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Input form */}

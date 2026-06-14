@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getUsageData } from "@/lib/usage";
 import { AuditClient } from "./audit-client";
+import type { Platform } from "@/lib/platforms";
 
 export default async function AuditPage() {
   const supabase = await createClient();
@@ -10,7 +11,18 @@ export default async function AuditPage() {
 
   if (!user) return null;
 
-  const usage = await getUsageData(user.id);
+  const [usage, { data: profile }] = await Promise.all([
+    getUsageData(user.id),
+    supabase
+      .from("profiles")
+      .select("onboarding_platforms")
+      .eq("id", user.id)
+      .single(),
+  ]);
 
-  return <AuditClient plan={usage.effectivePlan} />;
+  const preferredPlatforms: Platform[] = Array.isArray(profile?.onboarding_platforms)
+    ? (profile.onboarding_platforms as Platform[])
+    : [];
+
+  return <AuditClient plan={usage.effectivePlan} preferredPlatforms={preferredPlatforms} />;
 }

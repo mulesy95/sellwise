@@ -7,12 +7,14 @@ export function PlatformSelector({
   value,
   onChange,
   exclude = [],
+  visiblePlatforms,
 }: {
   value: Platform;
   onChange: (p: Platform) => void;
   exclude?: Platform[];
+  visiblePlatforms?: Platform[];
 }) {
-  const platforms = PLATFORMS.filter((p) => !exclude.includes(p));
+  const platforms = (visiblePlatforms ?? PLATFORMS).filter((p) => !exclude.includes(p));
   return (
     <div className="flex flex-wrap rounded-lg border border-border/50 bg-muted p-1 gap-1">
       {platforms.map((p) => {

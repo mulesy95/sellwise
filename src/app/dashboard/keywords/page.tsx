@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getUsageData } from "@/lib/usage";
 import { FeatureGate } from "@/components/feature-gate";
 import { KeywordsClient } from "./keywords-client";
+import type { Platform } from "@/lib/platforms";
 
 export default async function KeywordsPage() {
   const supabase = await createClient();
@@ -11,7 +12,14 @@ export default async function KeywordsPage() {
 
   if (!user) return null;
 
-  const usage = await getUsageData(user.id);
+  const [usage, { data: profile }] = await Promise.all([
+    getUsageData(user.id),
+    supabase
+      .from("profiles")
+      .select("onboarding_platforms")
+      .eq("id", user.id)
+      .single(),
+  ]);
 
   if (usage.effectivePlan === "free") {
     return (
@@ -27,5 +35,9 @@ export default async function KeywordsPage() {
     );
   }
 
-  return <KeywordsClient />;
+  const preferredPlatforms: Platform[] = Array.isArray(profile?.onboarding_platforms)
+    ? (profile.onboarding_platforms as Platform[])
+    : [];
+
+  return <KeywordsClient preferredPlatforms={preferredPlatforms} />;
 }
