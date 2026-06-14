@@ -12,6 +12,9 @@ import {
   AlertCircle,
   BookmarkPlus,
   BookOpen,
+  Archive,
+  ArchiveRestore,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,6 +45,7 @@ interface SavedList {
   id: string;
   name: string;
   platform: string;
+  is_archived: boolean;
   keywords: string[];
   volumeData: Array<{ volume: string }>;
 }
@@ -140,6 +144,9 @@ export function KeywordsClient({ preferredPlatforms }: { preferredPlatforms: Pla
   const [saveListName, setSaveListName] = useState("");
   const [showSaveInput, setShowSaveInput] = useState(false);
   const [savedLists, setSavedLists] = useState<SavedList[]>([]);
+  const [archivedLists, setArchivedLists] = useState<SavedList[]>([]);
+  const [showArchived, setShowArchived] = useState(false);
+  const [actionInFlight, setActionInFlight] = useState<string | null>(null);
   const [showAllPlatforms, setShowAllPlatforms] = useState(false);
   const [seedValue, setSeedValue] = useState("");
   const didInitRef = useRef(false);
@@ -169,6 +176,10 @@ export function KeywordsClient({ preferredPlatforms }: { preferredPlatforms: Pla
       .then((r) => r.json())
       .then((d) => setSavedLists(d.lists ?? []))
       .catch(() => setSavedLists([]));
+    fetch("/api/keyword-lists?archived=true")
+      .then((r) => r.json())
+      .then((d) => setArchivedLists(((d.lists as SavedList[] | undefined) ?? []).filter((l) => l.is_archived)))
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -204,15 +215,55 @@ export function KeywordsClient({ preferredPlatforms }: { preferredPlatforms: Pla
       toast.success(`"${name}" saved to your keyword lists`);
       setShowSaveInput(false);
       setSaveListName("");
-      // Refresh saved lists
-      fetch("/api/keyword-lists")
-        .then((r) => r.json())
-        .then((d) => setSavedLists(d.lists ?? []))
-        .catch(() => {});
+      refreshLists();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to save list");
     } finally {
       setSaving(false);
+    }
+  }
+
+  function refreshLists() {
+    fetch("/api/keyword-lists")
+      .then((r) => r.json())
+      .then((d) => setSavedLists(d.lists ?? []))
+      .catch(() => {});
+    fetch("/api/keyword-lists?archived=true")
+      .then((r) => r.json())
+      .then((d) => setArchivedLists(((d.lists as SavedList[] | undefined) ?? []).filter((l) => l.is_archived)))
+      .catch(() => {});
+  }
+
+  async function handleDeleteList(id: string, name: string) {
+    if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+    setActionInFlight(id);
+    try {
+      const res = await fetch(`/api/keyword-lists/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error((await res.json()).error ?? "Failed to delete");
+      toast.success(`"${name}" deleted`);
+      refreshLists();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to delete");
+    } finally {
+      setActionInFlight(null);
+    }
+  }
+
+  async function handleArchiveList(id: string, name: string, archive: boolean) {
+    setActionInFlight(id);
+    try {
+      const res = await fetch(`/api/keyword-lists/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_archived: archive }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error ?? "Failed");
+      toast.success(archive ? `"${name}" archived` : `"${name}" restored`);
+      refreshLists();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed");
+    } finally {
+      setActionInFlight(null);
     }
   }
 
@@ -486,12 +537,71 @@ export function KeywordsClient({ preferredPlatforms }: { preferredPlatforms: Pla
                     >
                       {cfg.label}
                     </Badge>
+                    <button
+                      onClick={() => handleArchiveList(list.id, list.name, true)}
+                      disabled={actionInFlight === list.id}
+                      title="Archive list"
+                      className="shrink-0 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-40"
+                    >
+                      <Archive className="size-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteList(list.id, list.name)}
+                      disabled={actionInFlight === list.id}
+                      title="Delete list"
+                      className="shrink-0 text-muted-foreground hover:text-destructive transition-colors disabled:opacity-40"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </button>
                   </div>
                 );
               })}
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {archivedLists.length > 0 && (
+        <div className="space-y-2">
+          <button
+            type="button"
+            onClick={() => setShowArchived((v) => !v)}
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Archive className="size-3" />
+            {showArchived ? "Hide" : "Show"} archived lists ({archivedLists.length})
+          </button>
+          {showArchived && (
+            <Card className="border-border/50 opacity-70">
+              <CardContent className="p-0">
+                <div className="divide-y divide-border/50">
+                  {archivedLists.map((list) => (
+                    <div key={list.id} className="flex items-center gap-3 px-6 py-3">
+                      <span className="flex-1 text-sm text-muted-foreground line-through">{list.name}</span>
+                      <span className="text-xs text-muted-foreground">{list.keywords.length} keywords</span>
+                      <button
+                        onClick={() => handleArchiveList(list.id, list.name, false)}
+                        disabled={actionInFlight === list.id}
+                        title="Restore list"
+                        className="shrink-0 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-40"
+                      >
+                        <ArchiveRestore className="size-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteList(list.id, list.name)}
+                        disabled={actionInFlight === list.id}
+                        title="Delete permanently"
+                        className="shrink-0 text-muted-foreground hover:text-destructive transition-colors disabled:opacity-40"
+                      >
+                        <Trash2 className="size-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       )}
     </div>
   );
