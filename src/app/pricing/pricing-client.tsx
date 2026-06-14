@@ -12,9 +12,10 @@ type Currency = "USD" | "AUD";
 
 const features = {
   free: [
-    "3 optimisations / month",
+    "1 optimisation / month",
     "All platforms via manual entry",
-    "AI title, tags and description",
+    "AI title, tags, bullets and description",
+    "Free Shopify listing health check at /check — no account needed",
   ],
   starter: [
     "50 optimisations / month",
@@ -28,6 +29,8 @@ const features = {
     "Unlimited optimisations",
     "Unlimited keyword research",
     "Unlimited listing audits",
+    "Optimisation history with before / after scores",
+    "Brand voice — SellWise learns your writing style from results you approve",
     "Bulk optimiser — upload CSV, download results",
     "Connect 1 store — view SEO scores and optimise",
     "Priority support",
