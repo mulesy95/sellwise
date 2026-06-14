@@ -64,7 +64,7 @@ function bannedWordDeductions(listing: ScoredListing): ScoreDeduction[] {
   const text = allOutputText(listing).toLowerCase();
   const found: string[] = [];
   for (const word of BANNED_WORDS) {
-    const re = new RegExp(`\\b${word.replace("-", "\\-")}\\b`, "i");
+    const re = new RegExp(`\\b${word.replace(/-/g, "\\-")}\\b`, "i");
     if (re.test(text)) found.push(word);
   }
   if (found.length === 0) return [];
@@ -116,7 +116,7 @@ function titleDescriptionOverlapDeduction(title: string, description: string): S
     .split(/\s+/)
     .filter((w) => w.length > 3 && !STOP_WORDS.has(w));
   if (titleWords.length === 0) return [];
-  const descWords = new Set(description.toLowerCase().split(/\s+/).filter((w) => w.length > 3));
+  const descWords = new Set(description.toLowerCase().split(/\s+/).map((w) => w.replace(/[^a-z]/g, "")).filter((w) => w.length > 3));
   const overlap = titleWords.filter((w) => descWords.has(w)).length;
   if (overlap / titleWords.length <= 0.6) return [];
   return [{ label: "Title words reused heavily in description — reduces SEO keyword diversity", points: 10 }];
@@ -253,7 +253,6 @@ export function scoreWithBreakdown(listing: ScoredListing, ctx?: ScoreContext): 
       return { score: 0, deductions: [] };
   }
 
-  // Cross-platform deductions
   applyDeductions(bannedWordDeductions(listing));
   if (ctx?.userKeywords) {
     applyDeductions(keywordCoverageDeduction(listing, ctx.userKeywords));
