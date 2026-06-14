@@ -15,6 +15,7 @@ import { ManageBillingButton } from "@/components/manage-billing-button";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getReferralStats } from "@/lib/referral";
 import { ReferralCard } from "@/components/referral-card";
+import { BrandVoiceForm, RefreshVoiceButton } from "./settings-client";
 
 export const metadata = { title: "Settings" };
 
@@ -41,7 +42,7 @@ export default async function SettingsPage() {
   const [usageData, { data: profile }, referralStats] = await Promise.all([
     user ? getUsageData(user.id) : null,
     user
-      ? admin.from("profiles").select("plan, stripe_customer_id, trial_ends_at").eq("id", user.id).single()
+      ? admin.from("profiles").select("plan, stripe_customer_id, trial_ends_at, brand_voice, brand_voice_auto").eq("id", user.id).single()
       : Promise.resolve({ data: null }),
     user ? getReferralStats(user.id) : null,
   ]);
@@ -55,6 +56,8 @@ export default async function SettingsPage() {
     : 0;
 
   const currentPlan = planDisplay[plan] ?? planDisplay.free;
+  const brandVoice = profile?.brand_voice ?? null;
+  const brandVoiceAuto = profile?.brand_voice_auto ?? null;
 
   return (
     <div className="space-y-6">
@@ -208,6 +211,46 @@ export default async function SettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      <Separator />
+
+      {/* Brand voice */}
+      <section className="rounded-xl border border-border/60 p-5 space-y-5">
+        <div>
+          <h2 className="text-sm font-semibold">Brand voice</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            SellWise uses this to shape how it writes for you. Your own description always takes priority.
+          </p>
+        </div>
+
+        {/* User-written voice */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            Your description
+          </label>
+          <BrandVoiceForm currentVoice={brandVoice} />
+          <p className="text-xs text-muted-foreground">
+            Write it like a brief: tone, rhythm, who you&apos;re writing for.
+          </p>
+        </div>
+
+        {/* Auto-derived voice */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            Learned from your results
+          </label>
+          {brandVoiceAuto ? (
+            <div className="rounded-md border border-border/50 bg-muted/30 p-3 text-sm text-muted-foreground leading-relaxed">
+              {brandVoiceAuto}
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Not enough data yet. Approve 5+ optimisations with the thumbs-up to generate this.
+            </p>
+          )}
+          <RefreshVoiceButton />
+        </div>
+      </section>
     </div>
   );
 }
