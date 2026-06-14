@@ -266,7 +266,15 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const usageData = await getUsageData(user.id);
+  const [usageData, profileResult] = await Promise.all([
+    getUsageData(user.id),
+    supabase
+      .from("profiles")
+      .select("brand_voice")
+      .eq("id", user.id)
+      .single(),
+  ]);
+
   const used = usageData.audits;
   // Free tier: unlimited audits — audit is the upsell hook, not a paid feature
   const limit = usageData.effectivePlan === "free" ? null : usageData.limit;
@@ -280,17 +288,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let brandVoice = "";
-  try {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("brand_voice")
-      .eq("id", user.id)
-      .single();
-    brandVoice = profile?.brand_voice ?? "";
-  } catch {
-    // proceed without brand voice
-  }
+  const brandVoice = (profileResult.data?.brand_voice ?? "").slice(0, 400);
 
   let body: unknown;
   try {

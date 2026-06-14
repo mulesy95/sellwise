@@ -307,7 +307,7 @@ export async function POST(request: NextRequest) {
       .select("brand_voice")
       .eq("id", user.id)
       .single();
-    brandVoice = profile?.brand_voice ?? "";
+    brandVoice = (profile?.brand_voice ?? "").slice(0, 400);
   } catch {
     // proceed without brand voice
   }
