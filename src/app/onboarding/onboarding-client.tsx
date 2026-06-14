@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { PLATFORMS, PLATFORM_LABELS, type Platform } from "@/lib/platforms";
 
@@ -43,7 +44,7 @@ const CATEGORIES = [
 function StepDots({ current }: { current: number }) {
   return (
     <div className="flex items-center gap-2 justify-center">
-      {[1, 2].map((s) => (
+      {[1, 2, 3].map((s) => (
         <div
           key={s}
           className={cn(
@@ -65,6 +66,7 @@ export function OnboardingClient({ firstName }: { firstName: string | null }) {
   const [step, setStep] = useState(1);
   const [categories, setCategories] = useState<string[]>([]);
   const [platforms, setPlatforms] = useState<Platform[]>([]);
+  const [brandVoice, setBrandVoice] = useState("");
 
   function toggleCategory(id: string) {
     setCategories((prev) =>
@@ -82,7 +84,7 @@ export function OnboardingClient({ firstName }: { firstName: string | null }) {
     await fetch("/api/onboarding/complete", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ categories, platforms }),
+      body: JSON.stringify({ categories, platforms, brandVoice }),
     });
   }
 
@@ -203,8 +205,50 @@ export function OnboardingClient({ firstName }: { firstName: string | null }) {
           </div>
         )}
 
-        {/* Step 2 — all set */}
+        {/* Step 2 — brand voice */}
         {step === 2 && (
+          <div className="space-y-6">
+            <div className="text-center space-y-1">
+              <h1 className="text-2xl font-bold tracking-tight">
+                How does your brand sound?
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                This shapes how SellWise writes for you. Add a tone, vibe, or audience note — or skip it.
+              </p>
+            </div>
+
+            <div className="space-y-1">
+              <Textarea
+                value={brandVoice}
+                onChange={(e) => setBrandVoice(e.target.value.slice(0, 400))}
+                placeholder={'e.g. "I make modern, minimal jewellery for women who want simple everyday pieces. Casual, clean tone — no fluff."'}
+                rows={4}
+                className="resize-none"
+              />
+              <p className="text-xs text-muted-foreground text-right">
+                {brandVoice.length}/400
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Button className="w-full" onClick={() => setStep(3)}>
+                Continue
+                <ArrowRight className="size-3.5" />
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full text-muted-foreground"
+                onClick={() => setStep(3)}
+              >
+                Skip for now
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 3 — all set */}
+        {step === 3 && (
           <div className="space-y-6 text-center">
             <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-primary/10">
               <Check className="size-8 text-primary" />
