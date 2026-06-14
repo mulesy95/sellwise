@@ -21,6 +21,16 @@ export interface ScoreContext {
   userKeywords?: string;
 }
 
+export interface ScoreDeduction {
+  label: string;
+  points: number;
+}
+
+export interface ScoreResult {
+  score: number;
+  deductions: ScoreDeduction[];
+}
+
 function wc(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
@@ -43,32 +53,6 @@ function allOutputText(listing: ScoredListing): string {
     .join(" ");
 }
 
-function bannedWordPenalty(listing: ScoredListing): number {
-  const text = allOutputText(listing).toLowerCase();
-  let hits = 0;
-  for (const word of BANNED_WORDS) {
-    const re = new RegExp(`\\b${word.replace("-", "\\-")}\\b`, "i");
-    if (re.test(text)) hits++;
-  }
-  return Math.min(hits * 8, 24); // -8 per hit, max -24
-}
-
-function keywordCoveragePenalty(listing: ScoredListing, userKeywords: string): number {
-  const terms = userKeywords
-    .split(/[,\n]+/)
-    .map((k) => k.trim().toLowerCase())
-    .filter(Boolean);
-  if (terms.length === 0) return 0;
-  const text = allOutputText(listing).toLowerCase();
-  const missing = terms.filter((t) => !text.includes(t));
-  const missingRatio = missing.length / terms.length;
-  if (missingRatio === 0) return 0;
-  if (missingRatio <= 0.25) return 5;
-  if (missingRatio <= 0.5) return 10;
-  if (missingRatio <= 0.75) return 15;
-  return 20;
-}
-
 const STOP_WORDS = new Set([
   "a", "an", "the", "and", "or", "but", "in", "on", "at", "to", "for",
   "of", "with", "by", "from", "is", "it", "its", "this", "that", "are",
@@ -76,8 +60,40 @@ const STOP_WORDS = new Set([
   "your", "our", "my", "their", "you", "we", "i",
 ]);
 
-function etsyTagUniqueness(tags: string[]): number {
-  if (tags.length === 0) return 0;
+function bannedWordDeductions(listing: ScoredListing): ScoreDeduction[] {
+  const text = allOutputText(listing).toLowerCase();
+  const found: string[] = [];
+  for (const word of BANNED_WORDS) {
+    const re = new RegExp(`\\b${word.replace("-", "\\-")}\\b`, "i");
+    if (re.test(text)) found.push(word);
+  }
+  if (found.length === 0) return [];
+  const points = Math.min(found.length * 8, 24);
+  const wordList = found.map((w) => `"${w}"`).join(", ");
+  return [{ label: `Banned word${found.length > 1 ? "s" : ""} used: ${wordList}`, points }];
+}
+
+function keywordCoverageDeduction(listing: ScoredListing, userKeywords: string): ScoreDeduction[] {
+  const terms = userKeywords
+    .split(/[,\n]+/)
+    .map((k) => k.trim().toLowerCase())
+    .filter(Boolean);
+  if (terms.length === 0) return [];
+  const text = allOutputText(listing).toLowerCase();
+  const missing = terms.filter((t) => !text.includes(t));
+  if (missing.length === 0) return [];
+  const missingRatio = missing.length / terms.length;
+  let points = 0;
+  if (missingRatio <= 0.25) points = 5;
+  else if (missingRatio <= 0.5) points = 10;
+  else if (missingRatio <= 0.75) points = 15;
+  else points = 20;
+  const missingList = missing.map((m) => `"${m}"`).join(", ");
+  return [{ label: `${missing.length} of ${terms.length} keyword${terms.length > 1 ? "s" : ""} not found in output: ${missingList}`, points }];
+}
+
+function etsyTagUniquenessDeduction(tags: string[]): ScoreDeduction[] {
+  if (tags.length === 0) return [];
   const wordCount: Record<string, number> = {};
   for (const tag of tags) {
     const words = tag.toLowerCase().split(/\s+/).filter((w) => w.length > 2 && !STOP_WORDS.has(w));
@@ -85,26 +101,37 @@ function etsyTagUniqueness(tags: string[]): number {
       wordCount[word] = (wordCount[word] ?? 0) + 1;
     }
   }
-  const repeatedWords = Object.values(wordCount).filter((c) => c > 1).length;
-  return Math.min(repeatedWords * 5, 15); // -5 per repeated word, max -15
+  const repeated = Object.entries(wordCount)
+    .filter(([, c]) => c > 1)
+    .map(([w]) => w);
+  if (repeated.length === 0) return [];
+  const points = Math.min(repeated.length * 5, 15);
+  return [{ label: `${repeated.length} word${repeated.length > 1 ? "s" : ""} repeated across tags: ${repeated.map((w) => `"${w}"`).join(", ")}`, points }];
 }
 
-function titleDescriptionOverlap(title: string, description: string): number {
-  if (!title || !description) return 0;
+function titleDescriptionOverlapDeduction(title: string, description: string): ScoreDeduction[] {
+  if (!title || !description) return [];
   const titleWords = title
     .toLowerCase()
     .split(/\s+/)
     .filter((w) => w.length > 3 && !STOP_WORDS.has(w));
-  if (titleWords.length === 0) return 0;
-  const descWords = new Set(
-    description.toLowerCase().split(/\s+/).filter((w) => w.length > 3)
-  );
+  if (titleWords.length === 0) return [];
+  const descWords = new Set(description.toLowerCase().split(/\s+/).filter((w) => w.length > 3));
   const overlap = titleWords.filter((w) => descWords.has(w)).length;
-  return overlap / titleWords.length > 0.6 ? 10 : 0; // -10 if > 60% overlap
+  if (overlap / titleWords.length <= 0.6) return [];
+  return [{ label: "Title words reused heavily in description — reduces SEO keyword diversity", points: 10 }];
 }
 
-export function scoreOptimisedListing(listing: ScoredListing, ctx?: ScoreContext): number {
+export function scoreWithBreakdown(listing: ScoredListing, ctx?: ScoreContext): ScoreResult {
   let s = 0;
+  const deductions: ScoreDeduction[] = [];
+
+  function applyDeductions(deds: ScoreDeduction[]) {
+    for (const d of deds) {
+      s -= d.points;
+      deductions.push(d);
+    }
+  }
 
   switch (listing.platform) {
     case "etsy": {
@@ -123,8 +150,8 @@ export function scoreOptimisedListing(listing: ScoredListing, ctx?: ScoreContext
       else if (w >= 80) s += 15;
       else if (w >= 30) s += 8;
       else if (w > 0) s += 3;
-      s -= etsyTagUniqueness(tags);
-      s -= titleDescriptionOverlap(title, desc);
+      applyDeductions(etsyTagUniquenessDeduction(tags));
+      applyDeductions(titleDescriptionOverlapDeduction(title, desc));
       break;
     }
     case "amazon": {
@@ -140,7 +167,7 @@ export function scoreOptimisedListing(listing: ScoredListing, ctx?: ScoreContext
       else if (bullets.length > 0) s += 10;
       if (backend.length >= 100) s += 30;
       else if (backend.length > 0) s += 15;
-      s -= titleDescriptionOverlap(listing.title ?? "", listing.description ?? "");
+      applyDeductions(titleDescriptionOverlapDeduction(listing.title ?? "", listing.description ?? ""));
       break;
     }
     case "shopify": {
@@ -157,7 +184,7 @@ export function scoreOptimisedListing(listing: ScoredListing, ctx?: ScoreContext
       if (w >= 150) s += 30;
       else if (w >= 80) s += 20;
       else if (w >= 30) s += 10;
-      s -= titleDescriptionOverlap(listing.metaTitle ?? "", listing.description ?? "");
+      applyDeductions(titleDescriptionOverlapDeduction(listing.metaTitle ?? "", listing.description ?? ""));
       break;
     }
     case "ebay": {
@@ -171,7 +198,7 @@ export function scoreOptimisedListing(listing: ScoredListing, ctx?: ScoreContext
       else if (w >= 50) s += 35;
       else if (w >= 20) s += 20;
       else if (w > 0) s += 10;
-      s -= titleDescriptionOverlap(listing.title ?? "", listing.description ?? "");
+      applyDeductions(titleDescriptionOverlapDeduction(listing.title ?? "", listing.description ?? ""));
       break;
     }
     case "woocommerce":
@@ -190,7 +217,7 @@ export function scoreOptimisedListing(listing: ScoredListing, ctx?: ScoreContext
       if (w >= 150) s += 30;
       else if (w >= 80) s += 20;
       else if (w >= 30) s += 10;
-      s -= titleDescriptionOverlap(listing.seoTitle ?? "", listing.description ?? "");
+      applyDeductions(titleDescriptionOverlapDeduction(listing.seoTitle ?? "", listing.description ?? ""));
       break;
     }
     case "tiktok": {
@@ -223,12 +250,18 @@ export function scoreOptimisedListing(listing: ScoredListing, ctx?: ScoreContext
       break;
     }
     default:
-      return 0;
+      return { score: 0, deductions: [] };
   }
 
-  // Apply cross-platform deductions
-  s -= bannedWordPenalty(listing);
-  if (ctx?.userKeywords) s -= keywordCoveragePenalty(listing, ctx.userKeywords);
+  // Cross-platform deductions
+  applyDeductions(bannedWordDeductions(listing));
+  if (ctx?.userKeywords) {
+    applyDeductions(keywordCoverageDeduction(listing, ctx.userKeywords));
+  }
 
-  return Math.max(0, Math.min(100, s));
+  return { score: Math.max(0, Math.min(100, s)), deductions };
+}
+
+export function scoreOptimisedListing(listing: ScoredListing, ctx?: ScoreContext): number {
+  return scoreWithBreakdown(listing, ctx).score;
 }
