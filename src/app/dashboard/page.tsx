@@ -9,6 +9,8 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ShopHealthCounts } from "@/components/shop-health-counts";
+import { ListingHealthWidget } from "@/components/listing-health-widget";
+import { MilestoneWidget } from "@/components/milestone-widget";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getUsageData } from "@/lib/usage";
@@ -53,14 +55,18 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
 
   const admin = createAdminClient();
-  const [usage, shopsResult] = await Promise.all([
+  const [usage, shopsResult, optimisationCountResult] = await Promise.all([
     user ? getUsageData(user.id) : null,
     user
       ? admin.from("shops").select("id, shop_name, platform").eq("user_id", user.id).order("created_at", { ascending: true })
       : { data: [] },
+    user
+      ? admin.from("optimisations").select("id", { count: "exact", head: true }).eq("user_id", user.id)
+      : { count: 0 },
   ]);
 
   const shops = shopsResult.data ?? [];
+  const totalOptimisations = optimisationCountResult.count ?? 0;
   const plan = usage?.plan ?? "free";
   const canAccessShop = plan === "growth" || plan === "studio";
 
@@ -147,30 +153,35 @@ export default async function DashboardPage() {
           ) : (
             <div className="grid gap-3 sm:grid-cols-2">
               {shops.map((shop) => (
-                <Link key={shop.id} href="/dashboard/shop" className="group block">
+                <div key={shop.id} className="group">
                   <Card className="border-border/50 transition-colors group-hover:border-primary/30 group-hover:bg-muted/20">
-                    <CardContent className="flex items-center gap-3 py-4">
-                      <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                        <Store className="size-4 text-primary" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium">{shop.shop_name}</p>
-                        <div className="flex items-center gap-1.5 mt-0.5">
-                          <span className="size-1.5 rounded-full bg-emerald-500 inline-block shrink-0" />
-                          <span className={cn(
-                            "inline-flex shrink-0 items-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold",
-                            PLATFORM_PILL[shop.platform as Platform] ?? "bg-muted text-muted-foreground"
-                          )}>
-                            {PLATFORM_LABELS[shop.platform as Platform] ?? shop.platform}
-                          </span>
-                          <span className="text-muted-foreground/40 text-xs">|</span>
-                          <ShopHealthCounts shop={shop} />
+                    <CardContent className="py-4 space-y-3">
+                      <Link href="/dashboard/shop" className="flex items-center gap-3">
+                        <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                          <Store className="size-4 text-primary" />
                         </div>
-                      </div>
-                      <ArrowRight className="size-3.5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium">{shop.shop_name}</p>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="size-1.5 rounded-full bg-emerald-500 inline-block shrink-0" />
+                            <span className={cn(
+                              "inline-flex shrink-0 items-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold",
+                              PLATFORM_PILL[shop.platform as Platform] ?? "bg-muted text-muted-foreground"
+                            )}>
+                              {PLATFORM_LABELS[shop.platform as Platform] ?? shop.platform}
+                            </span>
+                            <span className="text-muted-foreground/40 text-xs">|</span>
+                            <ShopHealthCounts shop={shop} />
+                          </div>
+                        </div>
+                        <ArrowRight className="size-3.5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                      </Link>
+                      {(plan === "growth" || plan === "studio") && (
+                        <ListingHealthWidget shopId={shop.id} />
+                      )}
                     </CardContent>
                   </Card>
-                </Link>
+                </div>
               ))}
               {plan === "studio" && (
                 <Link href="/dashboard/shop" className="group block">
@@ -191,16 +202,19 @@ export default async function DashboardPage() {
 
       {/* Stats — only shown once user has activity */}
       {!isNewUser && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {stats.map((stat) => (
-            <Card key={stat.label} className="border-border/50">
-              <CardContent className="pt-4">
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <div className="text-xs text-muted-foreground">{stat.sub}</div>
-                <div className="mt-1 text-xs font-medium">{stat.label}</div>
-              </CardContent>
-            </Card>
-          ))}
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {stats.map((stat) => (
+              <Card key={stat.label} className="border-border/50">
+                <CardContent className="pt-4">
+                  <div className="text-2xl font-bold">{stat.value}</div>
+                  <div className="text-xs text-muted-foreground">{stat.sub}</div>
+                  <div className="mt-1 text-xs font-medium">{stat.label}</div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <MilestoneWidget optimisationCount={totalOptimisations} />
         </div>
       )}
 
