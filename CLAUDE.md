@@ -440,11 +440,11 @@ shipping and returns mentioned). Respond in valid JSON only.`,
 ### Sprints A–F — Art of Game Design engagement series (PLANNED 2026-06-13)
 Plans at `docs/superpowers/plans/2026-06-13-sprint-[a-f]-*.md`. Implement in order — some sprints have dependencies on earlier ones.
 
-- [ ] **Sprint A** — Core loop: upgrade modal reframing ("You've outgrown this plan"), rescue CTAs when score < 60, input-phase platform hints above submit button
-- [ ] **Sprint B** — Engagement mechanics: shop health apex score + trend sparkline, milestone widget, keyword list power level badge
-- [ ] **Sprint C** — Rewards + social proof: badges/streaks (DB migration), BigLiftToast on 30+ pt improvement, variable micro-notes, peer comparison top-5% badge, streak widget
-- [ ] **Sprint D** — Onboarding + persona: brand voice capture (onboarding step 2), brand voice injection into all AI prompts, demo gasp moment on all-set step, Studio layered disclosure, SellWise voice copy pass, platform filtering (show only user's platforms across all 4 tools)
-- [ ] **Sprint E** — Growth + retention: public /check Shopify health check (no auth), weekly digest email (Monday cron), aggregate activity stat on dashboard
+- [x] **Sprint A** — Core loop: upgrade modal reframing ("You've outgrown this plan"), rescue CTAs when score < 60, input-phase platform hints above submit button
+- [x] **Sprint B** — Engagement mechanics: shop health apex score + trend sparkline, milestone widget, keyword list power level badge
+- [x] **Sprint C** — Rewards + social proof: badges/streaks (DB migration), BigLiftToast on 30+ pt improvement, variable micro-notes, peer comparison top-5% badge, streak widget
+- [x] **Sprint D** — Onboarding + persona: brand voice capture (onboarding step 2), brand voice injection into all AI prompts, demo gasp moment on all-set step, Studio layered disclosure, SellWise voice copy pass, platform filtering (show only user's platforms across all 4 tools)
+- [x] **Sprint E** — Growth + retention: public /check Shopify health check (no auth), weekly digest email (Monday cron), aggregate activity stat on dashboard
 - [ ] **Sprint F** — Evolving brand voice: auto-derive voice from 5+ thumbs-up results (Haiku model), `brand_voice_auto` fallback column, Settings UI with Refresh button. Depends on Sprint D + feedback system.
 
 ### Phase 9 — Amazon SP-API (Future, High Complexity)
@@ -524,3 +524,8 @@ Plans at `docs/superpowers/plans/2026-06-13-sprint-[a-f]-*.md`. Implement in ord
 | 2026-06-13 | Art of Game Design analysis — comprehensive interrogation of Schell's book applied to SellWise; 18+ feature recommendations across personality, feedback loops, engagement, rewards, social proof, onboarding, elder game, growth; saved to docs/superpowers/research/2026-06-13-art-of-game-design-analysis.md |
 | 2026-06-13 | Product persona decision — no separate AI persona name needed; SellWise IS the personality; the brand speaks; mascot deferred for future consideration |
 | 2026-06-13 | Sprints A–F planned — full 6-sprint implementation series covering all Art of Game Design recommendations. Plans at docs/superpowers/plans/2026-06-13-sprint-[a-f]-*.md |
+| 2026-06-14 | Sprint A complete — upgrade modal reframing, RescuePanel (score < 60), PLATFORM_HINTS above submit, free description truncation (80w + gradient fade + UpgradeModal lockedDescription), "What next?" CTA strip, 7-day trial banner |
+| 2026-06-14 | Sprint B complete — /api/shop-health apex score + 7-day trend, ScoreTrendChart sparkline, ListingHealthWidget + MilestoneWidget, dashboard wiring, keyword power level badge, history ghost rows for free users |
+| 2026-06-14 | Sprint C complete — DB migration (badges/streak/weekly_goal), /api/streak POST, BigLiftToast (30+ pt delta), HIGH_SCORE_NOTES variable micro-notes (~30%), peer comparison top-5% badge, streak widget in dashboard |
+| 2026-06-14 | Sprint D complete — brand_voice DB migration, onboarding 3-step (brand voice step 2), brand voice injection in all AI routes (optimise/keywords/audit), demo gasp moment on onboarding step 3 (quota-exempt), Studio default detail view, SellWise voice copy pass, platform filtering across all 4 tools |
+| 2026-06-14 | Sprint E complete — public /check Shopify health check (IP rate limited, score+count only, conversion gate), weekly digest email cron (Monday 9am AEST, paid+active users, deduped), aggregate weekly activity stat on dashboard (>= 10 guard) |
