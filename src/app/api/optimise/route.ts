@@ -37,7 +37,7 @@ const WRITING_RULES = `Writing rules:
 - NEVER infer product specs from visual cues in an image — do not describe binding insert patterns, stance width, mount setup, board shape, nose or tail geometry, directional vs twin, flex, material composition, size, or weight from what the image shows. This applies even if the feature is visible — "visible in the image" is not an exception. Only describe specs the seller explicitly stated in their input.
 - Do not mention binding inserts or mount holes at all unless the seller described them in the input.
 - If a brand logo or branded graphic is visible on the product in an image, describe it generically (e.g. "a bag logo", "a logo near the nose") — never name the brand or company whose logo it is.
-- If a detail would strengthen the copy but isn't known, write around it rather than guessing (e.g. "comes in your choice of size" not "available in S, M, L").
+- NEVER reference sizing, quantity options, variants, stock levels, customisation, or purchasing logistics (e.g. "available in your choice of size", "message us for sizing", "comes in multiple colours") unless the seller explicitly stated these in their input. If size or variant information is not provided, omit it entirely — do not write around it.
 - NEVER include the platform name in any output field — do not write "Shopify", "eBay", "Etsy", or "Amazon" in any title, description, or meta field.
 - Use the exact product name as given. Do not paraphrase, shorten, or reinterpret it.
 - NEVER use em dashes (—), en dashes (–), or ellipses (…)
