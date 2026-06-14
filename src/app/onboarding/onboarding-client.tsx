@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Scissors,
@@ -25,6 +25,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { PLATFORMS, PLATFORM_LABELS, type Platform } from "@/lib/platforms";
+import { scoreOptimisedListing } from "@/lib/listing-score";
+import type { ScoredListing } from "@/lib/listing-score";
 
 const CATEGORIES = [
   { id: "handmade", label: "Handmade crafts", icon: Scissors },
@@ -67,6 +69,49 @@ export function OnboardingClient({ firstName }: { firstName: string | null }) {
   const [categories, setCategories] = useState<string[]>([]);
   const [platforms, setPlatforms] = useState<Platform[]>([]);
   const [brandVoice, setBrandVoice] = useState("");
+  const [demoResult, setDemoResult] = useState<{ title: string; score: number } | null>(null);
+  const [demoLoading, setDemoLoading] = useState(false);
+
+  useEffect(() => {
+    if (step !== 3) return;
+    const demoPlatform: string = platforms[0] ?? "shopify";
+    setDemoLoading(true);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10_000);
+
+    fetch("/api/optimise", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        platform: demoPlatform,
+        productName: "Handmade soy wax candle, lavender and vanilla scent",
+        materials: "100% soy wax, cotton wick, recycled glass jar",
+        style: "minimalist, clean, gift-ready",
+        targetBuyer: "gift buyers looking for a natural, eco-friendly candle",
+        demo: true,
+      }),
+      signal: controller.signal,
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!data) return;
+        const title: string = data.metaTitle ?? data.title ?? "";
+        const score: number = scoreOptimisedListing(data as ScoredListing);
+        if (title) setDemoResult({ title, score });
+      })
+      .catch(() => {
+        // silent fail — demo is best-effort
+      })
+      .finally(() => {
+        clearTimeout(timeout);
+        setDemoLoading(false);
+      });
+
+    return () => {
+      controller.abort();
+      clearTimeout(timeout);
+    };
+  }, [step, platforms]);
 
   function toggleCategory(id: string) {
     setCategories((prev) =>
@@ -262,6 +307,44 @@ export function OnboardingClient({ firstName }: { firstName: string | null }) {
                 Here&apos;s everything waiting for you on the dashboard.
               </p>
             </div>
+
+            {/* Demo result */}
+            {demoLoading && (
+              <div className="rounded-xl border border-border/50 p-4 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-medium text-muted-foreground">Demo title</p>
+                  <div className="h-5 w-12 rounded-full bg-muted animate-pulse" />
+                </div>
+                <div className="space-y-1.5">
+                  <div className="h-4 w-full rounded-md bg-muted animate-pulse" />
+                  <div className="h-4 w-2/3 rounded-md bg-muted animate-pulse" />
+                </div>
+              </div>
+            )}
+
+            {!demoLoading && demoResult && (
+              <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-xs font-medium text-muted-foreground">Demo title</p>
+                  <span
+                    className={cn(
+                      "shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold",
+                      demoResult.score >= 80
+                        ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                        : demoResult.score >= 60
+                        ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                        : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                    )}
+                  >
+                    Score {demoResult.score}
+                  </span>
+                </div>
+                <p className="text-sm font-medium leading-snug">{demoResult.title}</p>
+                <p className="text-xs text-muted-foreground">
+                  This is what SellWise would write for a product like yours.
+                </p>
+              </div>
+            )}
 
             <div className="grid gap-2 text-left">
               {[

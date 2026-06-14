@@ -26,6 +26,7 @@ const requestSchema = z.object({
   existingContent: z.string().max(2000).optional().default(""),
   productId: z.string().optional(),
   shopId: z.string().optional(),
+  demo: z.boolean().optional(),
 });
 
 const WRITING_RULES = `Writing rules:
@@ -264,29 +265,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { allowed, used, limit, dailyLimitHit, dailyLimit } = await checkLimit(user.id, "optimisations");
-  if (!allowed) {
-    const error = dailyLimitHit
-      ? `You've hit today's limit of ${dailyLimit} optimisations. Resets at midnight — or upgrade your plan for a higher daily limit.`
-      : `You've used all ${limit} optimisations for this month. Upgrade your plan to continue.`;
-    return NextResponse.json(
-      { error, code: dailyLimitHit ? "DAILY_LIMIT_EXCEEDED" : "LIMIT_EXCEEDED" },
-      { status: 402 }
-    );
-  }
-
-  let brandVoice = "";
-  try {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("brand_voice")
-      .eq("id", user.id)
-      .single();
-    brandVoice = profile?.brand_voice ?? "";
-  } catch {
-    // proceed without brand voice
-  }
-
   let body: unknown;
   try {
     body = await request.json();
@@ -302,8 +280,37 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { platform, productName, materials, style, targetBuyer, keywords, imageBase64, imageMediaType, imageUrl, existingContent, productId, shopId } =
+  const { platform, productName, materials, style, targetBuyer, keywords, imageBase64, imageMediaType, imageUrl, existingContent, productId, shopId, demo } =
     parsed.data;
+
+  let used = 0;
+  let limit = 0;
+  if (!demo) {
+    const { allowed, used: usedCount, limit: limitCount, dailyLimitHit, dailyLimit } = await checkLimit(user.id, "optimisations");
+    used = usedCount;
+    limit = limitCount ?? 0;
+    if (!allowed) {
+      const error = dailyLimitHit
+        ? `You've hit today's limit of ${dailyLimit} optimisations. Resets at midnight — or upgrade your plan for a higher daily limit.`
+        : `You've used all ${limit} optimisations for this month. Upgrade your plan to continue.`;
+      return NextResponse.json(
+        { error, code: dailyLimitHit ? "DAILY_LIMIT_EXCEEDED" : "LIMIT_EXCEEDED" },
+        { status: 402 }
+      );
+    }
+  }
+
+  let brandVoice = "";
+  try {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("brand_voice")
+      .eq("id", user.id)
+      .single();
+    brandVoice = profile?.brand_voice ?? "";
+  } catch {
+    // proceed without brand voice
+  }
 
   const hasImage = !!(imageUrl || (imageBase64 && imageMediaType));
 
@@ -366,52 +373,54 @@ export async function POST(request: NextRequest) {
     }
 
     let optimisationId: string | null = null;
-    try {
-      const [, { data: insertedRow }] = await Promise.all([
-        incrementUsage(user.id, "optimisations"),
-        supabase
-          .from("optimisations")
-          .insert({
-            user_id: user.id,
-            platform,
-            product_id: productId ?? null,
-            shop_id: shopId ?? null,
-            input: { productName, materials, style, targetBuyer, keywords },
-            output: listing,
-          })
-          .select("id")
-          .single(),
-      ]);
-      optimisationId = insertedRow?.id ?? null;
-      revalidatePath("/dashboard", "layout");
+    if (!demo) {
+      try {
+        const [, { data: insertedRow }] = await Promise.all([
+          incrementUsage(user.id, "optimisations"),
+          supabase
+            .from("optimisations")
+            .insert({
+              user_id: user.id,
+              platform,
+              product_id: productId ?? null,
+              shop_id: shopId ?? null,
+              input: { productName, materials, style, targetBuyer, keywords },
+              output: listing,
+            })
+            .select("id")
+            .single(),
+        ]);
+        optimisationId = insertedRow?.id ?? null;
+        revalidatePath("/dashboard", "layout");
 
-      // Stamp first optimisation time — cron sends email after 2 hours
-      if (used === 0) {
-        void (async () => {
-          try {
-            const admin = createAdminClient();
-            const { data: profile } = await admin
-              .from("profiles")
-              .select("first_optimisation_sent, first_optimisation_at, onboarding_completed")
-              .eq("id", user.id)
-              .single();
-
-            if (profile && !profile.first_optimisation_sent && !profile.first_optimisation_at && profile.onboarding_completed) {
-              await admin
+        // Stamp first optimisation time — cron sends email after 2 hours
+        if (used === 0) {
+          void (async () => {
+            try {
+              const admin = createAdminClient();
+              const { data: profile } = await admin
                 .from("profiles")
-                .update({ first_optimisation_at: new Date().toISOString() })
-                .eq("id", user.id);
-            }
+                .select("first_optimisation_sent, first_optimisation_at, onboarding_completed")
+                .eq("id", user.id)
+                .single();
 
-            // Grant referral bonus to both parties on first use
-            await rewardReferral(user.id);
-          } catch (e) {
-            console.error("[first-optimisation stamp]", e);
-          }
-        })();
+              if (profile && !profile.first_optimisation_sent && !profile.first_optimisation_at && profile.onboarding_completed) {
+                await admin
+                  .from("profiles")
+                  .update({ first_optimisation_at: new Date().toISOString() })
+                  .eq("id", user.id);
+              }
+
+              // Grant referral bonus to both parties on first use
+              await rewardReferral(user.id);
+            } catch (e) {
+              console.error("[first-optimisation stamp]", e);
+            }
+          })();
+        }
+      } catch (incErr) {
+        console.error("Failed to increment usage:", incErr);
       }
-    } catch (incErr) {
-      console.error("Failed to increment usage:", incErr);
     }
 
     // Serialise itemSpecifics in original (if present) to the same key-value string format
