@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { History, ChevronDown, ChevronUp, Copy, Check, ExternalLink, Loader2, Archive, ArchiveRestore, ThumbsUp, ThumbsDown } from "lucide-react";
+import { History, ChevronDown, ChevronUp, Copy, Check, ExternalLink, Loader2, Archive, ArchiveRestore, ThumbsUp, ThumbsDown, Lock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -225,6 +225,25 @@ function InputSummary({ input }: { input: Optimisation["input"] }) {
   );
 }
 
+function GhostHistoryRow() {
+  return (
+    <div className="relative flex items-center gap-3 rounded-lg border border-border/40 bg-muted/10 p-4 overflow-hidden">
+      <div className="size-8 rounded-full bg-muted/60 shrink-0" />
+      <div className="flex-1 space-y-2 min-w-0">
+        <div className="flex items-center gap-2">
+          <div className="h-3 w-24 rounded bg-muted/70 blur-[2px]" />
+          <div className="h-3 w-16 rounded bg-muted/60 blur-[2px]" />
+        </div>
+        <div className="h-3 w-3/4 rounded bg-muted/50 blur-[2px]" />
+      </div>
+      <div className="h-6 w-12 rounded-full bg-muted/60 blur-[2px] shrink-0" />
+      <div className="absolute inset-0 flex items-center justify-center bg-background/40">
+        <Lock className="size-4 text-muted-foreground/50" />
+      </div>
+    </div>
+  );
+}
+
 function OptimisationCard({
   opt,
   onArchiveToggle,
@@ -417,6 +436,7 @@ export function HistoryClient() {
   const [showArchived, setShowArchived] = useState(false);
   const [feedbackMap, setFeedbackMap] = useState<Record<string, "up" | "down" | null>>({});
   const [submittingFeedbackId, setSubmittingFeedbackId] = useState<string | null>(null);
+  const [plan, setPlan] = useState<string>("free");
 
   const submitFeedback = useCallback(async (optimisationId: string, value: "up" | "down") => {
     const current = feedbackMap[optimisationId] ?? null;
@@ -452,6 +472,7 @@ export function HistoryClient() {
       setTotal(data.total);
       setHasMore(data.hasMore);
       setPage(pg);
+      if (replace && data.plan) setPlan(data.plan);
       const initial: Record<string, "up" | "down" | null> = {};
       for (const o of data.optimisations as Optimisation[]) {
         if (o.feedback) initial[o.id] = o.feedback;
@@ -570,6 +591,26 @@ export function HistoryClient() {
               />
             ))}
           </div>
+
+          {plan === "free" && (
+            <div className="space-y-2 mt-2">
+              <GhostHistoryRow />
+              <GhostHistoryRow />
+              <GhostHistoryRow />
+              <div className="rounded-lg border border-border/50 bg-muted/20 p-4 text-center space-y-2">
+                <p className="text-sm font-medium">Upgrade to keep your full optimisation history</p>
+                <p className="text-xs text-muted-foreground">
+                  Free plan keeps 1 result. Paid plans keep everything.
+                </p>
+                <a
+                  href="/pricing"
+                  className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+                >
+                  See plans
+                </a>
+              </div>
+            </div>
+          )}
 
           {hasMore && (
             <div className="flex justify-center pt-2">
