@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
     getUsageData(user.id),
     supabase
       .from("profiles")
-      .select("brand_voice")
+      .select("brand_voice, brand_voice_auto")
       .eq("id", user.id)
       .single(),
   ]);
@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const brandVoice = (profileResult.data?.brand_voice ?? "").slice(0, 400);
+  const brandVoice = (profileResult.data?.brand_voice ?? profileResult.data?.brand_voice_auto ?? "").slice(0, 400);
 
   let body: unknown;
   try {

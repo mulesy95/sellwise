@@ -304,10 +304,10 @@ export async function POST(request: NextRequest) {
   try {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("brand_voice")
+      .select("brand_voice, brand_voice_auto")
       .eq("id", user.id)
       .single();
-    brandVoice = (profile?.brand_voice ?? "").slice(0, 400);
+    brandVoice = (profile?.brand_voice ?? profile?.brand_voice_auto ?? "").slice(0, 400);
   } catch {
     // proceed without brand voice
   }
