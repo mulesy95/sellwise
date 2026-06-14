@@ -55,7 +55,8 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
 
   const admin = createAdminClient();
-  const [usage, shopsResult, optimisationCountResult] = await Promise.all([
+  const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const [usage, shopsResult, optimisationCountResult, weeklyOptimisationsResult] = await Promise.all([
     user ? getUsageData(user.id) : null,
     user
       ? admin.from("shops").select("id, shop_name, platform").eq("user_id", user.id).order("created_at", { ascending: true })
@@ -63,10 +64,12 @@ export default async function DashboardPage() {
     user
       ? admin.from("optimisations").select("id", { count: "exact", head: true }).eq("user_id", user.id)
       : { count: 0 },
+    admin.from("optimisations").select("id", { count: "exact", head: true }).gte("created_at", since),
   ]);
 
   const shops = shopsResult.data ?? [];
   const totalOptimisations = optimisationCountResult.count ?? 0;
+  const weeklyOptimisations = weeklyOptimisationsResult.count ?? 0;
   const plan = usage?.plan ?? "free";
   const canAccessShop = plan === "growth" || plan === "studio";
 
@@ -221,6 +224,11 @@ export default async function DashboardPage() {
             ))}
           </div>
           <MilestoneWidget optimisationCount={totalOptimisations} />
+          {weeklyOptimisations >= 10 && (
+            <p className="text-xs text-muted-foreground text-center">
+              {weeklyOptimisations.toLocaleString()} listings improved by SellWise sellers this week.
+            </p>
+          )}
         </div>
       )}
 
