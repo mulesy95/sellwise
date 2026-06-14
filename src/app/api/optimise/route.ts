@@ -275,6 +275,18 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  let brandVoice = "";
+  try {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("brand_voice")
+      .eq("id", user.id)
+      .single();
+    brandVoice = profile?.brand_voice ?? "";
+  } catch {
+    // proceed without brand voice
+  }
+
   let body: unknown;
   try {
     body = await request.json();
@@ -310,6 +322,10 @@ export async function POST(request: NextRequest) {
     ? { type: "base64", media_type: imageMediaType, data: imageBase64 }
     : null;
 
+  const brandVoiceSuffix = brandVoice
+    ? `\n\nSeller brand voice: ${brandVoice}\nWrite all copy in this voice. Keep platform SEO rules above, but let this tone shape word choice, sentence rhythm, and energy level.`
+    : "";
+
   try {
     const message = await client.messages.create({
       model: "claude-sonnet-4-6",
@@ -317,7 +333,7 @@ export async function POST(request: NextRequest) {
       system: [
         {
           type: "text" as const,
-          text: buildSystemPrompt(platform) + (existingContent ? improveModeSuffix() : ""),
+          text: buildSystemPrompt(platform) + (existingContent ? improveModeSuffix() : "") + brandVoiceSuffix,
           cache_control: { type: "ephemeral" as const },
         },
       ],
