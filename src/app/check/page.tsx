@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { CheckClient } from "./check-client";
 
 export const metadata: Metadata = {
@@ -10,9 +11,9 @@ export const metadata: Metadata = {
 export default function CheckPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 py-12 gap-12">
-      <div className="text-2xl font-bold tracking-tight">
+      <Link href="/" className="text-2xl font-bold tracking-tight hover:opacity-80 transition-opacity">
         Sell<span className="text-primary">Wise</span>
-      </div>
+      </Link>
       <CheckClient />
       <p className="text-xs text-muted-foreground/50">
         Shopify stores only. No data is stored.
