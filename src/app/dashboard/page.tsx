@@ -55,7 +55,7 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
 
   const admin = createAdminClient();
-  const [usage, shopsResult, optimisationCountResult] = await Promise.all([
+  const [usage, shopsResult, optimisationCountResult, keywordListCountResult] = await Promise.all([
     user ? getUsageData(user.id) : null,
     user
       ? admin.from("shops").select("id, shop_name, platform").eq("user_id", user.id).order("created_at", { ascending: true })
@@ -63,10 +63,14 @@ export default async function DashboardPage() {
     user
       ? admin.from("optimisations").select("id", { count: "exact", head: true }).eq("user_id", user.id)
       : { count: 0 },
+    user
+      ? admin.from("keyword_lists").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("is_archived", false)
+      : { count: 0 },
   ]);
 
   const shops = shopsResult.data ?? [];
   const totalOptimisations = optimisationCountResult.count ?? 0;
+  const keywordListCount = keywordListCountResult.count ?? 0;
   const plan = usage?.plan ?? "free";
   const canAccessShop = plan === "growth" || plan === "studio";
 
@@ -77,6 +81,12 @@ export default async function DashboardPage() {
     (usage.optimisations === 0 &&
       usage.keywords === 0 &&
       usage.audits === 0);
+
+  const investmentItems = [
+    totalOptimisations > 0 ? `${totalOptimisations} ${totalOptimisations === 1 ? "listing" : "listings"} optimised` : null,
+    keywordListCount > 0 ? `${keywordListCount} keyword ${keywordListCount === 1 ? "list" : "lists"} saved` : null,
+    shops.length > 0 ? `${shops.length} ${shops.length === 1 ? "store" : "stores"} connected` : null,
+  ].filter((x): x is string => x !== null);
 
   return (
     <div className="space-y-8">
@@ -92,6 +102,11 @@ export default async function DashboardPage() {
             ? "You're all set. Optimise your first listing to get started."
             : "What would you like to optimise today?"}
         </p>
+        {investmentItems.length > 0 && (
+          <p className="mt-2 text-xs text-muted-foreground">
+            {investmentItems.join(" · ")}
+          </p>
+        )}
         {!isNewUser && usage && usage.optimisationStreak > 0 && (
           <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-700 dark:text-amber-400">
             <span>🔥</span>
