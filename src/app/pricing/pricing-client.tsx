@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -68,6 +68,27 @@ const AUD_PLANS = [
   { id: "studio" as const,  name: "Studio",  monthly: 120, annual: 1200, description: "Connect stores and push listings live" },
   { id: "agency" as const,  name: "Agency",  monthly: 379, annual: 3790, description: "For agencies and large catalogues" },
 ];
+
+type CompCell = boolean | string;
+
+const comparisonRows: {
+  feature: string;
+  sellwise: CompCell; erank: CompCell; marmalead: CompCell; helium10: CompCell; chatgpt: CompCell;
+}[] = [
+  { feature: "Shopify, eBay, Amazon, Etsy",  sellwise: true,         erank: "Etsy only",   marmalead: "Etsy only",   helium10: "Amazon only", chatgpt: "No rules"   },
+  { feature: "AI-generates your copy",        sellwise: true,         erank: false,         marmalead: false,         helium10: "Amazon only", chatgpt: true         },
+  { feature: "Platform rules enforced",       sellwise: true,         erank: false,         marmalead: false,         helium10: false,         chatgpt: false        },
+  { feature: "SEO score 0–100",               sellwise: true,         erank: false,         marmalead: false,         helium10: false,         chatgpt: false        },
+  { feature: "Connect store + push live",     sellwise: true,         erank: false,         marmalead: false,         helium10: false,         chatgpt: false        },
+  { feature: "Keyword research",              sellwise: true,         erank: true,          marmalead: true,          helium10: true,          chatgpt: false        },
+  { feature: "Starting price",               sellwise: "$29 / mo",   erank: "$9.99 / mo",  marmalead: "$19 / mo",    helium10: "$79 / mo",    chatgpt: "$20 / mo"   },
+];
+
+function renderCompCell(value: CompCell, highlight: boolean) {
+  if (value === true)  return <Check className={cn("size-4 mx-auto", highlight ? "text-primary" : "text-green-500 dark:text-green-400")} />;
+  if (value === false) return <X className="size-3.5 mx-auto text-muted-foreground/30" />;
+  return <span className={cn("text-xs", highlight ? "font-semibold text-primary" : "text-muted-foreground/60")}>{value as string}</span>;
+}
 
 export function PricingClient({ currency = "USD" }: { currency?: Currency }) {
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
@@ -239,6 +260,49 @@ export function PricingClient({ currency = "USD" }: { currency?: Currency }) {
           All paid plans include a 7-day free trial. No credit card required to start free.
           {currency === "AUD" && " Prices in AUD."}
         </p>
+
+        {/* Competitor comparison */}
+        <div className="mt-16">
+          <div className="mb-8 text-center">
+            <h2 className="text-xl font-bold tracking-tight">How SellWise compares</h2>
+            <p className="mt-1.5 text-sm text-muted-foreground">
+              Most tools pick one platform. SellWise is built for every marketplace you sell on.
+            </p>
+          </div>
+
+          <div className="overflow-x-auto rounded-xl border border-border/50">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="border-b border-border/50">
+                  <th className="py-3 pl-5 pr-6 text-left text-xs font-normal text-muted-foreground" />
+                  <th className="py-3 px-4 text-center text-xs font-semibold text-primary bg-primary/5">
+                    SellWise
+                  </th>
+                  {["Erank", "Marmalead", "Helium 10", "ChatGPT"].map((t) => (
+                    <th key={t} className="py-3 px-4 text-center text-xs font-medium text-muted-foreground">
+                      {t}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/30">
+                {comparisonRows.map((row) => (
+                  <tr key={row.feature}>
+                    <td className="py-3 pl-5 pr-6 text-xs text-muted-foreground whitespace-nowrap">{row.feature}</td>
+                    <td className="py-3 px-4 text-center bg-primary/5">{renderCompCell(row.sellwise, true)}</td>
+                    <td className="py-3 px-4 text-center">{renderCompCell(row.erank, false)}</td>
+                    <td className="py-3 px-4 text-center">{renderCompCell(row.marmalead, false)}</td>
+                    <td className="py-3 px-4 text-center">{renderCompCell(row.helium10, false)}</td>
+                    <td className="py-3 px-4 text-center">{renderCompCell(row.chatgpt, false)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-3 text-center text-xs text-muted-foreground/40">
+            Competitor features and prices as of June 2026.
+          </p>
+        </div>
 
         <div className="mt-10 flex justify-center gap-5 text-xs text-muted-foreground/60">
           <a href="/terms" className="hover:text-muted-foreground transition-colors">Terms</a>
