@@ -55,8 +55,7 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
 
   const admin = createAdminClient();
-  const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  const [usage, shopsResult, optimisationCountResult, weeklyOptimisationsResult] = await Promise.all([
+  const [usage, shopsResult, optimisationCountResult] = await Promise.all([
     user ? getUsageData(user.id) : null,
     user
       ? admin.from("shops").select("id, shop_name, platform").eq("user_id", user.id).order("created_at", { ascending: true })
@@ -64,12 +63,10 @@ export default async function DashboardPage() {
     user
       ? admin.from("optimisations").select("id", { count: "exact", head: true }).eq("user_id", user.id)
       : { count: 0 },
-    admin.from("optimisations").select("id", { count: "exact", head: true }).gte("created_at", since),
   ]);
 
   const shops = shopsResult.data ?? [];
   const totalOptimisations = optimisationCountResult.count ?? 0;
-  const weeklyOptimisations = weeklyOptimisationsResult.count ?? 0;
   const plan = usage?.plan ?? "free";
   const canAccessShop = plan === "growth" || plan === "studio";
 
@@ -80,12 +77,6 @@ export default async function DashboardPage() {
     (usage.optimisations === 0 &&
       usage.keywords === 0 &&
       usage.audits === 0);
-
-  const stats = [
-    { label: "Optimisations", value: usage?.optimisations ?? 0, sub: "this month" },
-    { label: "Keywords explored", value: usage?.keywords ?? 0, sub: "this month" },
-    { label: "Audits run", value: usage?.audits ?? 0, sub: "this month" },
-  ];
 
   return (
     <div className="space-y-8">
@@ -209,28 +200,8 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* Stats — only shown once user has activity */}
-      {!isNewUser && (
-        <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {stats.map((stat) => (
-              <Card key={stat.label} className="border-border/50">
-                <CardContent className="pt-4">
-                  <div className="text-2xl font-bold">{stat.value}</div>
-                  <div className="text-xs text-muted-foreground">{stat.sub}</div>
-                  <div className="mt-1 text-xs font-medium">{stat.label}</div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          <MilestoneWidget optimisationCount={totalOptimisations} />
-          {weeklyOptimisations >= 10 && (
-            <p className="text-xs text-muted-foreground text-center">
-              {weeklyOptimisations.toLocaleString()} listings improved by SellWise sellers this week.
-            </p>
-          )}
-        </div>
-      )}
+      {/* Milestone — only shown once user has activity */}
+      {!isNewUser && <MilestoneWidget optimisationCount={totalOptimisations} />}
 
       {/* Quick actions */}
       <div>
