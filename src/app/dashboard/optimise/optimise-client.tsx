@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Sparkles, Copy, Check, RotateCcw, RefreshCw, Download, BarChart3, ImagePlus, X, Lock, AlertCircle, ChevronDown, ThumbsUp, ThumbsDown, Lightbulb, Search, ArrowLeftRight, Plus, TrendingUp, ExternalLink } from "lucide-react";
+import { Sparkles, Copy, Check, RotateCcw, RefreshCw, Download, BarChart3, ImagePlus, X, Lock, AlertCircle, ChevronDown, ThumbsUp, ThumbsDown, Lightbulb, Search, ArrowLeftRight, Plus, TrendingUp, ExternalLink, Share2 } from "lucide-react";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import { Spinner } from "@/components/ui/spinner";
 import { PlatformSelector } from "@/components/platform-selector";
@@ -598,6 +598,20 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
     setResult(null);
     setError(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function shareScore(score: number, before: number | null) {
+    const label = PLATFORM_LABELS[platform];
+    const text =
+      before !== null && before > 0 && score > before
+        ? `Just improved my ${label} listing from ${before} → ${score}/100 with @SellWise 🎯 sellwise.au`
+        : `My ${label} listing just scored ${score}/100 with @SellWise 🎯 sellwise.au`;
+    navigator.clipboard.writeText(text).catch(() => null);
+    window.open(
+      `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`,
+      "_blank",
+      "noopener,noreferrer"
+    );
   }
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -1455,6 +1469,17 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
                     <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
                       <TrendingUp className="size-3" />
                       Top 5% on {PLATFORM_LABELS[platform]} this week
+                    </div>
+                  )}
+                  {afterScore >= 60 && (
+                    <div className="flex justify-center pt-1">
+                      <button
+                        onClick={() => shareScore(afterScore, beforeScore)}
+                        className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <Share2 className="size-3" />
+                        Share your score
+                      </button>
                     </div>
                   )}
                 </>
