@@ -201,7 +201,7 @@ export function PricingClient({ currency = "USD" }: { currency?: Currency }) {
                     href="/dashboard"
                     className={buttonVariants({ variant: "outline", size: "sm", className: "w-full text-xs" })}
                   >
-                    Get started free
+                    Start optimising free
                   </a>
                 ) : plan.id === "agency" ? (
                   <a
@@ -216,7 +216,7 @@ export function PricingClient({ currency = "USD" }: { currency?: Currency }) {
                     disabled={loading === plan.id}
                     className={cn(
                       buttonVariants({
-                        variant: plan.id === "studio" ? "default" : "outline",
+                        variant: plan.id === "growth" ? "default" : "outline",
                         size: "sm",
                         className: "w-full text-xs",
                       }),
@@ -226,7 +226,7 @@ export function PricingClient({ currency = "USD" }: { currency?: Currency }) {
                     {loading === plan.id ? (
                       <Spinner size="sm" />
                     ) : (
-                      `Get ${plan.name}`
+                      "Start 7-day free trial"
                     )}
                   </button>
                 )}
