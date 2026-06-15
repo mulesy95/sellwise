@@ -9,7 +9,7 @@ export function trialExpiredEmail(firstName: string | null, email: string): { su
         Your trial has ended, ${name}
       </h1>
       <p style="margin:0 0 16px;font-size:15px;color:#444444;line-height:1.6">
-        Your free trial of SellWise Growth has ended. You're now on the Free plan: 3 optimisations per month.
+        Your free trial of SellWise Growth has ended. You're now on the Free plan: 1 optimisation per month.
       </p>
       <p style="margin:0 0 28px;font-size:15px;color:#444444;line-height:1.6">
         Upgrade any time to get back to unlimited optimisations, keyword research, and listing audits.
@@ -43,7 +43,7 @@ export function trialExpiredEmail(firstName: string | null, email: string): { su
   `, accountUnsubscribeUrl(email));
 
   return {
-    subject: "Your SellWise trial has ended",
+    subject: "Your trial ended — you're back to 1 optimisation a month",
     html,
   };
 }

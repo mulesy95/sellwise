@@ -34,7 +34,7 @@ export function waitlistConfirmationEmail(email: string): { subject: string; htm
   `, unsubscribeUrl);
 
   return {
-    subject: "You're on the SellWise waitlist",
+    subject: "You're on the list — we'll reach out when your spot opens",
     html,
   };
 }

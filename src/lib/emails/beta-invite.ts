@@ -68,7 +68,7 @@ export function betaInviteEmail(
   `);
 
   return {
-    subject: "You're invited to test SellWise",
+    subject: "Your invite to SellWise is ready",
     html,
   };
 }

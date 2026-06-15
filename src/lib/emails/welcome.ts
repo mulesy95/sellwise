@@ -43,7 +43,7 @@ export function welcomeEmail(firstName: string | null, email: string): { subject
   `, accountUnsubscribeUrl(email));
 
   return {
-    subject: "Welcome to SellWise. Your 7-day trial has started.",
+    subject: "Your 7-day trial is live — here's what to do first",
     html,
   };
 }

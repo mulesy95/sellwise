@@ -50,7 +50,7 @@ export function trialNudgeEmail(firstName: string | null, email: string): { subj
   `, accountUnsubscribeUrl(email));
 
   return {
-    subject: "2 days left on your SellWise trial",
+    subject: "2 days left — then keyword research and audits switch off",
     html,
   };
 }

@@ -34,7 +34,7 @@ export function subscriptionCancelledEmail(
   );
 
   return {
-    subject: "Your SellWise subscription has been cancelled.",
+    subject: "Subscription cancelled — a few things to know",
     html,
   };
 }

@@ -35,7 +35,7 @@ export function firstOptimisationEmail(firstName: string | null, email: string):
   `, accountUnsubscribeUrl(email));
 
   return {
-    subject: "Your first SellWise optimisation is done",
+    subject: "First listing done — copy your new title and tags",
     html,
   };
 }

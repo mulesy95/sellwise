@@ -82,7 +82,7 @@ export function upgradeSuccessEmail(
   );
 
   return {
-    subject: `You're on SellWise ${label}.`,
+    subject: `You're on ${label} — here's everything you've unlocked`,
     html,
   };
 }
