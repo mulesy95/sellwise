@@ -3,6 +3,8 @@ import { getUsageData } from "@/lib/usage";
 import { AuditClient } from "./audit-client";
 import type { Platform } from "@/lib/platforms";
 
+export const metadata = { title: "Listing Audit" };
+
 export default async function AuditPage() {
   const supabase = await createClient();
   const {

@@ -4,6 +4,8 @@ import { FeatureGate } from "@/components/feature-gate";
 import { KeywordsClient } from "./keywords-client";
 import type { Platform } from "@/lib/platforms";
 
+export const metadata = { title: "Keyword Research" };
+
 export default async function KeywordsPage() {
   const supabase = await createClient();
   const {

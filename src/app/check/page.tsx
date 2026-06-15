@@ -6,6 +6,19 @@ export const metadata: Metadata = {
   title: "Free Shopify Listing Health Check — SellWise",
   description:
     "Paste any Shopify product URL and get an SEO score plus the top improvements in 10 seconds. Free, no account needed.",
+  openGraph: {
+    title: "Free Shopify Listing Health Check — SellWise",
+    description:
+      "Paste any Shopify product URL and get an SEO score plus the top improvements in 10 seconds. Free, no account needed.",
+    url: "/check",
+    images: [{ url: "/api/og", width: 1200, height: 630, alt: "SellWise — Free Listing Health Check" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Free Shopify Listing Health Check — SellWise",
+    description: "Paste any Shopify URL and get an SEO score in 10 seconds. Free, no account needed.",
+    images: ["/api/og"],
+  },
 };
 
 export default function CheckPage() {

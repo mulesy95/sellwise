@@ -3,11 +3,11 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Pricing — Plans from $19/mo",
   description:
-    "Start free. Upgrade when you're ready. Plans from $19/mo for Etsy, Amazon, and Shopify sellers. Unlimited AI listing optimisation on Growth.",
+    "Start free. Upgrade when you're ready. Plans from $19/mo for Shopify, eBay, Amazon, and Etsy sellers. Unlimited AI listing optimisation on Growth.",
   openGraph: {
     title: "SellWise Pricing — Plans from $19/mo",
     description:
-      "Start free. Upgrade when you're ready. Plans from $19/mo for Etsy, Amazon, and Shopify sellers.",
+      "Start free. Upgrade when you're ready. Plans from $19/mo for Shopify, eBay, Amazon, and Etsy sellers.",
     url: "/pricing",
   },
 };

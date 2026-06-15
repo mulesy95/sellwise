@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -6,6 +7,8 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { TrialBanner } from "@/components/layout/trial-banner";
 import { ServiceStatusBanner } from "@/components/layout/service-status-banner";
+
+export const metadata: Metadata = { robots: { index: false } };
 
 export default async function DashboardLayout({
   children,
