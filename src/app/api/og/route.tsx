@@ -4,7 +4,7 @@ export const runtime = "edge";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const title = searchParams.get("title") ?? "AI Listing Optimiser for Marketplace Sellers";
+  const title = searchParams.get("title") ?? "AI That Knows Your Marketplace";
 
   return new ImageResponse(
     (

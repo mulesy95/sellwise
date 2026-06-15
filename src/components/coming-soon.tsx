@@ -24,12 +24,13 @@ export function ComingSoon() {
       </p>
 
       <p className="mb-2 max-w-md text-lg font-medium text-foreground">
-        Sell smarter on every platform.
+        AI that knows your marketplace.
       </p>
       <p className="mb-10 max-w-sm text-sm leading-relaxed text-muted-foreground">
-        AI-powered listing optimisation for Shopify, eBay, and more.
-        We&apos;re putting the finishing touches on. Leave your email and
-        we&apos;ll let you know the moment we launch.
+        The AI listing writer that knows each platform&apos;s SEO rules —
+        Shopify, eBay, Amazon, and Etsy. We&apos;re putting the finishing
+        touches on. Leave your email and we&apos;ll let you know the moment
+        we launch.
       </p>
 
       {state?.success ? (

@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "SellWise",
     short_name: "SellWise",
-    description: "AI listing optimiser for marketplace sellers",
+    description: "AI that knows your marketplace",
     start_url: "/dashboard",
     display: "standalone",
     background_color: "#141414",

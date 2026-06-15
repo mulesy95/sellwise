@@ -5,21 +5,21 @@ import { ComingSoon } from "@/components/coming-soon";
 import { MarketingLanding } from "@/components/marketing-landing";
 
 export const metadata: Metadata = {
-  title: "SellWise — AI Listing Optimiser for Online Sellers",
+  title: "SellWise — AI That Knows Your Marketplace",
   description:
-    "AI-powered listing optimiser for Shopify, eBay, Amazon, and more. Better titles, tags, and descriptions in seconds.",
+    "The AI listing writer that knows your marketplace. Applies Shopify, eBay, Amazon, and Etsy SEO rules automatically — and scores every listing 0–100.",
   openGraph: {
-    title: "SellWise — AI Listing Optimiser for Online Sellers",
+    title: "SellWise — AI That Knows Your Marketplace",
     description:
-      "AI-powered listing optimiser for Shopify, eBay, Amazon, and more. Better titles, tags, and descriptions in seconds.",
+      "The AI listing writer that knows your marketplace. Applies each platform's SEO rules automatically and scores every listing 0–100.",
     url: "/",
-    images: [{ url: "/api/og", width: 1200, height: 630, alt: "SellWise — AI Listing Optimiser" }],
+    images: [{ url: "/api/og", width: 1200, height: 630, alt: "SellWise — AI That Knows Your Marketplace" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "SellWise — AI Listing Optimiser for Online Sellers",
+    title: "SellWise — AI That Knows Your Marketplace",
     description:
-      "AI-powered listing optimiser for Shopify, eBay, Amazon, and more. Better titles, tags, and descriptions in seconds.",
+      "The AI listing writer that knows your marketplace. Applies each platform's SEO rules automatically and scores every listing 0–100.",
     images: ["/api/og"],
   },
 };

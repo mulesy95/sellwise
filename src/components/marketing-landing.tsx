@@ -106,7 +106,7 @@ export function MarketingLanding({ currency = "USD" }: { currency?: "USD" | "AUD
               to be found.
             </h1>
             <p className="text-sm md:text-base text-muted-foreground mb-5 max-w-[360px] mx-auto md:mx-0 leading-relaxed">
-              Most seller listings don&apos;t rank — not because the products are bad, but because the copy doesn&apos;t follow each platform&apos;s algorithm. Describe your product and we&apos;ll fix that in 30 seconds.
+              SellWise knows each marketplace&apos;s SEO rules — character limits, tag counts, keyword placement. Describe your product and get a platform-ready listing in 30 seconds, with a score to prove it.
             </p>
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-1.5 mb-6">
               {PLATFORMS.map((platform) => (

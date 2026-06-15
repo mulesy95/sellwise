@@ -11,9 +11,15 @@ AI-powered SEO and listing optimiser for online sellers. Generates optimised tit
 ---
 
 ## Vision
-SellWise is the AI co-pilot for online sellers — wherever they sell. Platform-agnostic positioning, execution prioritised by API accessibility and market size.
+SellWise is the AI listing writer that knows your marketplace. Platform-agnostic execution, prioritised by API accessibility and market size.
 
-**Tagline**: *Sell smarter on every platform.*
+**Tagline**: *AI that knows your marketplace.*
+
+**Positioning statement**: For Shopify and eBay sellers who waste hours writing listings that don't rank, SellWise is the AI listing writer that knows each platform's SEO rules — character limits, tag counts, keyword placement — and applies them automatically. Every listing it writes is ready to rank, not just readable.
+
+**Mechanism statement**: Enter your product details. SellWise applies your marketplace's SEO rules and writes a listing in 30 seconds. Get a score 0–100 so you know it's working.
+
+**Competitive frame**: vs ChatGPT (doesn't know platform rules) + vs Erank/Marmalead/Helium 10 (locked to one platform, no AI copy). SellWise is the only tool that combines AI copy generation with platform-specific rule enforcement across all four major marketplaces.
 
 ---
 
