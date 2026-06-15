@@ -298,6 +298,145 @@ export function MarketingLanding({ currency = "USD" }: { currency?: "USD" | "AUD
         </div>
       </div>
 
+      {/* PLATFORM SPOTLIGHTS */}
+      <section className="border-t border-border px-5 md:px-10 py-12">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-10">
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-2">Built for your platform</p>
+            <h2 className="text-lg md:text-xl font-bold text-foreground">
+              Shopify and eBay, done properly.
+            </h2>
+            <p className="mt-1 text-xs text-muted-foreground max-w-md mx-auto">
+              Generic AI doesn&apos;t know the difference between a Shopify meta field and an eBay item specific. SellWise does.
+            </p>
+          </div>
+
+          {/* Shopify */}
+          <div className="grid md:grid-cols-2 gap-10 items-center mb-16">
+            <div>
+              <span className="inline-block rounded-full border border-border bg-muted px-2.5 py-0.5 text-[11px] font-semibold text-muted-foreground mb-3">Shopify</span>
+              <h3 className="text-base md:text-lg font-bold text-foreground mb-4 leading-snug">
+                Your SEO meta fields are the difference between ranking on Google and not.
+              </h3>
+              <ul className="space-y-3 mb-5">
+                {[
+                  "SellWise writes a meta title under 60 characters and meta description under 160 — the fields Google reads when ranking your product page.",
+                  "Connect your store and push optimised content live from your dashboard — titles, descriptions, and SEO meta fields in one click, no copy-paste.",
+                  "Every product gets an SEO score out of 100. See exactly what changed and revert to the previous version any time.",
+                ].map((item) => (
+                  <li key={item} className="flex items-start gap-2.5 text-xs text-muted-foreground leading-relaxed">
+                    <span className="mt-0.5 shrink-0 text-primary font-bold">✓</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/check"
+                className="text-xs font-semibold text-primary hover:opacity-80 transition-opacity"
+              >
+                Check your Shopify listing score free — no account needed →
+              </Link>
+            </div>
+            <div className="bg-card rounded-xl p-5 border border-border text-left">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-muted-foreground">Optimised output</span>
+                  <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">Shopify</span>
+                </div>
+                <span className="text-[13px] font-bold text-emerald-600 dark:text-emerald-400">91 / 100</span>
+              </div>
+              <div className="space-y-3.5">
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Meta title</p>
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">58 / 60 ✓</span>
+                  </div>
+                  <p className="text-xs text-foreground leading-relaxed">Soy Candle Gift Set — 3×50hr, Hand-Poured | Slow &amp; Glow</p>
+                </div>
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Meta description</p>
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">138 / 160 ✓</span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">Three hand-poured soy candles, 50-hour burn each. Cedarwood, coastal citrus and sea salt — packaged gift-ready. Free AU shipping over $75.</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Product title</p>
+                  <p className="text-xs text-foreground leading-relaxed">Soy Candle Gift Set | 3 × 250g | Hand-Poured</p>
+                </div>
+                <div className="rounded-md border border-primary/20 bg-primary/5 px-3 py-2">
+                  <p className="text-[11px] text-primary font-medium">Pushed live to store in 1 click — no copy-paste needed</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* eBay */}
+          <div className="grid md:grid-cols-2 gap-10 items-center">
+            <div className="order-2 md:order-1 bg-card rounded-xl p-5 border border-border text-left">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-muted-foreground">Optimised output</span>
+                  <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">eBay</span>
+                </div>
+                <span className="text-[13px] font-bold text-emerald-600 dark:text-emerald-400">88 / 100</span>
+              </div>
+              <div className="space-y-3.5">
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Title</p>
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">74 / 80 ✓</span>
+                  </div>
+                  <p className="text-xs text-foreground font-medium leading-relaxed">Handmade Lavender Soy Candle 250g | 45hr Burn | Natural Wax | Gift for Her</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-2">Item specifics</p>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {[
+                      ["Type", "Scented Candle"],
+                      ["Scent", "Lavender"],
+                      ["Material", "Soy Wax"],
+                      ["Net Weight", "250g"],
+                      ["Features", "Hand-Poured"],
+                      ["Occasion", "Birthday, Mother's Day"],
+                    ].map(([k, v]) => (
+                      <div key={k} className="rounded border border-border/50 bg-muted/30 px-2 py-1">
+                        <p className="text-[9px] text-muted-foreground/70 uppercase tracking-wide">{k}</p>
+                        <p className="text-[11px] text-foreground leading-tight">{v}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="rounded-md border border-primary/20 bg-primary/5 px-3 py-2">
+                  <p className="text-[11px] text-primary font-medium">Item specifics generated automatically — no manual entry needed</p>
+                </div>
+              </div>
+            </div>
+            <div className="order-1 md:order-2">
+              <span className="inline-block rounded-full border border-border bg-muted px-2.5 py-0.5 text-[11px] font-semibold text-muted-foreground mb-3">eBay</span>
+              <h3 className="text-base md:text-lg font-bold text-foreground mb-4 leading-snug">
+                Every other AI tool guesses at eBay. SellWise knows how Cassini ranks.
+              </h3>
+              <ul className="space-y-3 mb-5">
+                {[
+                  "eBay's Cassini algorithm rewards keyword-front-loaded titles under 80 characters — and penalises padding. Generic AI doesn't know this. SellWise does.",
+                  "Item specifics — the key-value fields that unlock category filter visibility — generated automatically for every listing.",
+                  "Connect your eBay store and push updated titles and descriptions live, or revert to the previous version in one click.",
+                ].map((item) => (
+                  <li key={item} className="flex items-start gap-2.5 text-xs text-muted-foreground leading-relaxed">
+                    <span className="mt-0.5 shrink-0 text-primary font-bold">✓</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/signup" className="text-xs font-semibold text-primary hover:opacity-80 transition-opacity">
+                Start 7-day free trial — no card needed →
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* FEATURES */}
       <section id="features" className="border-t border-border px-5 md:px-10 py-12">
         <div className="max-w-6xl mx-auto">
