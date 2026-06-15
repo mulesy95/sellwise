@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Upload,
   Download,
@@ -179,7 +179,7 @@ function downloadCSV(rows: ResultRow[], platform: Platform) {
 
 export function BulkClient({ plan }: { plan: string }) {
   const canAccess = plan === "growth" || plan === "studio";
-  const [platform, setPlatform] = useState<Platform>(() => (sessionStorage.getItem("sw_active_platform") as Platform) ?? "shopify");
+  const [platform, setPlatform] = useState<Platform>("shopify");
   const [rows, setRows] = useState<CsvRow[]>([]);
   const [results, setResults] = useState<ResultRow[]>([]);
   const [running, setRunning] = useState(false);
@@ -188,6 +188,17 @@ export function BulkClient({ plan }: { plan: string }) {
   const [dragOver, setDragOver] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("sw_active_platform") as Platform | null;
+    if (saved && PLATFORMS.some((p) => p.value === saved)) setPlatform(saved);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function handlePlatformChange(p: Platform) {
+    setPlatform(p);
+    localStorage.setItem("sw_active_platform", p);
+  }
 
   const processFile = useCallback((file: File) => {
     if (!file.name.endsWith(".csv")) {
@@ -345,7 +356,7 @@ export function BulkClient({ plan }: { plan: string }) {
           {PLATFORMS.map((p) => (
             <button
               key={p.value}
-              onClick={() => setPlatform(p.value)}
+              onClick={() => handlePlatformChange(p.value)}
               disabled={running}
               className={cn(
                 "rounded-md px-3 py-1 text-sm font-medium transition-colors",

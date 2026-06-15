@@ -2065,7 +2065,7 @@ export function ShopDashboard({
 
   useEffect(() => {
     const shop = shops.find((s) => s.id === activeShopId);
-    if (shop) sessionStorage.setItem("sw_active_platform", shop.platform);
+    if (shop) localStorage.setItem("sw_active_platform", shop.platform);
   }, [activeShopId, shops]);
 
   function handleSelectShop(id: string) {

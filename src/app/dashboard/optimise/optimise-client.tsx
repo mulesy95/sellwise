@@ -485,10 +485,10 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
   const loadingStep = useLoadingStep(loading, platform);
   const canUploadImage = plan !== "free";
 
-  // Read sessionStorage on mount to sync platform (must be in useEffect — not render body — to avoid SSR crash)
+  // Read localStorage on mount to sync platform (must be in useEffect — not render body — to avoid SSR crash)
   useEffect(() => {
     if (!searchParams.get("platform")) {
-      const saved = sessionStorage.getItem("sw_active_platform") as Platform | null;
+      const saved = localStorage.getItem("sw_active_platform") as Platform | null;
       if (saved && PLATFORMS.includes(saved)) setPlatform(saved);
     }
     // Also check for prefill written by audit "Optimise this listing" (FIX 4)
@@ -594,6 +594,7 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
 
   function handlePlatformChange(p: Platform) {
     setPlatform(p);
+    localStorage.setItem("sw_active_platform", p);
     setResult(null);
     setKeywordsValue("");
     setShowListPicker(false);

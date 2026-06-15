@@ -150,7 +150,7 @@ interface MigrateResult {
 }
 
 export function MigrateClient({ preferredPlatforms }: { preferredPlatforms: Platform[] }) {
-  const [source, setSource] = useState<Platform>(() => (sessionStorage.getItem("sw_active_platform") as Platform) ?? "shopify");
+  const [source, setSource] = useState<Platform>("shopify");
   const [target, setTarget] = useState<Platform>("ebay");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<MigrateResult | null>(null);
@@ -163,6 +163,13 @@ export function MigrateClient({ preferredPlatforms }: { preferredPlatforms: Plat
     showAllPlatforms || preferredPlatforms.length === 0
       ? PLATFORMS
       : preferredPlatforms;
+
+  // Read localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("sw_active_platform") as Platform | null;
+    if (saved && PLATFORMS.includes(saved)) setSource(saved);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Reset source platform if current selection is hidden
   useEffect(() => {
@@ -180,6 +187,7 @@ export function MigrateClient({ preferredPlatforms }: { preferredPlatforms: Plat
 
   function handleSourceChange(p: Platform) {
     setSource(p);
+    localStorage.setItem("sw_active_platform", p);
     if (p === target) {
       // Pick any other platform as target
       const others = (["etsy", "amazon", "shopify", "ebay", "woocommerce", "wix", "squarespace", "tiktok", "social"] as Platform[]).filter((x) => x !== p);

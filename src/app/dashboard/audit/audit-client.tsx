@@ -324,8 +324,8 @@ export function AuditClient({ plan, preferredPlatforms }: { plan: Plan; preferre
   }, [showAllPlatforms]);
 
   useEffect(() => {
-    // Read active platform from sessionStorage on mount (must be here to avoid SSR crash)
-    const savedPlatform = sessionStorage.getItem("sw_active_platform") as Platform | null;
+    // Read active platform from localStorage on mount (must be here to avoid SSR crash)
+    const savedPlatform = localStorage.getItem("sw_active_platform") as Platform | null;
     if (savedPlatform && PLATFORMS.includes(savedPlatform)) setPlatform(savedPlatform);
 
     const raw = sessionStorage.getItem("audit:prefill");
@@ -391,6 +391,7 @@ export function AuditClient({ plan, preferredPlatforms }: { plan: Plan; preferre
 
   function handlePlatformChange(p: Platform) {
     setPlatform(p);
+    localStorage.setItem("sw_active_platform", p);
     setResult(null);
   }
 

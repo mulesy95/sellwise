@@ -156,9 +156,9 @@ export function KeywordsClient({ preferredPlatforms }: { preferredPlatforms: Pla
       ? PLATFORMS
       : preferredPlatforms;
 
-  // Read sessionStorage on mount (must be in useEffect — not in useState — to avoid SSR crash)
+  // Read localStorage on mount (must be in useEffect — not in useState — to avoid SSR crash)
   useEffect(() => {
-    const saved = sessionStorage.getItem("sw_active_platform") as Platform | null;
+    const saved = localStorage.getItem("sw_active_platform") as Platform | null;
     if (saved && PLATFORMS.includes(saved)) setPlatform(saved);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -196,6 +196,7 @@ export function KeywordsClient({ preferredPlatforms }: { preferredPlatforms: Pla
 
   function handlePlatformChange(p: Platform) {
     setPlatform(p);
+    localStorage.setItem("sw_active_platform", p);
     setKeywords([]);
     setShowSaveInput(false);
     setSaveListName("");
