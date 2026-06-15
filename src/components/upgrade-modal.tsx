@@ -98,7 +98,7 @@ export function UpgradeModal({
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
               {isLimit
-                ? "You're ready for the next level. Here's what opens up:"
+                ? "Don't lose momentum — here's what keeps working when you upgrade:"
                 : "All paid plans include a 7-day free trial. No card required to start."}
             </p>
           </div>

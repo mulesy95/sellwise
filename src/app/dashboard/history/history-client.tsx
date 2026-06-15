@@ -603,9 +603,9 @@ export function HistoryClient() {
               <GhostHistoryRow />
               <GhostHistoryRow />
               <div className="rounded-lg border border-border/50 bg-muted/20 p-4 text-center space-y-2">
-                <p className="text-sm font-medium">Upgrade to keep your full optimisation history</p>
+                <p className="text-sm font-medium">You&apos;re losing history — upgrade to keep all your results.</p>
                 <p className="text-xs text-muted-foreground">
-                  Free plan keeps 1 result. Paid plans keep everything.
+                  Free plan keeps 1 result. Paid plans keep everything — including every before and after.
                 </p>
                 <a
                   href="/pricing"

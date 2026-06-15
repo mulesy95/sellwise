@@ -19,7 +19,7 @@ export function TrialBanner({ trialEndsAt }: { trialEndsAt: string }) {
           <span className="font-medium">
             {daysLeft === 0 ? "Your free trial ends today." : `${daysLeft} day${daysLeft === 1 ? "" : "s"} left in your free trial.`}
           </span>{" "}
-          <span className="text-muted-foreground">Upgrade to keep unlimited access.</span>
+          <span className="text-muted-foreground">When it ends, your connected stores and keyword lists pause.</span>
         </span>
       </div>
       <Link

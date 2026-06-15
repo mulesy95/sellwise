@@ -733,8 +733,8 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
           return;
         }
         const code = err.error ?? "";
-        if (code === "LIMIT_EXCEEDED") throw new Error("You've used all your optimisations this month. Upgrade to keep going.");
-        if (code === "FEATURE_GATED") throw new Error("This feature is available on paid plans. Upgrade to unlock it.");
+        if (code === "LIMIT_EXCEEDED") throw new Error("You've used all your optimisations this month. Don't let your listings fall behind — upgrade to keep going.");
+        if (code === "FEATURE_GATED") throw new Error("This feature is on paid plans. Start a 7-day trial — no card needed.");
         if (code === "AI_UNAVAILABLE") throw new Error("Our AI is temporarily unavailable. Please try again in a moment.");
         throw new Error(code || "Something went wrong. Please try again — if it keeps happening, check our status page.");
       }

@@ -431,7 +431,7 @@ export function AuditClient({ plan, preferredPlatforms }: { plan: Plan; preferre
         const err = await res.json();
         if (res.status === 402) { setUpgradeOpen(true); return; }
         const code = err.error ?? "";
-        if (code === "FEATURE_GATED") throw new Error("Listing audit is available on paid plans. Upgrade to unlock it.");
+        if (code === "FEATURE_GATED") throw new Error("Listing audit is on paid plans. Start a 7-day trial — no card needed.");
         if (code === "AI_UNAVAILABLE") throw new Error("Our AI is temporarily unavailable. Please try again in a moment.");
         throw new Error(code || "Something went wrong. Please try again — if it keeps happening, check our status page.");
       }

@@ -290,7 +290,7 @@ export function KeywordsClient({ preferredPlatforms }: { preferredPlatforms: Pla
           return;
         }
         const code = err.error ?? "";
-        if (code === "FEATURE_GATED") throw new Error("Keyword research is available on paid plans. Upgrade to unlock it.");
+        if (code === "FEATURE_GATED") throw new Error("Keyword research is on paid plans. Start a 7-day trial — no card needed.");
         if (code === "AI_UNAVAILABLE") throw new Error("Our AI is temporarily unavailable. Please try again in a moment.");
         throw new Error(code || "Something went wrong. Please try again — if it keeps happening, check our status page.");
       }
