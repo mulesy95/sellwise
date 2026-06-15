@@ -36,6 +36,7 @@ interface FieldConfig {
   type: "input" | "textarea";
   placeholder: string;
   hint?: string;
+  maxChars?: number;
 }
 
 const FORM_CONFIGS: Record<Platform, FieldConfig[]> = {
@@ -46,6 +47,7 @@ const FORM_CONFIGS: Record<Platform, FieldConfig[]> = {
       type: "input",
       placeholder: "Your current Etsy title",
       hint: "Max 140 chars — paste your full title including commas and keywords",
+      maxChars: 140,
     },
     {
       name: "tags",
@@ -69,6 +71,7 @@ const FORM_CONFIGS: Record<Platform, FieldConfig[]> = {
       type: "input",
       placeholder: "Your Amazon product title",
       hint: "Max 200 chars — paste exactly as it appears in Seller Central",
+      maxChars: 200,
     },
     {
       name: "bullets",
@@ -83,6 +86,7 @@ const FORM_CONFIGS: Record<Platform, FieldConfig[]> = {
       type: "input",
       placeholder: "Space-separated backend search terms",
       hint: "Paste the space-separated terms from your Seller Central backend — max 250 bytes",
+      maxChars: 250,
     },
     {
       name: "description",
@@ -99,6 +103,7 @@ const FORM_CONFIGS: Record<Platform, FieldConfig[]> = {
       type: "input",
       placeholder: "Your page meta title (max 60 chars)",
       hint: "Found in your Shopify product SEO section — max 60 chars for Google display",
+      maxChars: 60,
     },
     {
       name: "metaDescription",
@@ -106,6 +111,7 @@ const FORM_CONFIGS: Record<Platform, FieldConfig[]> = {
       type: "input",
       placeholder: "Your meta description (max 160 chars)",
       hint: "Found in your Shopify product SEO section — max 160 chars",
+      maxChars: 160,
     },
     {
       name: "productCopy",
@@ -122,6 +128,7 @@ const FORM_CONFIGS: Record<Platform, FieldConfig[]> = {
       type: "input",
       placeholder: "Your eBay listing title (max 80 chars)",
       hint: "Max 80 chars — paste exactly as it appears on your eBay listing",
+      maxChars: 80,
     },
     {
       name: "description",
@@ -138,6 +145,7 @@ const FORM_CONFIGS: Record<Platform, FieldConfig[]> = {
       type: "input",
       placeholder: "Your Yoast/Rank Math SEO title (max 60 chars)",
       hint: "Found in the Yoast or Rank Math SEO panel below your product — max 60 chars",
+      maxChars: 60,
     },
     {
       name: "metaDescription",
@@ -145,6 +153,7 @@ const FORM_CONFIGS: Record<Platform, FieldConfig[]> = {
       type: "input",
       placeholder: "Your meta description (max 160 chars)",
       hint: "Found in the Yoast or Rank Math SEO panel — max 160 chars",
+      maxChars: 160,
     },
     {
       name: "productCopy",
@@ -161,6 +170,7 @@ const FORM_CONFIGS: Record<Platform, FieldConfig[]> = {
       type: "input",
       placeholder: "Your Wix SEO title (max 60 chars)",
       hint: "Found in your Wix product SEO settings — max 60 chars",
+      maxChars: 60,
     },
     {
       name: "metaDescription",
@@ -168,6 +178,7 @@ const FORM_CONFIGS: Record<Platform, FieldConfig[]> = {
       type: "input",
       placeholder: "Your meta description (max 160 chars)",
       hint: "Found in your Wix product SEO settings — max 160 chars",
+      maxChars: 160,
     },
     {
       name: "productCopy",
@@ -184,6 +195,7 @@ const FORM_CONFIGS: Record<Platform, FieldConfig[]> = {
       type: "input",
       placeholder: "Your Squarespace SEO title (max 60 chars)",
       hint: "Found in your Squarespace product SEO tab — max 60 chars",
+      maxChars: 60,
     },
     {
       name: "metaDescription",
@@ -191,6 +203,7 @@ const FORM_CONFIGS: Record<Platform, FieldConfig[]> = {
       type: "input",
       placeholder: "Your meta description (max 160 chars)",
       hint: "Found in your Squarespace product SEO tab — max 160 chars",
+      maxChars: 160,
     },
     {
       name: "productCopy",
@@ -207,6 +220,7 @@ const FORM_CONFIGS: Record<Platform, FieldConfig[]> = {
       type: "input",
       placeholder: "Your TikTok Shop product title (max 100 chars)",
       hint: "Max 100 chars — paste exactly as it appears in your TikTok Shop seller centre",
+      maxChars: 100,
     },
     {
       name: "description",
@@ -223,6 +237,7 @@ const FORM_CONFIGS: Record<Platform, FieldConfig[]> = {
       type: "input",
       placeholder: "Your post caption / hook (max 125 chars)",
       hint: "Paste the first line of your caption — the hook before the 'more' cutoff",
+      maxChars: 125,
     },
     {
       name: "tags",
@@ -293,6 +308,7 @@ export function AuditClient({ plan, preferredPlatforms }: { plan: Plan; preferre
   const [prefillValues, setPrefillValues] = useState<Record<string, string>>({});
   const [formKey, setFormKey] = useState(0);
   const [showAllPlatforms, setShowAllPlatforms] = useState(false);
+  const [charCounts, setCharCounts] = useState<Record<string, number>>({});
 
   const visiblePlatforms: Platform[] =
     showAllPlatforms || preferredPlatforms.length === 0
@@ -356,6 +372,22 @@ export function AuditClient({ plan, preferredPlatforms }: { plan: Plan; preferre
       // ignore bad prefill data
     }
   }, []);
+
+  useEffect(() => {
+    setCharCounts({});
+  }, [platform]);
+
+  useEffect(() => {
+    if (!Object.keys(prefillValues).length) return;
+    const initial: Record<string, number> = {};
+    for (const field of FORM_CONFIGS[platform]) {
+      if (field.maxChars && prefillValues[field.name]) {
+        initial[field.name] = prefillValues[field.name].length;
+      }
+    }
+    setCharCounts(initial);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formKey]);
 
   function handlePlatformChange(p: Platform) {
     setPlatform(p);
@@ -625,7 +657,28 @@ export function AuditClient({ plan, preferredPlatforms }: { plan: Plan; preferre
                           defaultValue={prefillValues[field.name] ?? ""}
                         />
                       ) : (
-                        <Input id={field.name} name={field.name} placeholder={field.placeholder} defaultValue={prefillValues[field.name] ?? ""} />
+                        <Input
+                          id={field.name}
+                          name={field.name}
+                          placeholder={field.placeholder}
+                          defaultValue={prefillValues[field.name] ?? ""}
+                          onChange={field.maxChars ? (e) => setCharCounts((v) => ({ ...v, [field.name]: e.target.value.length })) : undefined}
+                        />
+                      )}
+                      {field.maxChars !== undefined && (
+                        <div className="flex items-center justify-between">
+                          <span className={cn(
+                            "text-[11px] tabular-nums",
+                            (charCounts[field.name] ?? 0) > field.maxChars ? "text-destructive" : "text-muted-foreground"
+                          )}>
+                            {charCounts[field.name] ?? 0} / {field.maxChars}
+                          </span>
+                          {(charCounts[field.name] ?? 0) > field.maxChars ? (
+                            <span className="text-[11px] font-medium text-destructive">Over limit</span>
+                          ) : (charCounts[field.name] ?? 0) > 0 ? (
+                            <span className="text-[11px] text-emerald-600 dark:text-emerald-400">✓</span>
+                          ) : null}
+                        </div>
                       )}
                       {field.hint && (
                         <p className="text-[11px] text-muted-foreground">{field.hint}</p>

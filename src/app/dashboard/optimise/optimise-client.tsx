@@ -80,7 +80,7 @@ function getResultTabs(result: OptimisedListing): TabConfig[] {
       return [
         { id: "title", label: "Title", fieldKey: "title", content: result.title ?? "", maxChars: 200 },
         { id: "bullets", label: "Bullets", fieldKey: "bullets", content: result.bullets ?? [], isBullets: true },
-        { id: "backend", label: "Backend Keys", fieldKey: "backendKeywords", content: result.backendKeywords ?? "" },
+        { id: "backend", label: "Backend Keys", fieldKey: "backendKeywords", content: result.backendKeywords ?? "", maxChars: 250 },
         { id: "description", label: "Description", fieldKey: "description", content: result.description ?? "" },
       ];
     case "shopify":
