@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Copy, Check, Gift } from "lucide-react";
+import { Copy, Check, Gift, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -13,13 +13,22 @@ interface Props {
 }
 
 export function ReferralCard({ link, total, rewarded }: Props) {
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<"link" | "message" | null>(null);
 
-  async function copy() {
+  const draftMessage = `I've been using SellWise to optimise my listings — it takes about 30 seconds and gives you a score out of 100. My referral link gives you 7 days free, no card needed: ${link}`;
+
+  async function copyLink() {
     await navigator.clipboard.writeText(link);
-    setCopied(true);
-    toast.success("Referral link copied.");
-    setTimeout(() => setCopied(false), 2000);
+    setCopied("link");
+    toast.success("Referral link copied");
+    setTimeout(() => setCopied(null), 2000);
+  }
+
+  async function copyMessage() {
+    await navigator.clipboard.writeText(draftMessage);
+    setCopied("message");
+    toast.success("Message copied — paste anywhere");
+    setTimeout(() => setCopied(null), 2000);
   }
 
   return (
@@ -27,10 +36,10 @@ export function ReferralCard({ link, total, rewarded }: Props) {
       <CardHeader>
         <div className="flex items-center gap-2">
           <Gift className="size-4 text-primary" />
-          <CardTitle className="text-base">Invite a friend, earn a week free</CardTitle>
+          <CardTitle className="text-base">Give a friend 7 days free</CardTitle>
         </div>
         <CardDescription className="text-xs">
-          Share your link. When a friend signs up and runs their first optimisation, you both get 7 days of Starter access — no card required.
+          Share your link. When they sign up and run their first optimisation, you both get 7 days of Starter access — keyword research, audits, 50 optimisations. No card needed.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -43,12 +52,30 @@ export function ReferralCard({ link, total, rewarded }: Props) {
             type="button"
             variant="ghost"
             size="icon-sm"
-            onClick={copy}
+            onClick={copyLink}
             aria-label="Copy referral link"
           >
-            {copied ? <Check className="size-3.5 text-emerald-500" /> : <Copy className="size-3.5" />}
+            {copied === "link" ? <Check className="size-3.5 text-emerald-500" /> : <Copy className="size-3.5" />}
           </Button>
         </div>
+
+        {/* Pre-drafted message */}
+        <button
+          type="button"
+          onClick={copyMessage}
+          className="flex w-full items-start gap-2 rounded-lg border border-border/40 bg-muted/20 px-3 py-2.5 text-left transition-colors hover:bg-muted/40"
+        >
+          <div className="mt-0.5 shrink-0">
+            {copied === "message"
+              ? <Check className="size-3.5 text-emerald-500" />
+              : <MessageSquare className="size-3.5 text-muted-foreground" />
+            }
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-medium mb-0.5">Copy message to share</p>
+            <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed">{draftMessage}</p>
+          </div>
+        </button>
 
         {/* Stats */}
         <div className="grid grid-cols-2 gap-3">
@@ -67,7 +94,7 @@ export function ReferralCard({ link, total, rewarded }: Props) {
         </div>
 
         <p className="text-xs text-muted-foreground/70">
-          Rewards stack — refer 3 friends and get 3 extra weeks.
+          Rewards stack — refer 3 friends and earn 3 extra weeks.
         </p>
       </CardContent>
     </Card>

@@ -1,4 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendEmail } from "@/lib/email";
+import { referralRewardEmail } from "@/lib/emails/referral-reward";
 
 const ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 
@@ -119,6 +121,19 @@ export async function rewardReferral(refereeId: string): Promise<void> {
       .update({ status: "rewarded", rewarded_at: new Date().toISOString() })
       .eq("id", referral.id),
   ]);
+
+  // Notify the referrer
+  const { data: referrer } = await admin
+    .from("profiles")
+    .select("email, full_name")
+    .eq("id", referral.referrer_id)
+    .single();
+
+  if (referrer?.email) {
+    const firstName = (referrer.full_name as string | null)?.split(" ")[0] ?? null;
+    const { subject, html } = referralRewardEmail(firstName, referrer.email);
+    void sendEmail({ to: referrer.email, subject, html });
+  }
 }
 
 /** Returns referral stats for a user. */
