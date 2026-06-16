@@ -31,8 +31,10 @@ const requestSchema = z.object({
 
 const WRITING_RULES = `Writing rules:
 - NEVER invent product details that were not provided. Only use details from the seller's input or visually confirmed in the product image (if one was supplied). No made-up dimensions, colours, materials, features, or condition claims.
+- NEVER draw on your training knowledge to fill in product specifications — even if you recognise the brand or model name. The seller may be listing a used, modified, or incomplete unit. Only describe what they told you.
 - NEVER invent lifestyle or aesthetic claims — do not say a product "looks great on a wall", "makes a statement", "starts a conversation", or any other made-up social/lifestyle context that wasn't in the input.
-- NEVER make editorial verdicts or value judgements — do not say a product "earns a second look", "rewards a close look", "delivers in full", "is worth buying", "worth picking over", or any other claim that tells the buyer what to think. Every sentence must describe the product, not evaluate it.
+- NEVER invent emotional backstory for recipients — do not write things like "a mum who never buys anything nice for herself" or "the friend who has everything" unless the seller stated this. Stick to what the seller provided.
+- NEVER make editorial verdicts or value judgements — do not say a product "earns a second look", "rewards a close look", "delivers in full", "is worth buying", "worth picking over", "the most giftable", or any other claim that tells the buyer what to think. Every sentence must describe the product, not evaluate it.
 - NEVER infer product quantities, set sizes, or bundle compositions from an image — if the photo shows two boards, do not write "two boards" or imply it is a set. Describe the product individually as listed.
 - NEVER infer product specs from visual cues in an image — do not describe binding insert patterns, stance width, mount setup, board shape, nose or tail geometry, directional vs twin, flex, material composition, size, or weight from what the image shows. This applies even if the feature is visible — "visible in the image" is not an exception. Only describe specs the seller explicitly stated in their input.
 - Do not mention binding inserts or mount holes at all unless the seller described them in the input.
@@ -45,7 +47,7 @@ const WRITING_RULES = `Writing rules:
 - Address the buyer directly as "you" throughout — not "customers", "shoppers", or "buyers"
 - Use active voice — "Burns for 45 hours" not "A burn time of 45 hours is provided"
 - Never open any description with "This is...", "Introducing...", "Meet...", "Looking for...", or "Are you..."
-- No buzzwords or their adverb/adjective forms: unique, stunning, beautiful, beautifully, perfect, perfectly, seamlessly, elevate, elevating, enhance, enhancing, exceptional, premium, top-notch`;
+- No buzzwords or their adverb/adjective forms — these words are banned in every context, including descriptive phrases like "unique to how you use it": unique, stunning, beautiful, beautifully, perfect, perfectly, seamlessly, elevate, elevating, enhance, enhancing, exceptional, premium, top-notch. If you want to express that something changes or develops with use, describe the specific change: "the leather softens with daily carry", "develops a richer colour over time", "shapes to your hand over months of use" — never "unique to you"`;
 
 function buildSystemPrompt(platform: Platform): string {
   switch (platform) {
@@ -62,7 +64,7 @@ The description must:
 Return ONLY a valid JSON object:
 {
   "title": "max 140 chars, keyword-front-loaded, reads as a natural phrase — use connective words (for, with, and), never comma-separate keywords. Example: \\"Handmade Ceramic Coffee Mug for Coffee Lovers, Hand Thrown Stoneware Cup with Minimalist Design\\"",
-  "tags": ["exactly 13 tags", "HARD LIMIT: every tag must be 20 characters or fewer — count every letter and space before writing each tag, do not exceed 20", "mix of short and long-tail buyer search phrases", "no repeated words across tags"],
+  "tags": ["exactly 13 tags", "HARD CHARACTER LIMIT: every tag must be 20 characters or fewer including spaces — examples of borderline counts: 'lavender soy candle' = 19 chars (ok), 'birthday gift women' = 19 chars (ok), 'lavender essential' = 18 chars (ok), 'lavender essential oil' = 22 chars (REJECTED — cut to 'essential oil candle' = 20 chars). Count characters explicitly before writing each tag.", "INTENT DIVERSITY: each tag must target a genuinely different buyer search — cover product type (2-3 tags max), occasion/recipient (3-4 tags), style/aesthetic (2-3 tags), material/technique (1-2 tags), use case (1-2 tags). Do not write 4 different variations of 'birthday gift' or 5 tags all containing the same product word — spread across different buyer intents instead"],
   "description": "150–250 words, occasion-first opening using the seller's stated buyer or occasion, product details woven in, warm call to action"
 }
 
@@ -76,7 +78,7 @@ Return ONLY a valid JSON object:
 {
   "title": "max 200 chars — lead with brand or product type, include primary keyword, colour/size if relevant",
   "bullets": ["exactly 5 bullet points", "each max 255 chars", "start each with a 2–3 word benefit in CAPS then a colon, e.g. STAYS HOT LONGER: ...", "keyword-rich but reads naturally"],
-  "backendKeywords": "space-separated keywords, max 250 bytes total, no words already in title or bullets, purchase-intent terms only",
+  "backendKeywords": "space-separated keywords, max 250 bytes total, no words already in title or bullets, purchase-intent terms only — only include terms that accurately describe this product as stated by the seller, do not add synonyms that imply a different specification (e.g. do not list 'genuine leather' for a 'full grain leather' product — these are different grades)",
   "description": "150–250 words, expands on bullet points, HTML line breaks allowed, focus on use cases and who this is for"
 }
 
@@ -111,7 +113,8 @@ The description must:
 - Use short lines — eBay descriptions are scanned, not read
 - State condition clearly and honestly (New, Like New, Used, Good Condition, etc.) — only use condition details that were actually provided, do not invent claims about colour, brightness, fade, or wear that were not stated
 - Do NOT include return policy or postage details — eBay displays these separately from structured listing fields
-- If the seller has provided limited details, write a short honest description of what is known. Do NOT pad with obvious facts, circular statements that restate the product name (e.g. "The PlayStation 5 is Sony's PlayStation 5 console"), or inferred compatibility claims that were not stated by the seller. A tight 100-word description is better than 200 words of filler.
+- CRITICAL: Base the description ONLY on details the seller explicitly provided in their input. If the seller gave only a product name and nothing else, write only the product name, note that full details are in the photos, and ask buyers to message with questions. Do NOT add any specifications, features, or technical details from your training data — even if you are certain they are accurate for that product model. A 40-word honest description beats a 200-word description full of specs that may be wrong for this specific used or modified unit.
+- Do NOT pad with obvious facts, circular statements that restate the product name (e.g. "The PlayStation 5 is Sony's PlayStation 5 console"), or inferred compatibility claims that were not stated by the seller.
 
 Return ONLY a valid JSON object:
 {
@@ -211,6 +214,28 @@ Return ONLY a valid JSON object:
 ${WRITING_RULES}
 Return only the JSON object, no markdown.`;
   }
+}
+
+function buildEbayMinimalSystemPrompt(): string {
+  return `You are an eBay listing specialist. The seller has provided only the product name — no condition, no description, no features, no additional details.
+
+Your job is to write a short, honest placeholder listing that does not misrepresent the item.
+
+ABSOLUTE RULES:
+- Do NOT add any specifications, features, technical details, battery life, connectivity, dimensions, accessories, or any other facts — even if you believe they are accurate for this product model. You do not know the condition, completeness, or configuration of this specific unit.
+- Do NOT describe colour, weight, size, or any physical attribute not stated by the seller.
+- Keep the description to 3 sentences maximum.
+- The title must use the exact product name as given, with no added words beyond what helps eBay search.
+- NEVER use em dashes (—), en dashes (–), or ellipses (…). Use plain full stops and commas only.
+
+Return ONLY a valid JSON object:
+{
+  "title": "max 80 chars — the product name as given, no invented additions",
+  "description": "3 sentences max: (1) state the product name, (2) note that full condition and details are shown in the photos, (3) invite buyers to message with questions before purchasing",
+  "itemSpecifics": {}
+}
+
+Return only the JSON object, no markdown.`;
 }
 
 function improveModeSuffix(): string {
@@ -336,6 +361,24 @@ export async function POST(request: NextRequest) {
     ? `\n\nSeller brand voice: ${brandVoice}\nWrite all copy in this voice. Keep platform SEO rules above, but let this tone shape word choice, sentence rhythm, and energy level.`
     : "";
 
+  // eBay with only a product name and no image — use a constrained minimal prompt so the
+  // model cannot draw on training-data specs for recognized products (e.g. Sony WH-1000XM5).
+  const isEbayMinimalInput =
+    platform === "ebay" && !materials && !style && !targetBuyer && !keywords && !hasImage && !existingContent;
+
+  const resolvedSystemPrompt = isEbayMinimalInput
+    ? buildEbayMinimalSystemPrompt()
+    : buildSystemPrompt(platform) + (existingContent ? improveModeSuffix() : "") + brandVoiceSuffix;
+
+  const resolvedUserContent = isEbayMinimalInput
+    ? `Product name: ${productName}\n\nThe seller provided only the product name. Write the minimal placeholder listing exactly as instructed.`
+    : imageSource
+    ? [
+        { type: "image" as const, source: imageSource },
+        { type: "text" as const, text: userTextWithImageContext },
+      ]
+    : userTextWithImageContext;
+
   try {
     const message = await client.messages.create({
       model: "claude-sonnet-4-6",
@@ -343,18 +386,13 @@ export async function POST(request: NextRequest) {
       system: [
         {
           type: "text" as const,
-          text: buildSystemPrompt(platform) + (existingContent ? improveModeSuffix() : "") + brandVoiceSuffix,
+          text: resolvedSystemPrompt,
           cache_control: { type: "ephemeral" as const },
         },
       ],
       messages: [{
         role: "user",
-        content: imageSource
-          ? [
-              { type: "image" as const, source: imageSource },
-              { type: "text" as const, text: userTextWithImageContext },
-            ]
-          : userTextWithImageContext,
+        content: resolvedUserContent,
       }],
     });
 
@@ -373,6 +411,29 @@ export async function POST(request: NextRequest) {
         );
       }
       listing = JSON.parse(match[0]);
+    }
+
+    // Hard character limit guards — prompt instructions alone are not reliable
+    if (typeof listing.metaTitle === "string" && listing.metaTitle.length > 60) {
+      listing.metaTitle = listing.metaTitle.slice(0, 57) + "...";
+    }
+    if (typeof listing.metaDescription === "string" && listing.metaDescription.length > 160) {
+      listing.metaDescription = listing.metaDescription.slice(0, 157) + "...";
+    }
+    if (typeof listing.seoTitle === "string" && listing.seoTitle.length > 60) {
+      listing.seoTitle = listing.seoTitle.slice(0, 57) + "...";
+    }
+    if (typeof listing.seoDescription === "string" && listing.seoDescription.length > 160) {
+      listing.seoDescription = listing.seoDescription.slice(0, 157) + "...";
+    }
+    if (typeof listing.title === "string" && platform === "etsy" && listing.title.length > 140) {
+      listing.title = listing.title.slice(0, 140);
+    }
+    if (typeof listing.title === "string" && platform === "ebay" && listing.title.length > 80) {
+      listing.title = listing.title.slice(0, 80);
+    }
+    if (typeof listing.title === "string" && platform === "amazon" && listing.title.length > 200) {
+      listing.title = listing.title.slice(0, 200);
     }
 
     const savedScore = scoreOptimisedListing({ platform, ...listing } as ScoredListing, { userKeywords: keywords });
