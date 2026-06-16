@@ -60,4 +60,12 @@ export const posts: BlogPost[] = [
     date: "2026-06-16",
     readTime: 7,
   },
+  {
+    slug: "keyword-research-for-marketplace-sellers",
+    title: "Keyword Research for Marketplace Sellers: How to Find the Terms That Drive Sales",
+    description:
+      "Marketplace keyword research is different from Google SEO. Here's how to find the terms buyers actually use — and where to put them.",
+    date: "2026-06-16",
+    readTime: 8,
+  },
 ];
