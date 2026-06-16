@@ -52,4 +52,12 @@ export const posts: BlogPost[] = [
     date: "2026-06-14",
     readTime: 6,
   },
+  {
+    slug: "product-descriptions-that-sell",
+    title: "How to Write Product Descriptions That Actually Sell",
+    description:
+      "Most product descriptions describe the product. The ones that convert describe what it does for the buyer. Here's the difference — and how to write them.",
+    date: "2026-06-16",
+    readTime: 7,
+  },
 ];
