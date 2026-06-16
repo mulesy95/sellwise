@@ -85,6 +85,9 @@ export function MarketingLanding({ currency = "USD" }: { currency?: "USD" | "AUD
             <a href="#pricing" className="hover:text-foreground transition-colors hidden sm:block">
               Pricing
             </a>
+            <Link href="/blog" className="hover:text-foreground transition-colors hidden sm:block">
+              Blog
+            </Link>
             <Link href="/login" className="text-foreground hover:text-foreground/80 transition-colors">
               Sign in
             </Link>
@@ -545,6 +548,7 @@ export function MarketingLanding({ currency = "USD" }: { currency?: "USD" | "AUD
           <span className="text-base font-bold">Sell<span className="text-primary">Wise</span></span>
           <div className="flex flex-wrap justify-center gap-x-5 gap-y-1 text-xs text-muted-foreground">
             <Link href="/pricing" className="hover:text-foreground transition-colors">Pricing</Link>
+            <Link href="/blog" className="hover:text-foreground transition-colors">Blog</Link>
             <Link href="/login" className="hover:text-foreground transition-colors">Sign in</Link>
             <Link href="/status" className="hover:text-foreground transition-colors">Status</Link>
             <Link href="/terms" className="hover:text-foreground transition-colors">Terms</Link>
