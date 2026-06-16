@@ -72,6 +72,9 @@ export function ComingSoon() {
         <a href="/login" className="text-muted-foreground hover:text-foreground transition-colors">
           Already have an account? Sign in
         </a>
+        <a href="/blog" className="text-muted-foreground hover:text-foreground transition-colors">
+          Read our marketplace SEO guides
+        </a>
       </div>
 
       <div className="mt-8 flex gap-5 text-xs text-muted-foreground/40">
