@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { History, ChevronDown, ChevronUp, Copy, Check, ExternalLink, Loader2, Archive, ArchiveRestore, ThumbsUp, ThumbsDown, Lock } from "lucide-react";
+import { History, ChevronDown, ChevronUp, Copy, Check, RefreshCw, Loader2, Archive, ArchiveRestore, ThumbsUp, ThumbsDown, Lock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -238,7 +238,10 @@ function GhostHistoryRow() {
       </div>
       <div className="h-6 w-12 rounded-full bg-muted/60 blur-[2px] shrink-0" />
       <div className="absolute inset-0 flex items-center justify-center bg-background/40">
-        <Lock className="size-4 text-muted-foreground/50" />
+        <a href="/pricing" className="flex items-center gap-1.5 rounded-md bg-background border border-border/60 px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors shadow-sm">
+          <Lock className="size-3" />
+          Upgrade to unlock
+        </a>
       </div>
     </div>
   );
@@ -322,7 +325,7 @@ function OptimisationCard({
                 {SCORE_CONFIG(opt.score).label}
               </Badge>
             )}
-            <span className="text-xs text-muted-foreground hidden sm:block">{formatDate(opt.created_at)}</span>
+            <span className="text-xs text-muted-foreground">{formatDate(opt.created_at)}</span>
             {expanded ? (
               <ChevronUp className="size-4 text-muted-foreground" />
             ) : (
@@ -349,7 +352,7 @@ function OptimisationCard({
                 href={reoptimiseHref}
                 className="flex items-center gap-1.5 text-xs text-primary hover:underline"
               >
-                <ExternalLink className="size-3" />
+                <RefreshCw className="size-3" />
                 {isShopEntry ? "Re-optimise in My Shop" : "Re-optimise"}
               </a>
               <div className="flex items-center gap-1 text-muted-foreground ml-auto">

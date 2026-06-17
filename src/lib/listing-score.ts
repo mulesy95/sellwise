@@ -70,7 +70,7 @@ function bannedWordDeductions(listing: ScoredListing): ScoreDeduction[] {
   if (found.length === 0) return [];
   const points = Math.min(found.length * 8, 24);
   const wordList = found.map((w) => `"${w}"`).join(", ");
-  return [{ label: `Banned word${found.length > 1 ? "s" : ""} used: ${wordList}`, points }];
+  return [{ label: `Banned word${found.length > 1 ? "s" : ""} used: ${wordList} — replace with a specific, factual description`, points }];
 }
 
 function keywordCoverageDeduction(listing: ScoredListing, userKeywords: string): ScoreDeduction[] {
@@ -89,7 +89,7 @@ function keywordCoverageDeduction(listing: ScoredListing, userKeywords: string):
   else if (missingRatio <= 0.75) points = 15;
   else points = 20;
   const missingList = missing.map((m) => `"${m}"`).join(", ");
-  return [{ label: `${missing.length} of ${terms.length} keyword${terms.length > 1 ? "s" : ""} not found in output: ${missingList}`, points }];
+  return [{ label: `${missing.length} of ${terms.length} keyword${terms.length > 1 ? "s" : ""} not found in output — add to your title or description: ${missingList}`, points }];
 }
 
 function etsyTagUniquenessDeduction(tags: string[]): ScoreDeduction[] {
@@ -106,7 +106,7 @@ function etsyTagUniquenessDeduction(tags: string[]): ScoreDeduction[] {
     .map(([w]) => w);
   if (repeated.length === 0) return [];
   const points = Math.min(repeated.length * 5, 15);
-  return [{ label: `${repeated.length} word${repeated.length > 1 ? "s" : ""} repeated across tags: ${repeated.map((w) => `"${w}"`).join(", ")}`, points }];
+  return [{ label: `${repeated.length} word${repeated.length > 1 ? "s" : ""} repeated across tags: ${repeated.map((w) => `"${w}"`).join(", ")} — vary buyer intent across tags for broader reach`, points }];
 }
 
 function titleDescriptionOverlapDeduction(title: string, description: string): ScoreDeduction[] {

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Sparkles, Search, BarChart3, ArrowRight, ArrowLeftRight, Store, Plus } from "lucide-react";
+import { Sparkles, Search, BarChart3, ArrowRight, ArrowLeftRight, Store, Plus, History } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -15,7 +15,17 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getUsageData } from "@/lib/usage";
 import { PLATFORM_LABELS, PLATFORM_PILL, type Platform } from "@/lib/platforms";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+
+function formatRecentDate(iso: string): string {
+  const d = new Date(iso);
+  const diffDays = Math.floor((Date.now() - d.getTime()) / 86400000);
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays} days ago`;
+  return d.toLocaleDateString("en-AU", { day: "numeric", month: "short" });
+}
 
 export const metadata = {
   title: "Dashboard",
@@ -55,7 +65,7 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
 
   const admin = createAdminClient();
-  const [usage, shopsResult, optimisationCountResult, keywordListCountResult] = await Promise.all([
+  const [usage, shopsResult, optimisationCountResult, keywordListCountResult, recentOptimisationsResult] = await Promise.all([
     user ? getUsageData(user.id) : null,
     user
       ? admin.from("shops").select("id, shop_name, platform").eq("user_id", user.id).order("created_at", { ascending: true })
@@ -66,11 +76,21 @@ export default async function DashboardPage() {
     user
       ? admin.from("keyword_lists").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("is_archived", false)
       : { count: 0 },
+    user
+      ? admin.from("optimisations").select("id, platform, input, score, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(3)
+      : { data: [] },
   ]);
 
   const shops = shopsResult.data ?? [];
   const totalOptimisations = optimisationCountResult.count ?? 0;
   const keywordListCount = keywordListCountResult.count ?? 0;
+  const recentOptimisations = (recentOptimisationsResult.data ?? []) as Array<{
+    id: string;
+    platform: Platform;
+    input: { productName?: string } | null;
+    score: number | null;
+    created_at: string;
+  }>;
   const plan = usage?.plan ?? "free";
   const canAccessShop = plan === "growth" || plan === "studio";
 
@@ -99,7 +119,7 @@ export default async function DashboardPage() {
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {isNewUser
-            ? "You're all set. Optimise your first listing to get started."
+            ? "SellWise writes your listing copy and scores it against your platform's SEO rules."
             : "What would you like to optimise today?"}
         </p>
         {investmentItems.length > 0 && (
@@ -217,6 +237,59 @@ export default async function DashboardPage() {
 
       {/* Milestone — only shown once user has activity */}
       {!isNewUser && <MilestoneWidget optimisationCount={totalOptimisations} />}
+
+      {/* Recent optimisations */}
+      {!isNewUser && recentOptimisations.length > 0 && (
+        <div>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-medium text-muted-foreground">Recent</h2>
+            <Link href="/dashboard/history" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+              View all <ArrowRight className="size-3" />
+            </Link>
+          </div>
+          <div className="space-y-2">
+            {recentOptimisations.map((opt) => (
+              <Link key={opt.id} href="/dashboard/history" className="group block">
+                <Card className="border-border/50 transition-colors group-hover:border-primary/30 group-hover:bg-muted/20">
+                  <CardContent className="flex items-center gap-3 py-3">
+                    <History className="size-4 shrink-0 text-muted-foreground/50" />
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "shrink-0 text-xs h-5 px-1.5",
+                        opt.platform === "shopify" ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/25" :
+                        opt.platform === "ebay" ? "bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/25" :
+                        opt.platform === "etsy" ? "bg-orange-500/15 text-orange-700 dark:text-orange-400 border-orange-500/25" :
+                        opt.platform === "amazon" ? "bg-yellow-500/15 text-yellow-700 dark:text-yellow-400 border-yellow-500/25" :
+                        "bg-muted text-muted-foreground"
+                      )}
+                    >
+                      {PLATFORM_LABELS[opt.platform] ?? opt.platform}
+                    </Badge>
+                    <span className="flex-1 min-w-0 text-sm truncate">
+                      {opt.input?.productName ?? "Untitled product"}
+                    </span>
+                    {opt.score != null && (
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "shrink-0 text-xs h-5 px-1.5",
+                          opt.score >= 70 ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/25" :
+                          opt.score >= 40 ? "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/25" :
+                          "bg-red-500/15 text-red-700 dark:text-red-400 border-red-500/25"
+                        )}
+                      >
+                        {opt.score}
+                      </Badge>
+                    )}
+                    <span className="text-xs text-muted-foreground shrink-0">{formatRecentDate(opt.created_at)}</span>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Quick actions */}
       <div>

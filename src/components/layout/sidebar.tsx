@@ -16,20 +16,33 @@ import {
   Files,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 import { signOut } from "@/lib/supabase/actions";
 import { UsageBar } from "@/components/layout/usage-bar";
 
-const navItems = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "My Shop", href: "/dashboard/shop", icon: Store, badge: "Core" },
-  { label: "Optimiser", href: "/dashboard/optimise", icon: Sparkles },
-  { label: "Keywords", href: "/dashboard/keywords", icon: Search },
-  { label: "Audit", href: "/dashboard/audit", icon: BarChart3 },
-  { label: "Migrate", href: "/dashboard/migrate", icon: ArrowLeftRight },
-  { label: "Bulk", href: "/dashboard/bulk", icon: Files },
-  { label: "History", href: "/dashboard/history", icon: History },
-  { label: "Settings", href: "/dashboard/settings", icon: Settings },
+const navGroups = [
+  {
+    items: [
+      { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+      { label: "My Shop", href: "/dashboard/shop", icon: Store },
+    ],
+  },
+  {
+    label: "Tools",
+    items: [
+      { label: "Optimiser", href: "/dashboard/optimise", icon: Sparkles },
+      { label: "Keywords", href: "/dashboard/keywords", icon: Search },
+      { label: "Audit", href: "/dashboard/audit", icon: BarChart3 },
+      { label: "Platform Migrate", href: "/dashboard/migrate", icon: ArrowLeftRight },
+      { label: "Bulk Optimise", href: "/dashboard/bulk", icon: Files },
+      { label: "History", href: "/dashboard/history", icon: History },
+    ],
+  },
+  {
+    label: "Account",
+    items: [
+      { label: "Settings", href: "/dashboard/settings", icon: Settings },
+    ],
+  },
 ];
 
 export function Sidebar({
@@ -48,10 +61,18 @@ export function Sidebar({
   isAdmin?: boolean;
 }) {
   const pathname = usePathname();
-  const allNavItems = [
-    ...navItems,
-    ...(isAdmin ? [{ label: "Admin", href: "/dashboard/admin", icon: ShieldCheck }] : []),
-  ];
+  const groups = isAdmin
+    ? [
+        ...navGroups.slice(0, 2),
+        {
+          label: "Account",
+          items: [
+            { label: "Settings", href: "/dashboard/settings", icon: Settings },
+            { label: "Admin", href: "/dashboard/admin", icon: ShieldCheck },
+          ],
+        },
+      ]
+    : navGroups;
 
   return (
     <aside className="flex h-full w-56 flex-col border-r border-sidebar-border bg-sidebar">
@@ -63,37 +84,40 @@ export function Sidebar({
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 space-y-0.5 overflow-y-auto p-2">
-        {allNavItems.map((item) => {
-          const isActive =
-            item.href === "/dashboard"
-              ? pathname === "/dashboard"
-              : pathname.startsWith(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              prefetch={true}
-              className={cn(
-                "flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
-              )}
-            >
-              <item.icon className="size-4 shrink-0" />
-              <span className="flex-1">{item.label}</span>
-              {item.badge && (
-                <Badge
-                  variant="outline"
-                  className="h-4 rounded px-1 py-0 text-[10px] text-primary border-primary/30"
-                >
-                  {item.badge}
-                </Badge>
-              )}
-            </Link>
-          );
-        })}
+      <nav className="flex-1 overflow-y-auto p-2 space-y-3">
+        {groups.map((group, gi) => (
+          <div key={gi}>
+            {group.label && (
+              <p className="px-2.5 pb-0.5 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
+                {group.label}
+              </p>
+            )}
+            <div className="space-y-0.5">
+              {group.items.map((item) => {
+                const isActive =
+                  item.href === "/dashboard"
+                    ? pathname === "/dashboard"
+                    : pathname.startsWith(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    prefetch={true}
+                    className={cn(
+                      "flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                        : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+                    )}
+                  >
+                    <item.icon className="size-4 shrink-0" />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
       {/* Usage footer */}

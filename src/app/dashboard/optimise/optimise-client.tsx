@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Sparkles, Copy, Check, RotateCcw, RefreshCw, Download, BarChart3, ImagePlus, X, Lock, AlertCircle, ChevronDown, ThumbsUp, ThumbsDown, Lightbulb, Search, ArrowLeftRight, Plus, TrendingUp, ExternalLink, Share2, Gift } from "lucide-react";
+import { Sparkles, Copy, Check, RotateCcw, RefreshCw, Download, BarChart3, ImagePlus, X, Lock, AlertCircle, ChevronDown, ThumbsUp, ThumbsDown, Lightbulb, Search, ArrowLeftRight, Plus, TrendingUp, ExternalLink, Share2, History } from "lucide-react";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import { Spinner } from "@/components/ui/spinner";
 import { PlatformSelector } from "@/components/platform-selector";
@@ -80,7 +80,7 @@ function getResultTabs(result: OptimisedListing): TabConfig[] {
       return [
         { id: "title", label: "Title", fieldKey: "title", content: result.title ?? "", maxChars: 200 },
         { id: "bullets", label: "Bullets", fieldKey: "bullets", content: result.bullets ?? [], isBullets: true },
-        { id: "backend", label: "Backend Keys", fieldKey: "backendKeywords", content: result.backendKeywords ?? "", maxChars: 250 },
+        { id: "backend", label: "Search Terms", fieldKey: "backendKeywords", content: result.backendKeywords ?? "", maxChars: 250 },
         { id: "description", label: "Description", fieldKey: "description", content: result.description ?? "" },
       ];
     case "shopify":
@@ -400,11 +400,11 @@ function WhatNextStrip({ onReset }: { onReset: () => void }) {
           Start a new listing
         </button>
         <Link
-          href="/dashboard/settings"
+          href="/dashboard/history"
           className="flex items-center gap-2 rounded-md border border-border/60 bg-background px-3 py-2 text-xs font-medium hover:border-border hover:bg-muted/30 transition-colors"
         >
-          <Gift className="size-3.5 shrink-0 text-muted-foreground" />
-          Give a friend 7 days free
+          <History className="size-3.5 shrink-0 text-muted-foreground" />
+          View history
         </Link>
       </div>
     </div>
@@ -451,7 +451,7 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
   const [keywordLists, setKeywordLists] = useState<KeywordList[]>([]);
   const [keywordsValue, setKeywordsValue] = useState(searchParams.get("keywords") ?? "");
   const [showListPicker, setShowListPicker] = useState(false);
-  const [showMoreDetail, setShowMoreDetail] = useState(plan === "studio");
+  const [showMoreDetail, setShowMoreDetail] = useState(true);
   const [feedback, setFeedback] = useState<"up" | "down" | null>(null);
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
   const [lockedDesc, setLockedDesc] = useState<string | undefined>(undefined);
@@ -944,8 +944,23 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
                   (e.currentTarget as HTMLFormElement).requestSubmit();
                 }
               }}
-              className="space-y-4"
+              className={cn("space-y-4", loading && "pointer-events-none opacity-60")}
             >
+              <div className="space-y-1.5">
+                <Label htmlFor="productName">
+                  Product name / what it is{" "}
+                  <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="productName"
+                  name="productName"
+                  placeholder="e.g. Handmade ceramic coffee mug"
+                  value={formValues.productName}
+                  onChange={setField("productName")}
+                  required
+                />
+                <p className="text-[11px] text-muted-foreground/70">{getFieldHint(platform, "productName")}</p>
+              </div>
               {/* Existing listing textarea */}
               <div className="space-y-1.5">
                 <Label htmlFor="existingContent">
@@ -970,21 +985,6 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
                     Without this, the AI generates a draft — review carefully before publishing.
                   </p>
                 )}
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="productName">
-                  Product name / what it is{" "}
-                  <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="productName"
-                  name="productName"
-                  placeholder="e.g. Handmade ceramic coffee mug"
-                  value={formValues.productName}
-                  onChange={setField("productName")}
-                  required
-                />
-                <p className="text-[11px] text-muted-foreground/70">{getFieldHint(platform, "productName")}</p>
               </div>
               <button
                 type="button"
@@ -1012,7 +1012,7 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
                   <div className="flex items-start gap-2 rounded-md border border-amber-500/20 bg-amber-500/5 px-2.5 py-2">
                     <AlertCircle className="size-3 text-amber-500 shrink-0 mt-0.5" />
                     <p className="text-[11px] text-amber-700 dark:text-amber-400">
-                      We use your stated materials — double-check this field is correct before optimising.
+                      AI uses exactly what you type here — even with a photo uploaded, this text takes priority over what the AI sees in the image.
                     </p>
                   </div>
                 )}
@@ -1319,9 +1319,10 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
                       size="sm"
                       onClick={() => setResult(null)}
                       disabled={loading}
+                      title="Clear the result and start a new listing"
                       className="h-7 gap-1.5 text-xs text-muted-foreground"
                     >
-                      <RotateCcw className="size-3" />New
+                      <RotateCcw className="size-3" />Clear result
                     </Button>
                   </div>
                 </CardHeader>
@@ -1455,13 +1456,30 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
                 </CardContent>
               </Card>
 
+              {/* Platform hop */}
+              {formValues.productName.trim() && hopOptions.length > 0 && (
+                <div className="flex items-center gap-2 flex-wrap px-1">
+                  <span className="text-xs text-muted-foreground shrink-0">Also try:</span>
+                  {hopOptions.map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => hopToPlatform(p.id)}
+                      disabled={loading}
+                      className="rounded-full border border-border/60 bg-muted/40 px-3 py-0.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-40"
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+
               {afterScore !== null && (
                 <>
                   <ScoreDisplay
                     before={beforeScore ?? undefined}
                     after={afterScore}
                   />
-                  <p className="text-[10px] text-muted-foreground/50 text-center">
+                  <p className="text-xs text-muted-foreground text-center">
                     Under 60 needs work · 60–79 is solid · 80+ is competitive
                   </p>
                   <ScoreDeductionsList deductions={afterDeductions} />
@@ -1564,22 +1582,6 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
                 )}
               </div>
 
-              {/* Platform hop */}
-              {formValues.productName.trim() && hopOptions.length > 0 && (
-                <div className="flex items-center gap-2 flex-wrap px-1">
-                  <span className="text-xs text-muted-foreground shrink-0">Also try:</span>
-                  {hopOptions.map((p) => (
-                    <button
-                      key={p.id}
-                      onClick={() => hopToPlatform(p.id)}
-                      disabled={loading}
-                      className="rounded-full border border-border/60 bg-muted/40 px-3 py-0.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-40"
-                    >
-                      {p.label}
-                    </button>
-                  ))}
-                </div>
-              )}
             </>
           )}
         </div>

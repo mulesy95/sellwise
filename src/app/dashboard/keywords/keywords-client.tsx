@@ -537,6 +537,7 @@ export function KeywordsClient({ preferredPlatforms }: { preferredPlatforms: Pla
                     <span className="text-xs text-muted-foreground">{list.keywords.length} keywords</span>
                     <Badge
                       variant="outline"
+                      title={`Based on keyword search volume. ${level === "high" ? "Over 50% are high-volume keywords." : level === "medium" ? "Mixed volume levels." : "Mostly lower-volume keywords."}`}
                       className={`text-[10px] h-5 px-1.5 font-semibold ${cfg.className}`}
                     >
                       {cfg.label}

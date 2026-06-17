@@ -132,7 +132,7 @@ export function MarketingLanding({ currency = "USD" }: { currency?: "USD" | "AUD
                 href="/check"
                 className="text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
               >
-                Already selling? Check your listing score free — no account needed →
+                Already on Shopify? Check your listing health free — no account needed →
               </Link>
             </div>
           </div>
