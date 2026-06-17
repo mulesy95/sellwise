@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useSearchParams, useRouter } from "next/navigation";
-import { Sparkles, Copy, Check, RotateCcw, RefreshCw, Download, BarChart3, ImagePlus, X, Lock, AlertCircle, ChevronDown, ThumbsUp, ThumbsDown, Lightbulb, Search, ArrowLeftRight, Plus, TrendingUp, ExternalLink, Share2, History } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { Sparkles, Copy, Check, RotateCcw, RefreshCw, Download, ImagePlus, X, Lock, AlertCircle, ChevronDown, ThumbsUp, ThumbsDown, Lightbulb, Search, Plus, TrendingUp, ExternalLink, Share2, History } from "lucide-react";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import { Spinner } from "@/components/ui/spinner";
 import { PlatformSelector } from "@/components/platform-selector";
@@ -380,18 +380,20 @@ function RescuePanel({ deductions, onImprove, onReset }: {
   );
 }
 
-function WhatNextStrip({ onReset }: { onReset: () => void }) {
+function WhatNextStrip({ onReset, hideKeywords }: { onReset: () => void; hideKeywords?: boolean }) {
   return (
     <div className="rounded-lg border border-border/50 bg-muted/20 p-4 space-y-3">
       <p className="text-xs font-medium text-muted-foreground">What next?</p>
-      <div className="grid gap-2 sm:grid-cols-3">
-        <Link
-          href="/dashboard/keywords"
-          className="flex items-center gap-2 rounded-md border border-border/60 bg-background px-3 py-2 text-xs font-medium hover:border-border hover:bg-muted/30 transition-colors"
-        >
-          <Search className="size-3.5 shrink-0 text-muted-foreground" />
-          Research keywords
-        </Link>
+      <div className={`grid gap-2 ${hideKeywords ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
+        {!hideKeywords && (
+          <Link
+            href="/dashboard/keywords"
+            className="flex items-center gap-2 rounded-md border border-border/60 bg-background px-3 py-2 text-xs font-medium hover:border-border hover:bg-muted/30 transition-colors"
+          >
+            <Search className="size-3.5 shrink-0 text-muted-foreground" />
+            Research keywords
+          </Link>
+        )}
         <button
           onClick={onReset}
           className="flex items-center gap-2 rounded-md border border-border/60 bg-background px-3 py-2 text-xs font-medium hover:border-border hover:bg-muted/30 transition-colors text-left w-full"
@@ -430,7 +432,6 @@ function TrialBanner() {
 
 export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; preferredPlatforms: Platform[] }) {
   const searchParams = useSearchParams();
-  const router = useRouter();
 
   const [platform, setPlatform] = useState<Platform>((searchParams.get("platform") ?? "shopify") as Platform);
   const [formValues, setFormValues] = useState<FormValues>({
@@ -834,14 +835,6 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }
-
-  function scoreThisListing() {
-    if (!result) return;
-    try {
-      sessionStorage.setItem("audit:prefill", JSON.stringify(result));
-    } catch {}
-    router.push("/dashboard/audit");
   }
 
   async function copyToClipboard(text: string, field: string) {
@@ -1528,7 +1521,7 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
               )}
 
               {result !== null && (
-                <WhatNextStrip onReset={handleReset} />
+                <WhatNextStrip onReset={handleReset} hideKeywords={afterScore !== null && afterScore < 60} />
               )}
 
               {result !== null && plan === "free" && <TrialBanner />}
@@ -1540,13 +1533,6 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
                   className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <Download className="size-3" />Download .txt
-                </button>
-                <span className="text-muted-foreground/30 text-xs">·</span>
-                <button
-                  onClick={scoreThisListing}
-                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <BarChart3 className="size-3" />Score this listing
                 </button>
                 {result?.id && (
                   <>

@@ -10,7 +10,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { ShopHealthCounts } from "@/components/shop-health-counts";
 import { ListingHealthWidget } from "@/components/listing-health-widget";
-import { MilestoneWidget } from "@/components/milestone-widget";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getUsageData } from "@/lib/usage";
@@ -128,12 +127,6 @@ export default async function DashboardPage() {
             {investmentItems.join(" · ")}
           </p>
         )}
-        {!isNewUser && usage && usage.optimisationStreak > 0 && (
-          <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-700 dark:text-amber-400">
-            <span>🔥</span>
-            {usage.optimisationStreak} week streak
-          </div>
-        )}
       </div>
 
       {/* First-run CTA */}
@@ -235,9 +228,6 @@ export default async function DashboardPage() {
           )}
         </div>
       )}
-
-      {/* Milestone — only shown once user has activity */}
-      {!isNewUser && <MilestoneWidget optimisationCount={totalOptimisations} />}
 
       {/* Recent optimisations */}
       {!isNewUser && recentOptimisations.length > 0 && (
