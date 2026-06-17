@@ -5,7 +5,10 @@ import { FeatureGate } from "@/components/feature-gate";
 import { MigrateClient } from "./migrate-client";
 import type { Platform } from "@/lib/platforms";
 
-export const metadata = { title: "Platform Migration" };
+export const metadata = {
+  title: "Platform Migration — SellWise",
+  description: "Reformat a listing from one marketplace to another — title, tags, and description adapted automatically.",
+};
 
 export default async function MigratePage() {
   const supabase = await createClient();

@@ -17,7 +17,10 @@ import { getReferralStats } from "@/lib/referral";
 import { ReferralCard } from "@/components/referral-card";
 import { BrandVoiceForm, RefreshVoiceButton } from "./settings-client";
 
-export const metadata = { title: "Settings" };
+export const metadata = {
+  title: "Settings — SellWise",
+  description: "Manage your account, billing, brand voice, and connected integrations.",
+};
 
 const planDisplay: Record<string, { label: string; price: string; limit: string }> = {
   free:    { label: "Free",    price: "$0/mo",  limit: "1 optimisation / month" },

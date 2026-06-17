@@ -3,7 +3,10 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { redirect } from "next/navigation";
 import { ShopDashboard } from "./shop-dashboard";
 
-export const metadata = { title: "My Shop" };
+export const metadata = {
+  title: "My Shop — SellWise",
+  description: "View and optimise all your connected Shopify and eBay store listings in one place.",
+};
 
 export default async function ShopPage({
   searchParams,

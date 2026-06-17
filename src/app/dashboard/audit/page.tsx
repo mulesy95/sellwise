@@ -3,7 +3,10 @@ import { getUsageData } from "@/lib/usage";
 import { AuditClient } from "./audit-client";
 import type { Platform } from "@/lib/platforms";
 
-export const metadata = { title: "Listing Audit" };
+export const metadata = {
+  title: "Listing Audit — SellWise",
+  description: "Score your existing listing 0–100 and get specific, platform-aware improvements to make.",
+};
 
 export default async function AuditPage() {
   const supabase = await createClient();

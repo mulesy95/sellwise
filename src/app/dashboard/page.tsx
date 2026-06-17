@@ -28,7 +28,8 @@ function formatRecentDate(iso: string): string {
 }
 
 export const metadata = {
-  title: "Dashboard",
+  title: "Dashboard — SellWise",
+  description: "Your listing optimiser dashboard. See your shop health, recent optimisations, and quick actions.",
 };
 
 const quickActions = [

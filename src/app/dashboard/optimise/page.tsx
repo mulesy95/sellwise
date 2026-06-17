@@ -4,7 +4,10 @@ import { redirect } from "next/navigation";
 import { OptimiseClient } from "./optimise-client";
 import type { Platform } from "@/lib/platforms";
 
-export const metadata = { title: "Listing Optimiser" };
+export const metadata = {
+  title: "Listing Optimiser — SellWise",
+  description: "Generate an SEO-ready title, tags, and description for any marketplace in seconds.",
+};
 
 export default async function OptimisePage() {
   const supabase = await createClient();

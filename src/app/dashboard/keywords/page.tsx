@@ -4,7 +4,10 @@ import { FeatureGate } from "@/components/feature-gate";
 import { KeywordsClient } from "./keywords-client";
 import type { Platform } from "@/lib/platforms";
 
-export const metadata = { title: "Keyword Research" };
+export const metadata = {
+  title: "Keyword Research — SellWise",
+  description: "Find 15 marketplace keywords ranked by search volume and competition for any product.",
+};
 
 export default async function KeywordsPage() {
   const supabase = await createClient();
