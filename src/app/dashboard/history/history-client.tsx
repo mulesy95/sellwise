@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 import type { Platform } from "@/lib/platforms";
-import { FIELD_LABELS } from "@/components/listing-diff";
+import { ListingDiff, FIELD_LABELS } from "@/components/listing-diff";
 
 interface Optimisation {
   id: string;
@@ -247,6 +247,37 @@ function GhostHistoryRow() {
   );
 }
 
+function HistoryListingDiff({ output }: { output: Record<string, unknown> }) {
+  const original = output.original as Record<string, string | string[]>;
+  const changeNotes = Array.isArray(output.changes)
+    ? (output.changes as Array<{ field: string; reason: string }>)
+    : [];
+
+  const tabs = Object.keys(original)
+    .filter((key) => {
+      const newVal = output[key];
+      return newVal !== undefined && newVal !== null;
+    })
+    .map((key) => {
+      const newVal = output[key];
+      const content = Array.isArray(newVal)
+        ? newVal.map(String)
+        : typeof newVal === "string"
+        ? newVal
+        : "";
+      return {
+        id: key,
+        label: FIELD_LABELS[key] ?? key,
+        fieldKey: key,
+        content: content as string | string[],
+        isTags: key === "tags",
+        isBullets: key === "bullets",
+      };
+    });
+
+  return <ListingDiff tabs={tabs} original={original} changes={changeNotes} />;
+}
+
 function OptimisationCard({
   opt,
   onArchiveToggle,
@@ -384,29 +415,21 @@ function OptimisationCard({
               </div>
             </div>
           </div>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            <div>
-              <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Original input</h4>
-              <InputSummary input={opt.input} />
-            </div>
-            <div>
-              <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">AI output</h4>
-              <PlatformOutput platform={opt.platform} output={opt.output} />
-            </div>
-          </div>
-          {Array.isArray(opt.output.changes) && (opt.output.changes as Array<{ field: string; reason: string }>).length > 0 && (
-            <div className="mt-4 pt-4 border-t border-border/50">
-              <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">What changed</h4>
-              <ul className="space-y-1.5">
-                {(opt.output.changes as Array<{ field: string; reason: string }>).map((c, i) => (
-                  <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
-                    <Badge variant="outline" className="mt-0.5 shrink-0 h-4 rounded px-1 py-0 text-[9px]">
-                      {FIELD_LABELS[c.field] ?? c.field}
-                    </Badge>
-                    <span className="leading-relaxed">{c.reason}</span>
-                  </li>
-                ))}
-              </ul>
+
+          {opt.output.original && typeof opt.output.original === "object" ? (
+            // Improve-mode result: show before/after diff
+            <HistoryListingDiff output={opt.output} />
+          ) : (
+            // Fresh optimisation: show input vs output side by side
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <div>
+                <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Original input</h4>
+                <InputSummary input={opt.input} />
+              </div>
+              <div>
+                <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">AI output</h4>
+                <PlatformOutput platform={opt.platform} output={opt.output} />
+              </div>
             </div>
           )}
         </div>
