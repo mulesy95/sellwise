@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/email";
 import { welcomeEmail } from "@/lib/emails/welcome";
 import { firstOptimisationEmail } from "@/lib/emails/first-optimisation";
+import { trialDay3Email } from "@/lib/emails/trial-day3";
 import { trialNudgeEmail } from "@/lib/emails/trial-nudge";
 import { trialExpiredEmail } from "@/lib/emails/trial-expired";
 import { winbackEmail } from "@/lib/emails/winback";
@@ -20,7 +21,7 @@ export async function GET(req: NextRequest) {
   const admin = createAdminClient();
   const now = new Date();
 
-  const results = { welcomeSent: 0, firstOptSent: 0, nudgeSent: 0, expiredSent: 0, winbackSent: 0, errors: 0 };
+  const results = { welcomeSent: 0, firstOptSent: 0, day3Sent: 0, nudgeSent: 0, expiredSent: 0, winbackSent: 0, errors: 0 };
 
   // --- Welcome: queued >1 hour ago, not yet sent ---
   const welcomeCutoff = new Date(now.getTime() - 60 * 60 * 1000).toISOString();
@@ -69,6 +70,33 @@ export async function GET(req: NextRequest) {
       await sendEmail({ to: user.email, subject, html });
       await admin.from("profiles").update({ first_optimisation_sent: true }).eq("id", profile.id);
       results.firstOptSent++;
+    } catch {
+      results.errors++;
+    }
+  }
+
+  // --- Day 3 nudge: trial ends in 96–120 hours (days 3–4), email not yet sent ---
+  const day3WindowStart = new Date(now.getTime() + 96 * 60 * 60 * 1000).toISOString();
+  const day3WindowEnd = new Date(now.getTime() + 120 * 60 * 60 * 1000).toISOString();
+
+  const { data: day3Profiles } = await admin
+    .from("profiles")
+    .select("id, full_name")
+    .eq("trial_day3_sent", false)
+    .eq("marketing_opted_out", false)
+    .gte("trial_ends_at", day3WindowStart)
+    .lte("trial_ends_at", day3WindowEnd);
+
+  for (const profile of day3Profiles ?? []) {
+    try {
+      const { data: { user } } = await admin.auth.admin.getUserById(profile.id);
+      if (!user?.email) continue;
+
+      const firstName = (profile.full_name as string | null)?.split(" ")[0] ?? null;
+      const { subject, html } = trialDay3Email(firstName, user.email);
+      await sendEmail({ to: user.email, subject, html });
+      await admin.from("profiles").update({ trial_day3_sent: true }).eq("id", profile.id);
+      results.day3Sent++;
     } catch {
       results.errors++;
     }
