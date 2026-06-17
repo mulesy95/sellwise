@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Sparkles, Copy, Check, RotateCcw, RefreshCw, Download, ImagePlus, X, Lock, AlertCircle, ChevronDown, ThumbsUp, ThumbsDown, Lightbulb, Search, Plus, TrendingUp, ExternalLink, Share2, History } from "lucide-react";
+import { Sparkles, Copy, Check, RotateCcw, RefreshCw, Download, ImagePlus, X, Lock, AlertCircle, ChevronDown, ThumbsUp, ThumbsDown, Lightbulb, Search, Plus, TrendingUp, ExternalLink, Share2, History, Upload, Store } from "lucide-react";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import { Spinner } from "@/components/ui/spinner";
 import { PlatformSelector } from "@/components/platform-selector";
@@ -33,6 +33,17 @@ import { getFieldHint } from "@/lib/field-hints";
 interface ChangeNote {
   field: string;
   reason: string;
+}
+
+interface ShopRecord {
+  id: string;
+  shop_name: string;
+  platform: string;
+}
+
+interface PickableProduct {
+  id: string;
+  title: string;
 }
 
 interface OptimisedListing {
@@ -413,6 +424,195 @@ function WhatNextStrip({ onReset, hideKeywords }: { onReset: () => void; hideKey
   );
 }
 
+function PushToShopModal({
+  result,
+  platform,
+  shops,
+  onClose,
+}: {
+  result: OptimisedListing;
+  platform: Platform;
+  shops: ShopRecord[];
+  onClose: () => void;
+}) {
+  const [selectedShopId, setSelectedShopId] = useState<string>(
+    shops.length === 1 ? shops[0].id : ""
+  );
+  const [products, setProducts] = useState<PickableProduct[]>([]);
+  const [productsLoading, setProductsLoading] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState<string>("");
+  const [pushing, setPushing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    if (!selectedShopId) return;
+    setProducts([]);
+    setSelectedProductId("");
+    setProductsLoading(true);
+    const url = platform === "shopify"
+      ? `/api/shopify/listings?shopId=${selectedShopId}`
+      : `/api/ebay/listings?shopId=${selectedShopId}`;
+    fetch(url)
+      .then((r) => r.json())
+      .then((d) => {
+        const items: PickableProduct[] = platform === "shopify"
+          ? (d.products ?? []).map((p: { id: string; title: string }) => ({ id: p.id, title: p.title }))
+          : (d.listings ?? []).map((l: { id: string; title: string }) => ({ id: l.id, title: l.title }));
+        setProducts(items);
+      })
+      .catch(() => setError("Could not load listings. Check your store connection."))
+      .finally(() => setProductsLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedShopId]);
+
+  async function handlePush() {
+    if (!selectedProductId || !selectedShopId) return;
+    setPushing(true);
+    setError(null);
+    try {
+      let res: Response;
+      if (platform === "shopify") {
+        res = await fetch("/api/shopify/push", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            shopId: selectedShopId,
+            productId: selectedProductId,
+            title: result.productTitle ?? result.title,
+            body_html: result.description,
+          }),
+        });
+      } else {
+        res = await fetch("/api/ebay/push", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            shopId: selectedShopId,
+            itemId: selectedProductId,
+            title: result.title,
+            description: result.description,
+          }),
+        });
+      }
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error ?? "Push failed");
+      }
+      setDone(true);
+      toast.success("Listing updated in your shop");
+      setTimeout(onClose, 1500);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Push failed. Please try again.");
+    } finally {
+      setPushing(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+      <Card className="w-full max-w-md border-border/50 shadow-xl">
+        <CardHeader className="flex flex-row items-center justify-between pb-3">
+          <div>
+            <CardTitle className="text-base">Push to shop</CardTitle>
+            <CardDescription className="text-xs mt-0.5">
+              Select a product to update with this {platform === "shopify" ? "title and description" : "title and description"}.
+            </CardDescription>
+          </div>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors ml-2 shrink-0">
+            <X className="size-4" />
+          </button>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {shops.length > 1 && (
+            <div className="space-y-1.5">
+              <p className="text-xs font-medium text-muted-foreground">Store</p>
+              <div className="space-y-1">
+                {shops.map((shop) => (
+                  <button
+                    key={shop.id}
+                    onClick={() => setSelectedShopId(shop.id)}
+                    className={cn(
+                      "w-full flex items-center gap-2.5 rounded-md border px-3 py-2 text-sm text-left transition-colors",
+                      selectedShopId === shop.id
+                        ? "border-primary/50 bg-primary/5 text-foreground"
+                        : "border-border/60 text-muted-foreground hover:border-border hover:bg-muted/30"
+                    )}
+                  >
+                    <Store className="size-3.5 shrink-0" />
+                    {shop.shop_name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {selectedShopId && (
+            <div className="space-y-1.5">
+              <p className="text-xs font-medium text-muted-foreground">Select product to update</p>
+              {productsLoading ? (
+                <div className="flex items-center justify-center py-6">
+                  <Spinner size="md" />
+                </div>
+              ) : products.length === 0 && !error ? (
+                <p className="text-xs text-muted-foreground py-2">No listings found in this store.</p>
+              ) : (
+                <div className="max-h-52 overflow-y-auto rounded-md border border-border/50">
+                  {products.map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => setSelectedProductId(p.id)}
+                      className={cn(
+                        "w-full px-3 py-2.5 text-xs text-left transition-colors border-b border-border/40 last:border-b-0",
+                        selectedProductId === p.id
+                          ? "bg-primary/10 text-foreground font-medium"
+                          : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+                      )}
+                    >
+                      {p.title}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {error && (
+            <p className="flex items-start gap-1.5 text-xs text-destructive">
+              <AlertCircle className="size-3.5 shrink-0 mt-0.5" />
+              {error}
+            </p>
+          )}
+
+          {done && (
+            <p className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+              <Check className="size-3.5" />
+              Listing updated successfully
+            </p>
+          )}
+        </CardContent>
+        <div className="flex justify-end gap-2 px-6 pb-5">
+          <Button variant="outline" size="sm" onClick={onClose} className="h-7 text-xs" disabled={pushing}>
+            Cancel
+          </Button>
+          <Button
+            size="sm"
+            className="h-7 text-xs gap-1.5"
+            disabled={!selectedProductId || pushing || done}
+            onClick={handlePush}
+          >
+            {pushing ? (
+              <><Spinner size="sm" />Pushing…</>
+            ) : (
+              <><Upload className="size-3" />Push to shop</>
+            )}
+          </Button>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
 function TrialBanner() {
   return (
     <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 flex flex-col sm:flex-row sm:items-center gap-3">
@@ -430,7 +630,15 @@ function TrialBanner() {
   );
 }
 
-export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; preferredPlatforms: Platform[] }) {
+export function OptimiseClient({
+  plan,
+  preferredPlatforms,
+  connectedShops = [],
+}: {
+  plan: string;
+  preferredPlatforms: Platform[];
+  connectedShops?: ShopRecord[];
+}) {
   const searchParams = useSearchParams();
 
   const [platform, setPlatform] = useState<Platform>((searchParams.get("platform") ?? "shopify") as Platform);
@@ -458,6 +666,7 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
   const [lockedDesc, setLockedDesc] = useState<string | undefined>(undefined);
   const [showAllPlatforms, setShowAllPlatforms] = useState(false);
   const [animReveal, setAnimReveal] = useState(0);
+  const [pushModalOpen, setPushModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   type SuggestionState = { text: string; loading: boolean };
@@ -613,14 +822,10 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
     const label = PLATFORM_LABELS[platform];
     const text =
       before !== null && before > 0 && score > before
-        ? `Just improved my ${label} listing from ${before} → ${score}/100 with @SellWise 🎯 sellwise.au`
-        : `My ${label} listing just scored ${score}/100 with @SellWise 🎯 sellwise.au`;
+        ? `Just improved my ${label} listing from ${before} → ${score}/100 with SellWise 🎯 sellwise.au`
+        : `My ${label} listing just scored ${score}/100 with SellWise 🎯 sellwise.au`;
     navigator.clipboard.writeText(text).catch(() => null);
-    window.open(
-      `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`,
-      "_blank",
-      "noopener,noreferrer"
-    );
+    toast.success("Score copied — paste it anywhere you like");
   }
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -863,6 +1068,8 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
     ? scoreOptimisedListing({ platform: result.platform, ...result.original } as ScoredListing)
     : null;
   const hopOptions = HOP_PLATFORMS.filter((p) => p.id !== platform);
+  const platformShops = connectedShops.filter((s) => s.platform === platform);
+  const canPushToShop = plan === "studio" && platformShops.length > 0 && ["shopify", "ebay"].includes(platform);
 
   const productWordCount = formValues.productName.trim().split(/\s+/).filter(Boolean).length;
   const platformHint = PLATFORM_HINTS[platform];
@@ -888,6 +1095,14 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
 
   return (
     <div className="space-y-6">
+      {pushModalOpen && result && (
+        <PushToShopModal
+          result={result}
+          platform={platform}
+          shops={platformShops}
+          onClose={() => setPushModalOpen(false)}
+        />
+      )}
       <UpgradeModal
         open={upgradeOpen}
         onClose={() => {
@@ -1518,6 +1733,18 @@ export function OptimiseClient({ plan, preferredPlatforms }: { plan: string; pre
                   onImprove={handleImprove}
                   onReset={handleReset}
                 />
+              )}
+
+              {result !== null && canPushToShop && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full h-8 text-xs gap-1.5 border-primary/30 text-primary hover:bg-primary/5"
+                  onClick={() => setPushModalOpen(true)}
+                >
+                  <Upload className="size-3.5" />
+                  Push to {platformShops.length === 1 ? platformShops[0].shop_name : "shop"}
+                </Button>
               )}
 
               {result !== null && (
