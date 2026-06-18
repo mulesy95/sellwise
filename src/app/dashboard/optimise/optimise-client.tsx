@@ -23,6 +23,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import type { Platform } from "@/lib/platforms";
 import { PLATFORMS, PLATFORM_LABELS } from "@/lib/platforms";
+import { shareScore as nativeShareScore, buildShareLinks } from "@/lib/share-score";
 import { ListingDiff } from "@/components/listing-diff";
 import { scoreOptimisedListing, scoreWithBreakdown } from "@/lib/listing-score";
 import type { ScoredListing, ScoreDeduction } from "@/lib/listing-score";
@@ -667,6 +668,7 @@ export function OptimiseClient({
   const [showAllPlatforms, setShowAllPlatforms] = useState(false);
   const [animReveal, setAnimReveal] = useState(0);
   const [pushModalOpen, setPushModalOpen] = useState(false);
+  const [showShareFallback, setShowShareFallback] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   type SuggestionState = { text: string; loading: boolean };
@@ -818,14 +820,14 @@ export function OptimiseClient({
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function shareScore(score: number, before: number | null) {
-    const label = PLATFORM_LABELS[platform];
-    const text =
-      before !== null && before > 0 && score > before
-        ? `Just improved my ${label} listing from ${before} → ${score}/100 with SellWise 🎯 sellwise.au`
-        : `My ${label} listing just scored ${score}/100 with SellWise 🎯 sellwise.au`;
-    navigator.clipboard.writeText(text).catch(() => null);
-    toast.success("Score copied — paste it anywhere you like");
+  async function handleShareScore(score: number, before: number | null) {
+    const triggered = await nativeShareScore({
+      score,
+      platform: PLATFORM_LABELS[platform],
+      before,
+      shareUrl: "https://sellwise.au",
+    });
+    if (!triggered) setShowShareFallback(true);
   }
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -1705,10 +1707,10 @@ export function OptimiseClient({
                       Top 5% on {PLATFORM_LABELS[platform]} this week
                     </div>
                   )}
-                  {afterScore >= 60 && (
+                  {afterScore >= 60 && !showShareFallback && (
                     <div className="flex justify-center pt-1">
                       <button
-                        onClick={() => shareScore(afterScore, beforeScore)}
+                        onClick={() => handleShareScore(afterScore, beforeScore)}
                         className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
                       >
                         <Share2 className="size-3" />
@@ -1716,6 +1718,35 @@ export function OptimiseClient({
                       </button>
                     </div>
                   )}
+                  {afterScore >= 60 && showShareFallback && (() => {
+                    const links = buildShareLinks(afterScore, PLATFORM_LABELS[platform], beforeScore, "https://sellwise.au");
+                    return (
+                      <div className="rounded-lg border border-border/50 bg-muted/10 p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs font-medium text-muted-foreground">Share your score</p>
+                          <button onClick={() => setShowShareFallback(false)} className="text-muted-foreground/50 hover:text-muted-foreground transition-colors">
+                            <X className="size-3" />
+                          </button>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <a href={links.twitter} target="_blank" rel="noopener noreferrer"
+                             className="flex items-center gap-1.5 rounded-md border border-border/60 bg-background px-3 py-1.5 text-xs font-medium hover:bg-muted/30 transition-colors">
+                            𝕏 Post
+                          </a>
+                          <a href={links.facebook} target="_blank" rel="noopener noreferrer"
+                             className="flex items-center gap-1.5 rounded-md border border-border/60 bg-background px-3 py-1.5 text-xs font-medium hover:bg-muted/30 transition-colors">
+                            Facebook
+                          </a>
+                          <button
+                            onClick={() => { navigator.clipboard.writeText(links.caption).catch(() => null); toast.success("Copied"); }}
+                            className="flex items-center gap-1.5 rounded-md border border-border/60 bg-background px-3 py-1.5 text-xs font-medium hover:bg-muted/30 transition-colors"
+                          >
+                            <Copy className="size-3" /> Copy text
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </>
               )}
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { BarChart3, Sparkles, AlertCircle, Link2, PenLine, Share2, RotateCcw, Copy, Check } from "lucide-react";
+import { BarChart3, Sparkles, AlertCircle, Link2, PenLine, Share2, RotateCcw, Copy, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +22,7 @@ import { UpgradeModal } from "@/components/upgrade-modal";
 import { PlatformSelector } from "@/components/platform-selector";
 import { cn } from "@/lib/utils";
 import { PLATFORMS, AUDIT_SECTIONS, PLATFORM_LABELS, detectPlatformFromUrl, PLATFORM_URL_EXAMPLES, type Platform } from "@/lib/platforms";
+import { shareScore as nativeShareScore, buildShareLinks } from "@/lib/share-score";
 import type { Plan } from "@/lib/usage";
 
 interface AuditResult {
@@ -301,9 +302,7 @@ export function AuditClient({ plan, preferredPlatforms }: { plan: Plan; preferre
   const [urlHint, setUrlHint] = useState<string | null>(null);
   const [lastPayload, setLastPayload] = useState<Record<string, string> | null>(null);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
-  const [shareOpen, setShareOpen] = useState(false);
-  const [captionCopied, setCaptionCopied] = useState(false);
-  const [linkCopied, setLinkCopied] = useState(false);
+  const [showShareFallback, setShowShareFallback] = useState(false);
   const [previousScore, setPreviousScore] = useState<number | null>(null);
   const [prefillValues, setPrefillValues] = useState<Record<string, string>>({});
   const [formKey, setFormKey] = useState(0);
@@ -484,41 +483,15 @@ export function AuditClient({ plan, preferredPlatforms }: { plan: Plan; preferre
     return url.toString();
   }
 
-  function buildShareCaption() {
-    if (!result) return "";
-    const score = result.score;
-    const improvements = (result.improvements as string[])?.length ?? 0;
-    const p = PLATFORM_LABELS[detectedPlatform ?? platform] ?? platform;
-    const url = buildShareUrl();
-    const fixLine = improvements > 0
-      ? `${improvements} improvement${improvements !== 1 ? "s" : ""} to fix.`
-      : "Looking solid.";
-
-    if (previousScore !== null) {
-      const delta = score - previousScore;
-      const deltaStr = delta >= 0 ? `+${delta}` : String(delta);
-      return `Just improved my ${p} listing from ${previousScore} → ${score}/100 on SellWise. ${deltaStr} points in one pass.\n\nAudit yours free: ${url}`;
-    }
-
-    if (score >= 70) {
-      return `Just ran my ${p} listing through SellWise — scored ${score}/100. ${fixLine}\n\nScore yours free: ${url}`;
-    } else if (score >= 40) {
-      return `My ${p} listing scored ${score}/100 on SellWise. ${fixLine} More room to improve than I thought.\n\nAudit yours free: ${url}`;
-    } else {
-      return `My ${p} listing only scored ${score}/100 — turns out ${fixLine}\n\nSee what's dragging yours down: ${url}`;
-    }
-  }
-
-  async function copyCaption() {
-    await navigator.clipboard.writeText(buildShareCaption());
-    setCaptionCopied(true);
-    setTimeout(() => setCaptionCopied(false), 2000);
-  }
-
-  async function copyLink() {
-    await navigator.clipboard.writeText(buildShareUrl());
-    setLinkCopied(true);
-    setTimeout(() => setLinkCopied(false), 2000);
+  async function handleShare() {
+    if (!result) return;
+    const triggered = await nativeShareScore({
+      score: result.score,
+      platform: PLATFORM_LABELS[detectedPlatform ?? platform] ?? platform,
+      before: previousScore,
+      shareUrl: buildShareUrl(),
+    });
+    if (!triggered) setShowShareFallback(true);
   }
 
   function handleReoptimise() {
@@ -831,89 +804,72 @@ export function AuditClient({ plan, preferredPlatforms }: { plan: Plan; preferre
               )}
 
               {/* Share your score */}
-              <div className="rounded-xl border border-border/50 bg-card overflow-hidden">
-                <button
-                  type="button"
-                  onClick={() => setShareOpen((o) => !o)}
-                  className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left hover:bg-muted/30 transition-colors"
-                >
+              <div className="rounded-xl border border-border/50 bg-card p-4 space-y-3">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
                       <Share2 className="size-3.5 text-primary" />
                     </div>
                     <div>
                       <p className="text-sm font-semibold">Share your score</p>
-                      <p className="text-xs text-muted-foreground">Show your followers what you scored — and dare them to beat it.</p>
+                      <p className="text-xs text-muted-foreground">Show your followers what you scored.</p>
                     </div>
                   </div>
-                  <span className="text-xs text-muted-foreground shrink-0">{shareOpen ? "▲" : "▼"}</span>
-                </button>
-
-                {shareOpen && (
-                  <div className="border-t border-border/40 px-4 pb-4 pt-3 space-y-3">
-                    {/* Before / after score display */}
-                    {previousScore !== null && (
-                      <div className="flex items-center justify-center gap-4 py-2">
-                        <div className="text-center">
-                          <div className={cn("text-4xl font-bold tabular-nums", overallColour(previousScore))}>
-                            {previousScore}
-                          </div>
-                          <div className="text-[10px] text-muted-foreground mt-0.5">before</div>
+                  {showShareFallback && (
+                    <button onClick={() => setShowShareFallback(false)} className="text-muted-foreground hover:text-foreground">
+                      <X className="size-4" />
+                    </button>
+                  )}
+                </div>
+                {!showShareFallback ? (
+                  <Button variant="outline" size="sm" className="w-full h-8 text-xs gap-1.5" onClick={handleShare}>
+                    <Share2 className="size-3.5" />
+                    Share score
+                  </Button>
+                ) : (
+                  (() => {
+                    const links = buildShareLinks(
+                      result.score,
+                      PLATFORM_LABELS[detectedPlatform ?? platform] ?? platform,
+                      previousScore,
+                      buildShareUrl(),
+                    );
+                    return (
+                      <div className="space-y-2">
+                        <div className="flex gap-2">
+                          <a
+                            href={links.twitter}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex flex-1 items-center justify-center rounded-lg border border-border/50 bg-muted/40 py-2 text-xs font-medium hover:bg-muted/70 transition-colors"
+                          >
+                            X / Twitter
+                          </a>
+                          <a
+                            href={links.facebook}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex flex-1 items-center justify-center rounded-lg border border-border/50 bg-muted/40 py-2 text-xs font-medium hover:bg-muted/70 transition-colors"
+                          >
+                            Facebook
+                          </a>
                         </div>
-                        <div className="text-2xl text-muted-foreground/50">→</div>
-                        <div className="text-center">
-                          <div className={cn("text-4xl font-bold tabular-nums", overallColour(result.score))}>
-                            {result.score}
+                        <div className="rounded-lg border border-border/40 bg-muted/30 px-3 py-2.5">
+                          <div className="flex items-center justify-between mb-1.5">
+                            <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Caption</span>
+                            <button
+                              onClick={() => { navigator.clipboard.writeText(links.caption); toast.success("Caption copied"); }}
+                              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                              <Copy className="size-3" />
+                              Copy
+                            </button>
                           </div>
-                          <div className="text-[10px] text-muted-foreground mt-0.5">after</div>
+                          <p className="whitespace-pre-wrap text-xs leading-relaxed text-foreground">{links.caption}</p>
                         </div>
-                        <span className={cn(
-                          "rounded-full px-2.5 py-1 text-xs font-semibold",
-                          result.score >= previousScore
-                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                            : "bg-red-500/10 text-red-600 dark:text-red-400"
-                        )}>
-                          {result.score >= previousScore ? "+" : ""}{result.score - previousScore} pts
-                        </span>
                       </div>
-                    )}
-
-                    {/* Caption */}
-                    <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Caption</span>
-                        <button
-                          onClick={copyCaption}
-                          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          {captionCopied
-                            ? <><Check className="size-3 text-emerald-500" />Copied</>
-                            : <><Copy className="size-3" />Copy</>}
-                        </button>
-                      </div>
-                      <p className="whitespace-pre-wrap rounded-lg border border-border/40 bg-muted/30 px-3 py-2.5 text-xs leading-relaxed text-foreground">
-                        {buildShareCaption()}
-                      </p>
-                    </div>
-
-                    {/* Link only */}
-                    <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Link only</span>
-                        <button
-                          onClick={copyLink}
-                          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          {linkCopied
-                            ? <><Check className="size-3 text-emerald-500" />Copied</>
-                            : <><Copy className="size-3" />Copy</>}
-                        </button>
-                      </div>
-                      <p className="truncate rounded-lg border border-border/40 bg-muted/30 px-3 py-2 text-xs text-muted-foreground font-mono">
-                        {buildShareUrl()}
-                      </p>
-                    </div>
-                  </div>
+                    );
+                  })()
                 )}
               </div>
 
@@ -940,7 +896,7 @@ export function AuditClient({ plan, preferredPlatforms }: { plan: Plan; preferre
                 variant="outline"
                 size="sm"
                 className="w-full"
-                onClick={() => { setResult(null); setError(null); setLastPayload(null); setShareOpen(false); setPreviousScore(null); }}
+                onClick={() => { setResult(null); setError(null); setLastPayload(null); setShowShareFallback(false); setPreviousScore(null); }}
               >
                 <RotateCcw className="size-3.5" />
                 Audit another listing
