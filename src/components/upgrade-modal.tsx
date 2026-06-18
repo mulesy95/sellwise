@@ -1,15 +1,41 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { X, Lock, Search, BarChart3, ArrowLeftRight, Store, Check, Sparkles } from "lucide-react";
+import { X, Search, BarChart3, ArrowLeftRight, Store, Check, Sparkles, Upload } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 
 const LOCKED_FEATURES = [
-  { icon: Sparkles,      label: "Listing Optimiser",    hint: "AI-written titles, tags, bullets and descriptions for all 9 platforms including Amazon, Shopify and eBay" },
-  { icon: Search,        label: "Keyword Research",     hint: "15 keywords per search with volume and trend signals" },
-  { icon: BarChart3,     label: "Listing Audit",        hint: "Score your listings 0–100 with specific fixes" },
-  { icon: ArrowLeftRight, label: "Platform Migration",  hint: "Reformat any listing for any marketplace in seconds" },
-  { icon: Store,         label: "Store Connect",        hint: "Connect Shopify or eBay — view SEO scores and optimise without copy-paste" },
+  {
+    icon: Sparkles,
+    label: "Listing Optimiser",
+    hint: "All 9 platforms — Amazon, Shopify, eBay, Etsy + 5 more",
+  },
+  {
+    icon: Search,
+    label: "Keyword Research",
+    hint: "15 keywords per search with volume and trend signals",
+  },
+  {
+    icon: BarChart3,
+    label: "Listing Audit",
+    hint: "Score 0–100 with specific improvements to fix",
+  },
+  {
+    icon: ArrowLeftRight,
+    label: "Platform Migration",
+    hint: "Reformat any listing for any marketplace in seconds",
+  },
+  {
+    icon: Store,
+    label: "Store Connect",
+    hint: "Connect Shopify or eBay — see SEO scores across all your listings",
+  },
+  {
+    icon: Upload,
+    label: "Push to Live Store",
+    hint: "One-click content push back to Shopify and eBay without copy-paste",
+    badge: "Studio",
+  },
 ];
 
 const PLANS = [
@@ -22,9 +48,10 @@ const PLANS = [
       "Unlimited optimisations",
       "All 9 platforms — Amazon, Shopify, eBay, Etsy + more",
       "Keyword research, audit, platform migration",
-      "Connect 1 store — view scores and optimise",
+      "1 connected store — view SEO scores and optimise",
     ],
     href: "/pricing",
+    cta: "Start free trial",
     primary: true,
   },
   {
@@ -34,11 +61,12 @@ const PLANS = [
     badge: "For power sellers",
     features: [
       "Everything in Growth",
+      "Push content live to Shopify and eBay",
       "Unlimited connected stores",
-      "Push content live to Shopify and eBay — no copy-paste",
       "Multi-platform push in one click",
     ],
     href: "/pricing",
+    cta: "Get Studio",
     primary: false,
   },
 ];
@@ -86,7 +114,7 @@ export function UpgradeModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="upgrade-modal-title"
-        className="relative z-10 w-full max-w-lg rounded-xl border border-border bg-card shadow-2xl"
+        className="relative z-10 w-full max-w-lg rounded-xl border border-border bg-card shadow-2xl overflow-y-auto max-h-[90vh]"
       >
         {/* Header */}
         <div className="flex items-start justify-between p-6 pb-4">
@@ -94,12 +122,12 @@ export function UpgradeModal({
             <h2 id="upgrade-modal-title" className="text-base font-bold">
               {isLimit
                 ? "You've outgrown this plan"
-                : "This feature is on paid plans"}
+                : "This is a paid feature"}
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
               {isLimit
                 ? "Don't lose momentum — here's what keeps working when you upgrade:"
-                : "All paid plans include a 7-day free trial. No card required to start."}
+                : "All plans include a 7-day free trial. No card required."}
             </p>
           </div>
           <button
@@ -112,7 +140,7 @@ export function UpgradeModal({
           </button>
         </div>
 
-        {/* Blurred description preview — shown when a locked description is passed */}
+        {/* Blurred description preview */}
         {isLimit && lockedDescription && (
           <div className="relative mx-6 mb-3 overflow-hidden rounded-md border border-border/50 bg-muted/20 p-3 space-y-1">
             <p className="text-[11px] font-medium text-muted-foreground">Here&apos;s what we wrote for you</p>
@@ -123,27 +151,32 @@ export function UpgradeModal({
           </div>
         )}
 
-        {/* Locked features — shown only on limit hit */}
-        {isLimit && (
-          <div className="mx-6 mb-4 rounded-lg border border-border bg-muted/40 p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-3">
-              What unlocks on paid plans
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {LOCKED_FEATURES.map(({ icon: Icon, label, hint }) => (
-                <div key={label} className="flex items-start gap-2">
-                  <div className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md bg-background border border-border">
-                    <Icon className="size-3 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium">{label}</p>
-                    <p className="text-[11px] text-muted-foreground leading-snug">{hint}</p>
-                  </div>
+        {/* Feature grid — always shown */}
+        <div className="mx-6 mb-4 rounded-lg border border-border bg-muted/40 p-4">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-3">
+            {isLimit ? "What unlocks when you upgrade" : "What's included on paid plans"}
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {LOCKED_FEATURES.map(({ icon: Icon, label, hint, badge }) => (
+              <div key={label} className="flex items-start gap-2">
+                <div className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md bg-background border border-border">
+                  <Icon className="size-3 text-muted-foreground" />
                 </div>
-              ))}
-            </div>
+                <div>
+                  <p className="text-xs font-medium flex items-center gap-1.5">
+                    {label}
+                    {badge && (
+                      <span className="rounded-sm bg-primary/10 px-1 py-0.5 text-[9px] font-semibold text-primary tracking-wide leading-none">
+                        {badge}
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground leading-snug">{hint}</p>
+                </div>
+              </div>
+            ))}
           </div>
-        )}
+        </div>
 
         {/* Plan cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 px-6 pb-2">
@@ -186,14 +219,14 @@ export function UpgradeModal({
                   className: "w-full text-xs",
                 })}
               >
-                Get {plan.name}
+                {plan.cta}
               </a>
             </div>
           ))}
         </div>
 
         <div className="flex items-center justify-between border-t border-border mt-3 px-6 py-3">
-          <p className="text-xs text-muted-foreground">Start free for 7 days. No card required.</p>
+          <p className="text-xs text-muted-foreground">7 days free &middot; No card required &middot; Cancel anytime</p>
           <a href="/pricing" className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">
             See all plans
           </a>
