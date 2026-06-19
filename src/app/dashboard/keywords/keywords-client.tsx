@@ -140,6 +140,7 @@ export function KeywordsClient({ preferredPlatforms }: { preferredPlatforms: Pla
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [upgradeReason, setUpgradeReason] = useState<"limit" | "feature" | "trial_expired">("feature");
   const [saving, setSaving] = useState(false);
   const [saveListName, setSaveListName] = useState("");
   const [showSaveInput, setShowSaveInput] = useState(false);
@@ -287,6 +288,7 @@ export function KeywordsClient({ preferredPlatforms }: { preferredPlatforms: Pla
       if (!res.ok) {
         const err = await res.json();
         if (res.status === 402) {
+          setUpgradeReason(err.code === "TRIAL_EXPIRED" ? "trial_expired" : "feature");
           setUpgradeOpen(true);
           return;
         }
@@ -321,7 +323,7 @@ export function KeywordsClient({ preferredPlatforms }: { preferredPlatforms: Pla
 
   return (
     <div className="space-y-6">
-      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} reason="feature" />
+      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} reason={upgradeReason} />
 
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">

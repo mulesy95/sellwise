@@ -144,10 +144,11 @@ export async function POST(request: NextRequest) {
   ]);
 
   if (usageData.effectivePlan === "free") {
+    const trialExpired = usageData.plan === "free" && usageData.trialEndsAt !== null && !usageData.inTrial;
     return NextResponse.json(
       {
-        error: "Keyword research is available on paid plans.",
-        code: "FEATURE_GATED",
+        error: trialExpired ? "Your free trial has ended." : "Keyword research is available on paid plans.",
+        code: trialExpired ? "TRIAL_EXPIRED" : "FEATURE_GATED",
       },
       { status: 402 }
     );

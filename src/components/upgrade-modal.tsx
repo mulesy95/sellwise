@@ -88,7 +88,7 @@ export function UpgradeModal({
 }: {
   open: boolean;
   onClose: () => void;
-  reason?: "limit" | "feature";
+  reason?: "limit" | "feature" | "trial_expired";
   lockedDescription?: string;
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -131,6 +131,7 @@ export function UpgradeModal({
   if (!open) return null;
 
   const isLimit = reason === "limit";
+  const isTrialExpired = reason === "trial_expired";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -150,12 +151,16 @@ export function UpgradeModal({
         <div className="flex items-start justify-between p-6 pb-4">
           <div>
             <h2 id="upgrade-modal-title" className="text-base font-bold">
-              {isLimit
+              {isTrialExpired
+                ? "Your free trial has ended"
+                : isLimit
                 ? "You've outgrown this plan"
                 : "This is a paid feature"}
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
-              {isLimit
+              {isTrialExpired
+                ? "Pick a plan to keep going — it takes 30 seconds."
+                : isLimit
                 ? "Don't lose momentum — here's what keeps working when you upgrade:"
                 : "All plans include a 7-day free trial. No card required."}
             </p>
@@ -170,7 +175,7 @@ export function UpgradeModal({
           </button>
         </div>
 
-        {/* Blurred description preview */}
+        {/* Blurred description preview — limit hits only */}
         {isLimit && lockedDescription && (
           <div className="relative mx-6 mb-3 overflow-hidden rounded-md border border-border/50 bg-muted/20 p-3 space-y-1">
             <p className="text-[11px] font-medium text-muted-foreground">Here&apos;s what we wrote for you</p>
@@ -184,7 +189,7 @@ export function UpgradeModal({
         {/* Feature grid — always shown */}
         <div className="mx-6 mb-4 rounded-lg border border-border bg-muted/40 p-4">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-3">
-            {isLimit ? "What unlocks when you upgrade" : "What's included on paid plans"}
+            {isTrialExpired ? "What's included when you pick a plan" : isLimit ? "What unlocks when you upgrade" : "What's included on paid plans"}
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {LOCKED_FEATURES.map(({ icon: Icon, label, hint, badge }) => (

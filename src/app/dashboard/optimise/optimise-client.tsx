@@ -654,6 +654,7 @@ export function OptimiseClient({
   const [result, setResult] = useState<OptimisedListing | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [upgradeReason, setUpgradeReason] = useState<"limit" | "feature" | "trial_expired">("limit");
   const [error, setError] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
@@ -959,6 +960,7 @@ export function OptimiseClient({
         const err = await res.json();
         if (res.status === 402) {
           setResult(previousResult);
+          setUpgradeReason(err.code === "TRIAL_EXPIRED" ? "trial_expired" : "limit");
           setUpgradeOpen(true);
           return;
         }
@@ -1111,8 +1113,8 @@ export function OptimiseClient({
           setUpgradeOpen(false);
           setLockedDesc(undefined);
         }}
-        reason="limit"
-        lockedDescription={lockedDesc}
+        reason={upgradeReason}
+        lockedDescription={upgradeReason === "limit" ? lockedDesc : undefined}
       />
 
       <div>

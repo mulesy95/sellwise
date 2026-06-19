@@ -314,10 +314,16 @@ export async function POST(request: NextRequest) {
   let used = 0;
   let limit = 0;
   if (!demo) {
-    const { allowed, used: usedCount, limit: limitCount, dailyLimitHit, dailyLimit } = await checkLimit(user.id, "optimisations");
+    const { allowed, used: usedCount, limit: limitCount, dailyLimitHit, dailyLimit, trialExpired } = await checkLimit(user.id, "optimisations");
     used = usedCount;
     limit = limitCount ?? 0;
     if (!allowed) {
+      if (trialExpired) {
+        return NextResponse.json(
+          { error: "Your free trial has ended.", code: "TRIAL_EXPIRED" },
+          { status: 402 }
+        );
+      }
       const error = dailyLimitHit
         ? `You've hit today's limit of ${dailyLimit} optimisations. Resets at midnight — or upgrade your plan for a higher daily limit.`
         : `You've used all ${limit} optimisations for this month. Upgrade your plan to continue.`;

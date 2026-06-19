@@ -157,6 +157,7 @@ export function MigrateClient({ preferredPlatforms }: { preferredPlatforms: Plat
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [upgradeReason, setUpgradeReason] = useState<"limit" | "feature" | "trial_expired">("feature");
   const [showAllPlatforms, setShowAllPlatforms] = useState(false);
 
   const visiblePlatforms: Platform[] =
@@ -236,7 +237,7 @@ export function MigrateClient({ preferredPlatforms }: { preferredPlatforms: Plat
       const data = await res.json();
 
       if (!res.ok) {
-        if (res.status === 402) { setUpgradeOpen(true); return; }
+        if (res.status === 402) { setUpgradeReason(data.code === "TRIAL_EXPIRED" ? "trial_expired" : "feature"); setUpgradeOpen(true); return; }
         setError(data.error ?? "Something went wrong");
         return;
       }
@@ -268,7 +269,7 @@ export function MigrateClient({ preferredPlatforms }: { preferredPlatforms: Plat
 
   return (
     <div className="space-y-6">
-      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} reason="feature" />
+      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} reason={upgradeReason} />
 
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">

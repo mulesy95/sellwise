@@ -251,8 +251,12 @@ export async function POST(request: NextRequest) {
 
   const usageData = await getUsageData(user.id);
   if (usageData.effectivePlan === "free") {
+    const trialExpired = usageData.plan === "free" && usageData.trialEndsAt !== null && !usageData.inTrial;
     return NextResponse.json(
-      { error: "Platform migration is available on paid plans.", code: "FEATURE_GATED" },
+      {
+        error: trialExpired ? "Your free trial has ended." : "Platform migration is available on paid plans.",
+        code: trialExpired ? "TRIAL_EXPIRED" : "FEATURE_GATED",
+      },
       { status: 402 }
     );
   }

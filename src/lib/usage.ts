@@ -96,6 +96,7 @@ export async function checkLimit(
   dailyLimitHit: boolean;
   dailyLimit: number | null;
   dailyUsed: number;
+  trialExpired: boolean;
 }> {
   const data = await getUsageData(userId);
   const used = data[type];
@@ -108,6 +109,13 @@ export async function checkLimit(
 
   const allowed = monthlyOk && !dailyLimitHit;
 
+  // Trial expired = had a trial (trialEndsAt set), trial is now over, back on free plan
+  const trialExpired =
+    !allowed &&
+    data.plan === "free" &&
+    data.trialEndsAt !== null &&
+    !data.inTrial;
+
   return {
     allowed,
     used,
@@ -115,6 +123,7 @@ export async function checkLimit(
     dailyLimitHit,
     dailyLimit: type === "optimisations" ? data.dailyLimit : null,
     dailyUsed: data.dailyOptimisations,
+    trialExpired,
   };
 }
 
