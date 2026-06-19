@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { X, Search, BarChart3, ArrowLeftRight, Store, Check, Sparkles, Upload } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { X, Search, BarChart3, ArrowLeftRight, Store, Check, Sparkles, Upload, Loader2 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 
 const LOCKED_FEATURES = [
@@ -38,9 +38,19 @@ const LOCKED_FEATURES = [
   },
 ];
 
-const PLANS = [
+const PLANS: Array<{
+  name: string;
+  planKey: "growth" | "studio";
+  price: string;
+  period: string;
+  badge: string;
+  features: string[];
+  cta: string;
+  primary: boolean;
+}> = [
   {
     name: "Growth",
+    planKey: "growth",
     price: "$29",
     period: "/mo",
     badge: "Most popular",
@@ -50,12 +60,12 @@ const PLANS = [
       "Keyword research, audit, platform migration",
       "1 connected store — view SEO scores and optimise",
     ],
-    href: "/pricing",
     cta: "Start free trial",
     primary: true,
   },
   {
     name: "Studio",
+    planKey: "studio",
     price: "$79",
     period: "/mo",
     badge: "For power sellers",
@@ -65,7 +75,6 @@ const PLANS = [
       "Unlimited connected stores",
       "Multi-platform push in one click",
     ],
-    href: "/pricing",
     cta: "Get Studio",
     primary: false,
   },
@@ -83,6 +92,27 @@ export function UpgradeModal({
   lockedDescription?: string;
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  const [checkoutLoading, setCheckoutLoading] = useState<"growth" | "studio" | null>(null);
+
+  async function startCheckout(plan: "growth" | "studio") {
+    setCheckoutLoading(plan);
+    try {
+      const res = await fetch("/api/stripe/create-checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan, billing: "monthly" }),
+      });
+      if (res.ok) {
+        const { url } = await res.json();
+        if (url) { window.location.href = url; return; }
+      }
+      window.location.href = "/pricing";
+    } catch {
+      window.location.href = "/pricing";
+    } finally {
+      setCheckoutLoading(null);
+    }
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -211,21 +241,29 @@ export function UpgradeModal({
                   </li>
                 ))}
               </ul>
-              <a
-                href={plan.href}
+              <button
+                type="button"
+                onClick={() => startCheckout(plan.planKey)}
+                disabled={checkoutLoading !== null}
                 className={buttonVariants({
                   size: "sm",
                   variant: plan.primary ? "default" : "outline",
-                  className: "w-full text-xs",
+                  className: "w-full text-xs gap-1.5",
                 })}
               >
-                {plan.cta}
-              </a>
+                {checkoutLoading === plan.planKey ? (
+                  <><Loader2 className="size-3 animate-spin" />Starting...</>
+                ) : plan.cta}
+              </button>
             </div>
           ))}
         </div>
 
-        <div className="flex items-center justify-between border-t border-border mt-3 px-6 py-3">
+        <p className="px-6 pt-1 pb-3 text-[11px] text-muted-foreground/70 text-center">
+          Monthly billing. Save 17% on annual — <a href="/pricing" className="underline underline-offset-2 hover:text-muted-foreground">see pricing page</a>.
+        </p>
+
+        <div className="flex items-center justify-between border-t border-border px-6 py-3">
           <p className="text-xs text-muted-foreground">7 days free &middot; No card required &middot; Cancel anytime</p>
           <a href="/pricing" className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">
             See all plans
